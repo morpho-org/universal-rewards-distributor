@@ -1,30 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@solmate/src/utils/SafeTransferLib.sol";
+import {IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
 
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC20, SafeTransferLib} from "@solmate/src/utils/SafeTransferLib.sol";
 
-contract UniversalRewardsDistributor is Ownable {
+import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+contract UniversalRewardsDistributor is IUniversalRewardsDistributor, Ownable {
     using SafeTransferLib for ERC20;
 
     /* STORAGE */
 
     bytes32 public root;
     mapping(address => mapping(address => uint256)) public claimed;
-
-    /* EVENTS */
-
-    event RootUpdated(bytes32 newRoot);
-
-    event RewardsClaimed(address reward, address account, uint256 amount);
-
-    /* ERRORS */
-
-    error ProofInvalidOrExpired();
-
-    error AlreadyClaimed();
 
     /* EXTERNAL */
 
