@@ -3,4 +3,18 @@ src = "src"
 out = "out"
 libs = ["lib"]
 
+[invariant]
+runs = 4
+depth = 64
+
+[fuzz]
+runs = 512
+
+[profile.ci.fuzz]
+runs = 512
+
+[profile.ci.invariant]
+runs = 8
+depth = 256
+
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
