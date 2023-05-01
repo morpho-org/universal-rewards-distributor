@@ -4,11 +4,13 @@ pragma solidity ^0.8.0;
 import "@solmate/src/test/utils/mocks/MockERC20.sol";
 import "src/UniversalRewardsDistributor.sol";
 
-import { Merkle } from "murky/Merkle.sol";
+import {Merkle} from "@murky/src/Merkle.sol";
 
 import "@forge-std/Test.sol";
 
 contract UniversalRouterDistributor is Test {
+	uint256 constant internal MAX_RECEIVERS = 20;
+
 	UniversalRewardsDistributor internal distributor;
 	Merkle merkle = new Merkle();
 	MockERC20 internal token1;
@@ -51,41 +53,31 @@ contract UniversalRouterDistributor is Test {
 		distributor.skim(address(token1));
 	}
 
-	function testTree(uint256 claimable) public {
+	function testRewards(uint256 claimable, uint8 nbOfReceivers) public {
 		claimable = bound(claimable, 1 ether, type(uint256).max);
+		uint256 boundedNbOfReceivers = bound(nbOfReceivers, 2, MAX_RECEIVERS);
 
-		bytes32[] memory data = new bytes32[](10);
-		_setupData(data, claimable);
-
-		bytes32 root = merkle.getRoot(data);
-		distributor.updateRoot(root);
-
-		for (uint256 i = 0; i < 5; i++) {
-			bytes32[] memory proof = merkle.getProof(data, i);
-			deal(address(token1), address(distributor), claimable / (i + 1));
-			distributor.claim(vm.addr(i + 1), address(token1), claimable / (i + 1), proof);
-
-			assertEq(ERC20(address(token1)).balanceOf(address(distributor)), 0);
-			assertEq(ERC20(address(token1)).balanceOf(vm.addr(i + 1)), claimable / (i + 1));
-		}
-		for (uint256 i = 5; i < 10; i++) {
-			bytes32[] memory proof = merkle.getProof(data, i);
-			deal(address(token2), address(distributor), claimable / (i + 1));
-			distributor.claim(vm.addr(i + 1), address(token2), claimable / (i + 1), proof);
-
-			assertEq(ERC20(address(token2)).balanceOf(address(distributor)), 0);
-			assertEq(ERC20(address(token2)).balanceOf(vm.addr(i + 1)), claimable / (i + 1));
-		}
+		bytes32[] memory data = _setupRewards(claimable, boundedNbOfReceivers);
+		_claimAndVerifyRewards(data, claimable);
 	}
 
-	function testTreeShouldRevertWhenAlreadyClaimed(uint256 claimable) public {
+	function testRewardsWithUpdate(uint256 claimable1, uint256 claimable2, uint8 nbOfReceivers) public {
+		claimable1 = bound(claimable1, 1 ether, type(uint128).max);
+		claimable2 = bound(claimable2, claimable1 * 2, type(uint256).max);
+		uint256 boundedNbOfReceivers = bound(nbOfReceivers, 2, MAX_RECEIVERS);
+
+		bytes32[] memory data = _setupRewards(claimable1, boundedNbOfReceivers);
+		_claimAndVerifyRewards(data, claimable1);
+
+		data = _setupRewards(claimable2, boundedNbOfReceivers);
+		_claimAndVerifyRewards(data, claimable2);
+	}
+
+	function testRewardsShouldRevertWhenAlreadyClaimed(uint256 claimable, uint8 nbOfReceivers) public {
 		claimable = bound(claimable, 1 ether, type(uint256).max);
+		uint256 boundedNbOfReceivers = bound(nbOfReceivers, 2, MAX_RECEIVERS);
 
-		bytes32[] memory data = new bytes32[](10);
-		_setupData(data, claimable);
-
-		bytes32 root = merkle.getRoot(data);
-		distributor.updateRoot(root);
+		bytes32[] memory data = _setupRewards(claimable, boundedNbOfReceivers);
 
 		bytes32[] memory proof = merkle.getProof(data, 0);
 		deal(address(token1), address(distributor), claimable);
@@ -95,28 +87,22 @@ contract UniversalRouterDistributor is Test {
 		distributor.claim(vm.addr(1), address(token1), claimable, proof);
 	}
 
-	function testTreeShouldRevertWhenInvalidProofAndCorrectInputs(bytes32[] memory proof, uint256 claimable) public {
+	function testRewardsShouldRevertWhenInvalidProofAndCorrectInputs(bytes32[] memory proof, uint256 claimable, uint8 nbOfReceivers) public {
 		claimable = bound(claimable, 1 ether, type(uint256).max);
+		uint256 boundedNbOfReceivers = bound(nbOfReceivers, 2, MAX_RECEIVERS);
 
-		bytes32[] memory data = new bytes32[](10);
-		_setupData(data, claimable);
-
-		bytes32 root = merkle.getRoot(data);
-		distributor.updateRoot(root);
+		_setupRewards(claimable, boundedNbOfReceivers);
 
 		deal(address(token1), address(distributor), claimable);
 		vm.expectRevert(IUniversalRewardsDistributor.ProofInvalidOrExpired.selector);
 		distributor.claim(vm.addr(1), address(token1), claimable, proof);
 	}
 
-	function testTreeShouldRevertWhenValidProofButIncorrectInputs(address account, address reward, uint256 amount, uint256 claimable) public {
+	function testRewardsShouldRevertWhenValidProofButIncorrectInputs(address account, address reward, uint256 amount, uint256 claimable, uint8 nbOfReceivers) public {
 		claimable = bound(claimable, 1 ether, type(uint256).max);
+		uint256 boundedNbOfReceivers = bound(nbOfReceivers, 2, MAX_RECEIVERS);
 
-		bytes32[] memory data = new bytes32[](10);
-		_setupData(data, claimable);
-
-		bytes32 root = merkle.getRoot(data);
-		distributor.updateRoot(root);
+		bytes32[] memory data = _setupRewards(claimable, boundedNbOfReceivers);
 
 		bytes32[] memory proof = merkle.getProof(data, 0);
 		deal(address(token1), address(distributor), claimable);
@@ -124,12 +110,50 @@ contract UniversalRouterDistributor is Test {
 		distributor.claim(account, reward, amount, proof);
 	}
 
-	function _setupData(bytes32[] memory data, uint256 claimable) internal view {
+	function _setupRewards(uint256 claimable, uint256 size) internal returns (bytes32[] memory data) {
+		data = new bytes32[](size);
+
+		for (uint256 i = 0; i < size / 2; i++) {
+			uint256 index = i + 1;
+            data[i] = keccak256(abi.encodePacked(vm.addr(index), address(token1), uint256(claimable / index)));
+        }
+		for (uint256 i = size / 2; i < size; i++) {
+			uint256 index = i + 1;
+            data[i] = keccak256(abi.encodePacked(vm.addr(index), address(token2), uint256(claimable / index)));
+        }
+
+		bytes32 root = merkle.getRoot(data);
+		distributor.updateRoot(root);
+	}
+
+	function _claimAndVerifyRewards(bytes32[] memory data, uint256 claimable) internal {
 		for (uint256 i = 0; i < data.length / 2; i++) {
-            data[i] = keccak256(abi.encodePacked(vm.addr(i + 1), address(token1), uint256(claimable / (i + 1))));
-        }
+			bytes32[] memory proof = merkle.getProof(data, i);
+
+			uint256 index = i + 1;
+			uint256 claimableInput = claimable / index;
+			uint256 claimableAdjusted = claimableInput - distributor.claimed(vm.addr(index), address(token1));
+			deal(address(token1), address(distributor), claimableAdjusted);
+			uint256 balanceBefore = ERC20(address(token1)).balanceOf(vm.addr(index));
+
+			distributor.claim(vm.addr(index), address(token1), claimableInput, proof);
+
+			assertEq(ERC20(address(token1)).balanceOf(address(distributor)), 0);
+			assertEq(ERC20(address(token1)).balanceOf(vm.addr(index)), balanceBefore + claimableAdjusted);
+		}
 		for (uint256 i = data.length / 2; i < data.length; i++) {
-            data[i] = keccak256(abi.encodePacked(vm.addr(i + 1), address(token2), uint256(claimable / (i + 1))));
-        }
+			bytes32[] memory proof = merkle.getProof(data, i);
+
+			uint256 index = i + 1;
+			uint256 claimableInput = claimable / index;
+			uint256 claimableAdjusted = claimableInput - distributor.claimed(vm.addr(index), address(token2));
+			deal(address(token2), address(distributor), claimableAdjusted);
+			uint256 balanceBefore = ERC20(address(token2)).balanceOf(vm.addr(index));
+
+			distributor.claim(vm.addr(index), address(token2), claimableInput, proof);
+
+			assertEq(ERC20(address(token2)).balanceOf(address(distributor)), 0);
+			assertEq(ERC20(address(token2)).balanceOf(vm.addr(index)), balanceBefore + claimableAdjusted);
+		}
 	}
 }

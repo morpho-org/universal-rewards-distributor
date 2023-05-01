@@ -6,3 +6,4 @@ test/=test/
 
 @openzeppelin/=lib/openzeppelin-contracts/
 @solmate/=lib/solmate/
+@murky/=lib/murky/
