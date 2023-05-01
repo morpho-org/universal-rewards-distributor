@@ -8,7 +8,7 @@ import {ERC20, SafeTransferLib} from "@solmate/src/utils/SafeTransferLib.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @title Universal Rewards Distributor
+/// @title UniversalRewardsDistributor
 /// @author MerlinEgalite
 /// @notice This contract allows to distribute different rewards tokens to multiple accounts using a Merkle tree.
 ///         It is largely inspired by Morpho's current rewards distributor:
@@ -58,6 +58,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor, Ownable {
         claimed[account][reward] = claimable;
 
         ERC20(reward).safeTransfer(account, amount);
-        emit RewardsClaimed(reward, account, amount);
+        emit RewardsClaimed(account, reward, amount);
     }
 }
