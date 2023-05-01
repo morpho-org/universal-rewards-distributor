@@ -2,7 +2,7 @@
 pragma solidity >=0.5.0;
 
 interface IUniversalRewardsDistributor {
-	/* EVENTS */
+    /* EVENTS */
 
     event RootUpdated(bytes32 newRoot);
 
@@ -14,16 +14,11 @@ interface IUniversalRewardsDistributor {
 
     error AlreadyClaimed();
 
-	/* EXTERNAL */
+    /* EXTERNAL */
 
-	function updateRoot(bytes32 newRoot) external;
+    function updateRoot(bytes32 newRoot) external;
 
-	function skim(address token) external;
+    function skim(address token) external;
 
-	function claim(
-		address account,
-		address reward,
-		uint256 claimable,
-		bytes32[] calldata proof
-	) external;
+    function claim(address account, address reward, uint256 claimable, bytes32[] calldata proof) external;
 }

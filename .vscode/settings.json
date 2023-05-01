@@ -1,0 +1,14 @@
+{
+    "[solidity]": {
+        "editor.formatOnSave": false
+    },
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": ".sol",
+                "isAsync": true,
+                "cmd": "forge fmt ${file}"
+            },
+        ]
+    }
+}
