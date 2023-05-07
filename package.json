@@ -1,0 +1,12 @@
+{
+  "name": "universal-rewards-distributor",
+  "version": "1.0.0",
+  "description": "A universal rewards distributor written in Solidity.",
+  "main": "index.js",
+  "repository": "git@github.com:MerlinEgalite/universal-rewards-distributor.git",
+  "author": "MerlinEgalite <egalite.merlin@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "husky": "^8.0.3"
+  }
+}
