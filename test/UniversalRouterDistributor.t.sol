@@ -123,13 +123,13 @@ contract UniversalRouterDistributor is Test {
     function _setupRewards(uint256 claimable, uint256 size) internal returns (bytes32[] memory data) {
         data = new bytes32[](size);
 
-		uint256 i;
+        uint256 i;
         while (i < size / 2) {
             uint256 index = i + 1;
             data[i] = keccak256(abi.encodePacked(vm.addr(index), address(token1), uint256(claimable / index)));
-			data[i + 1] = keccak256(abi.encodePacked(vm.addr(index), address(token2), uint256(claimable / index)));
+            data[i + 1] = keccak256(abi.encodePacked(vm.addr(index), address(token2), uint256(claimable / index)));
 
-			i += 2;
+            i += 2;
         }
 
         bytes32 root = merkle.getRoot(data);
@@ -137,7 +137,7 @@ contract UniversalRouterDistributor is Test {
     }
 
     function _claimAndVerifyRewards(bytes32[] memory data, uint256 claimable) internal {
-		uint256 i;
+        uint256 i;
         while (i < data.length / 2) {
             bytes32[] memory proof1 = merkle.getProof(data, i);
             bytes32[] memory proof2 = merkle.getProof(data, i + 1);
@@ -159,7 +159,7 @@ contract UniversalRouterDistributor is Test {
             assertEq(ERC20(address(token2)).balanceOf(address(distributor)), 0);
             assertEq(ERC20(address(token2)).balanceOf(vm.addr(index)), balanceBefore2 + claimableAdjusted2);
 
-			i += 2;
+            i += 2;
         }
     }
 }
