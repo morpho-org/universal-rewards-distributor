@@ -165,10 +165,16 @@ contract UniversalRouterDistributor is Test {
             emit RewardsClaimed(vm.addr(index), address(token2), claimableAdjusted2);
             distributor.claim(vm.addr(index), address(token2), claimableInput, proof2);
 
+            uint256 balanceAfter1 = balanceBefore1 + claimableAdjusted1;
+            uint256 balanceAfter2 = balanceBefore2 + claimableAdjusted2;
+
             assertEq(ERC20(address(token1)).balanceOf(address(distributor)), 0);
-            assertEq(ERC20(address(token1)).balanceOf(vm.addr(index)), balanceBefore1 + claimableAdjusted1);
+            assertEq(ERC20(address(token1)).balanceOf(vm.addr(index)), balanceAfter1);
             assertEq(ERC20(address(token2)).balanceOf(address(distributor)), 0);
-            assertEq(ERC20(address(token2)).balanceOf(vm.addr(index)), balanceBefore2 + claimableAdjusted2);
+            assertEq(ERC20(address(token2)).balanceOf(vm.addr(index)), balanceAfter2);
+            // Assert claimed getter
+            assertEq(distributor.claimed(vm.addr(index), address(token1)), balanceAfter1);
+            assertEq(distributor.claimed(vm.addr(index), address(token2)), balanceAfter2);
 
             i += 2;
         }
