@@ -16,6 +16,9 @@ contract UniversalRouterDistributor is Test {
     MockERC20 internal token1;
     MockERC20 internal token2;
 
+    event RootUpdated(bytes32 newRoot);
+    event RewardsClaimed(address account, address reward, uint256 amount);
+
     function setUp() public {
         distributor = new UniversalRewardsDistributor();
         token1 = new MockERC20("Token1", "TKN1", 18);
@@ -23,6 +26,8 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testUpdateRoot(bytes32 root) public {
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit RootUpdated(root);
         distributor.updateRoot(root);
 
         assertEq(distributor.root(), root);
@@ -151,7 +156,13 @@ contract UniversalRouterDistributor is Test {
             uint256 balanceBefore1 = ERC20(address(token1)).balanceOf(vm.addr(index));
             uint256 balanceBefore2 = ERC20(address(token2)).balanceOf(vm.addr(index));
 
+            // Claim token1
+            vm.expectEmit(true, true, true, true, address(distributor));
+            emit RewardsClaimed(vm.addr(index), address(token1), claimableAdjusted1);
             distributor.claim(vm.addr(index), address(token1), claimableInput, proof1);
+            // Claim token2
+            vm.expectEmit(true, true, true, true, address(distributor));
+            emit RewardsClaimed(vm.addr(index), address(token2), claimableAdjusted2);
             distributor.claim(vm.addr(index), address(token2), claimableInput, proof2);
 
             assertEq(ERC20(address(token1)).balanceOf(address(distributor)), 0);
