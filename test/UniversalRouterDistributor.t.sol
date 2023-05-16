@@ -125,6 +125,22 @@ contract UniversalRouterDistributor is Test {
         distributor.claim(account, reward, amount, proof);
     }
 
+    /// @dev In the implementation, claimed rewards are stored as a mapping.
+    ///      The test function use vm.store to emulate assignations.
+    ///      | Name    | Type                                            | Slot | Offset | Bytes |
+    ///      |---------|-------------------------------------------------|------|--------|-------|
+    ///      | _owner  | address                                         | 0    | 0      | 20    |
+    ///      | root    | bytes32                                         | 1    | 0      | 32    |
+    ///      | claimed | mapping(address => mapping(address => uint256)) | 2    | 0      | 32    |
+    function testClaimedGetter(address token, address account, uint256 amount) public {
+        vm.store(
+            address(distributor),
+            keccak256(abi.encode(address(token), keccak256(abi.encode(account, uint256(2))))),
+            bytes32(amount)
+        );
+        assertEq(distributor.claimed(account, token), amount);
+    }
+
     function _setupRewards(uint256 claimable, uint256 size) internal returns (bytes32[] memory data) {
         data = new bytes32[](size);
 
