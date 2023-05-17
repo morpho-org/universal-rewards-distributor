@@ -16,6 +16,9 @@ contract UniversalRouterDistributor is Test {
     MockERC20 internal token1;
     MockERC20 internal token2;
 
+    event RootUpdated(bytes32 newRoot);
+    event RewardsClaimed(address account, address reward, uint256 amount);
+
     function setUp() public {
         distributor = new UniversalRewardsDistributor();
         token1 = new MockERC20("Token1", "TKN1", 18);
@@ -23,6 +26,8 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testUpdateRoot(bytes32 root) public {
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit RootUpdated(root);
         distributor.updateRoot(root);
 
         assertEq(distributor.root(), root);
@@ -120,6 +125,22 @@ contract UniversalRouterDistributor is Test {
         distributor.claim(account, reward, amount, proof);
     }
 
+    /// @dev In the implementation, claimed rewards are stored as a mapping.
+    ///      The test function use vm.store to emulate assignations.
+    ///      | Name    | Type                                            | Slot | Offset | Bytes |
+    ///      |---------|-------------------------------------------------|------|--------|-------|
+    ///      | _owner  | address                                         | 0    | 0      | 20    |
+    ///      | root    | bytes32                                         | 1    | 0      | 32    |
+    ///      | claimed | mapping(address => mapping(address => uint256)) | 2    | 0      | 32    |
+    function testClaimedGetter(address token, address account, uint256 amount) public {
+        vm.store(
+            address(distributor),
+            keccak256(abi.encode(address(token), keccak256(abi.encode(account, uint256(2))))),
+            bytes32(amount)
+        );
+        assertEq(distributor.claimed(account, token), amount);
+    }
+
     function _setupRewards(uint256 claimable, uint256 size) internal returns (bytes32[] memory data) {
         data = new bytes32[](size);
 
@@ -151,13 +172,25 @@ contract UniversalRouterDistributor is Test {
             uint256 balanceBefore1 = ERC20(address(token1)).balanceOf(vm.addr(index));
             uint256 balanceBefore2 = ERC20(address(token2)).balanceOf(vm.addr(index));
 
+            // Claim token1
+            vm.expectEmit(true, true, true, true, address(distributor));
+            emit RewardsClaimed(vm.addr(index), address(token1), claimableAdjusted1);
             distributor.claim(vm.addr(index), address(token1), claimableInput, proof1);
+            // Claim token2
+            vm.expectEmit(true, true, true, true, address(distributor));
+            emit RewardsClaimed(vm.addr(index), address(token2), claimableAdjusted2);
             distributor.claim(vm.addr(index), address(token2), claimableInput, proof2);
 
+            uint256 balanceAfter1 = balanceBefore1 + claimableAdjusted1;
+            uint256 balanceAfter2 = balanceBefore2 + claimableAdjusted2;
+
             assertEq(ERC20(address(token1)).balanceOf(address(distributor)), 0);
-            assertEq(ERC20(address(token1)).balanceOf(vm.addr(index)), balanceBefore1 + claimableAdjusted1);
+            assertEq(ERC20(address(token1)).balanceOf(vm.addr(index)), balanceAfter1);
             assertEq(ERC20(address(token2)).balanceOf(address(distributor)), 0);
-            assertEq(ERC20(address(token2)).balanceOf(vm.addr(index)), balanceBefore2 + claimableAdjusted2);
+            assertEq(ERC20(address(token2)).balanceOf(vm.addr(index)), balanceAfter2);
+            // Assert claimed getter
+            assertEq(distributor.claimed(vm.addr(index), address(token1)), balanceAfter1);
+            assertEq(distributor.claimed(vm.addr(index), address(token2)), balanceAfter2);
 
             i += 2;
         }
