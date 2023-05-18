@@ -44,7 +44,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor, Ownable {
     /// @param claimable The overall claimable amount of token rewards.
     /// @param proof The merkle proof that validates this claim.
     function claim(address account, address reward, uint256 claimable, bytes32[] calldata proof) external {
-        if (!MerkleProof.verify(proof, root, keccak256(abi.encodePacked(account, reward, claimable)))) {
+        if (!MerkleProof.verifyCalldata(proof, root, keccak256(abi.encodePacked(account, reward, claimable)))) {
             revert ProofInvalidOrExpired();
         }
 
