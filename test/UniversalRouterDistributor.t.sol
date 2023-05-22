@@ -147,8 +147,12 @@ contract UniversalRouterDistributor is Test {
         uint256 i;
         while (i < size / 2) {
             uint256 index = i + 1;
-            data[i] = keccak256(abi.encodePacked(vm.addr(index), address(token1), uint256(claimable / index)));
-            data[i + 1] = keccak256(abi.encodePacked(vm.addr(index), address(token2), uint256(claimable / index)));
+            data[i] = keccak256(
+                bytes.concat(keccak256(abi.encode(vm.addr(index), address(token1), uint256(claimable / index))))
+            );
+            data[i + 1] = keccak256(
+                bytes.concat(keccak256(abi.encode(vm.addr(index), address(token2), uint256(claimable / index))))
+            );
 
             i += 2;
         }
