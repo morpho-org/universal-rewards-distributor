@@ -8,7 +8,7 @@ Tests are using [Murky](https://github.com/dmfxyz/murky), to generate Merkle tre
 
 ## Usage
 Merkle trees should be generated with [Openzeppelin library](https://github.com/OpenZeppelin/merkle-tree).  
-It will ensures trees will be secure for on-chain verification.
+It will ensure that trees will be secure for on-chain verification.
 
 ## Installation
 
