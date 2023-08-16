@@ -9,8 +9,8 @@ import {SafeTransferLib} from "@solmate/utils/SafeTransferLib.sol";
 import {ERC20} from "@openzeppelin/token/ERC20/ERC20.sol";
 
 /// @title UniversalRewardsDistributor
-/// @author MerlinEgalite
-/// @notice This contract allows to distribute different rewards tokens to multiple accounts using a Merkle tree.
+/// @author Morpho Labs
+/// @notice This contract allows to distribute different rewards tokens to multiple accounts using different Merkle tree.
 ///         It is largely inspired by Morpho's current rewards distributor:
 ///         https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
 contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
