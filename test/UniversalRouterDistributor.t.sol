@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import "@solmate/src/test/utils/mocks/MockERC20.sol";
-import "src/UniversalRewardsDistributor.sol";
+import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
+import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
+import {IUniversalRewardsDistributor} from "src/interfaces/IUniversalRewardsDistributor.sol";
+import {ERC20} from "@openzeppelin/token/ERC20/ERC20.sol";
 
 import {Merkle} from "@murky/src/Merkle.sol";
 
