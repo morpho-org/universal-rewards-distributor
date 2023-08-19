@@ -4,9 +4,9 @@ pragma solidity ^0.8.19;
 import {IUniversalRewardsDistributor, Id} from "./interfaces/IUniversalRewardsDistributor.sol";
 
 import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
-import {Ownable} from "@openzeppelin/access/Ownable.sol";
+
 import {SafeTransferLib} from "@solmate/utils/SafeTransferLib.sol";
-import {ERC20} from "@openzeppelin/token/ERC20/ERC20.sol";
+import {ERC20} from "@solmate/tokens/ERC20.sol";
 
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs
@@ -80,9 +80,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             roots[distributionId] = newRoot;
             delete pendingRoots[distributionId];
             emit RootUpdated(distributionId, newRoot);
+        } else {
+            pendingRoots[distributionId] = PendingRoot(block.timestamp, newRoot);
+            emit RootSubmitted(distributionId, newRoot);
         }
-        pendingRoots[distributionId] = PendingRoot(block.timestamp, newRoot);
-        emit RootSubmitted(distributionId, newRoot);
     }
 
     /// @notice Updates the current merkle tree's root.
@@ -116,7 +117,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             MerkleProof.verifyCalldata(
                 proof, roots[distributionId], keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
             ),
-            "UniversalRewardsDistributor: invaldistributionId proof or expired"
+            "UniversalRewardsDistributor: invalid proof or expired"
         );
 
         uint256 amount = claimable - claimed[distributionId][account][reward];
@@ -160,7 +161,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Accepts the treasury role for a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     function acceptAsTreasury(Id distributionId) external {
-        require(msg.sender = pendingTreasuries[distributionId], "UniversalRewardsDistributor: caller is not the pending treasury");
+        require(msg.sender == pendingTreasuries[distributionId], "UniversalRewardsDistributor: caller is not the pending treasury");
         treasuries[distributionId] = pendingTreasuries[distributionId];
         delete pendingTreasuries[distributionId];
         emit TreasuryUpdated(distributionId, treasuries[distributionId]);
@@ -222,5 +223,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     function transferDistributionOwnership(Id distributionId, address newOwner) external onlyOwner(distributionId) {
         rootOwner[distributionId] = newOwner;
         emit DistributionOwnershipTransferred(distributionId, msg.sender,  newOwner);
+    }
+
+
+    function getPendingRoot(Id distributionId) external view returns (PendingRoot memory) {
+        return pendingRoots[distributionId];
     }
 }

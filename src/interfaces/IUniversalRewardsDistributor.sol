@@ -92,4 +92,5 @@ interface IUniversalRewardsDistributor {
     function updateTimelock(Id id, uint256 newTimelock) external;
     function editRootUpdater(Id id, address updater, bool active) external;
     function revokePendingRoot(Id id) external;
+    function getPendingRoot(Id id) external view returns (PendingRoot memory);
 }
