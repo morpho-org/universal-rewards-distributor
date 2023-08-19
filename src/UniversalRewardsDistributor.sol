@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma soldistributionIdity ^0.8.19;
+pragma solidity ^0.8.19;
 
 import {IUniversalRewardsDistributor, Id} from "./interfaces/IUniversalRewardsDistributor.sol";
 
@@ -10,7 +10,7 @@ import {ERC20} from "@openzeppelin/token/ERC20/ERC20.sol";
 
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs
-/// @notice This contract allows to distribute different rewards tokens to multiple accounts using different Merkle tree.
+/// @notice This contract enables the distribution of various reward tokens to multiple accounts using different permissionLess Merkle trees.
 ///         It is largely inspired by Morpho's current rewards distributor:
 ///         https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
 contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
@@ -133,8 +133,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param initialTimelock The initial timelock for the new distribution.
     /// @param initialRoot The initial merkle tree's root for the new distribution.
     /// @dev The caller of this function is the owner and the treasury of the new distribution.
-    function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external {
-        Id distributionId = Id.wrap(keccak256(abi.encode(msg.sender, block.timestamp)));
+    function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external returns (Id distributionId) {
+        distributionId = Id.wrap(keccak256(abi.encode(msg.sender, block.timestamp)));
 
         require(rootOwner[distributionId] == address(0), "UniversalRewardsDistributor: distributionId already exists");
 
