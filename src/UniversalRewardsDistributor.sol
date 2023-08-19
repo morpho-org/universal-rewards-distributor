@@ -228,9 +228,14 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Revoke the pending root of a given distribution.
     /// @param id The id of the merkle tree distribution.
     /// @dev This function can only be called by the owner of the distribution at any time.
-    function revokePendingRoot(Id id) external onlyOwner(id) {
-        require(pendingRoots[id].submittedAt != 0, "UniversalRewardsDistributor: no pending root");
-        delete pendingRoots[id];
-        emit PendingRootRevoked(id);
+    function revokePendingRoot(Id distributionId) external onlyOwner(distributionId) {
+        require(pendingRoots[distributionId].submittedAt != 0, "UniversalRewardsDistributor: no pending root");
+        delete pendingRoots[distributionId];
+        emit PendingRootRevoked(distributionId);
+    }
+
+    function transferDistributionOwnership(Id distributionId, address newOwner) external onlyOwner(distributionId) {
+        rootOwner[distributionId] = newOwner;
+        emit DistributionOwnershipTransferred(distributionId, msg.sender,  newOwner);
     }
 }

@@ -72,6 +72,12 @@ interface IUniversalRewardsDistributor {
     /// @param amount The amount of reward token claimed.
     event RewardsClaimed(Id indexed treeId, address indexed account, address indexed reward, uint256 amount);
 
+
+    /// @notice Emitted when the ownership of a merkle tree distribution is transferred.
+    /// @param distributionId The id of the merkle tree distribution.
+    /// @param previousOwner The previous owner of the merkle tree distribution.
+    /// @param newOwner The new owner of the merkle tree distribution.
+    event DistributionOwnershipTransferred(Id indexed distributionId, address indexed previousOwner, address indexed newOwner);
     /* EXTERNAL */
 
     function proposeRoot(Id id, bytes32 newRoot) external;
