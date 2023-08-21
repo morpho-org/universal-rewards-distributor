@@ -17,7 +17,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     using SafeTransferLib for ERC20;
 
     /// @notice The merkle tree's roots of a given distribution.
-    mapping(Id => bytes32) public roots;
+    mapping(Id => bytes32) public rootOf;
 
     /// @notice The `amount` of `reward` token already claimed by `account` for one given distribution.
     mapping(Id => mapping(address account => mapping(address reward => uint256 amount))) public claimed;
@@ -38,7 +38,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice The pending root for a given distribution.
     /// @dev If the pending root is set, the root can be updated after the timelock has expired.
     /// @dev The pending root is skipped if the timelock is set to 0.
-    mapping(Id => PendingRoot) public pendingRoots;
+    mapping(Id => PendingRoot) public pendingRootOf;
 
     /// @notice The pending treasury for a given distribution.
     /// @dev The pending treasury has to accept the treasury role to become the new treasury.
@@ -77,11 +77,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newRoot The new merkle tree's root.
     function proposeRoot(Id distributionId, bytes32 newRoot) external onlyUpdater(distributionId) notFrozen(distributionId) {
         if (timelocks[distributionId] == 0) {
-            roots[distributionId] = newRoot;
-            delete pendingRoots[distributionId];
+            rootOf[distributionId] = newRoot;
+            delete pendingRootOf[distributionId];
             emit RootUpdated(distributionId, newRoot);
         } else {
-            pendingRoots[distributionId] = PendingRoot(block.timestamp, newRoot);
+            pendingRootOf[distributionId] = PendingRoot(block.timestamp, newRoot);
             emit RootSubmitted(distributionId, newRoot);
         }
     }
@@ -91,15 +91,15 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
     function confirmRootUpdate(Id distributionId) external notFrozen(distributionId) {
-        require(pendingRoots[distributionId].submittedAt > 0, "UniversalRewardsDistributor: no pending root");
+        require(pendingRootOf[distributionId].submittedAt > 0, "UniversalRewardsDistributor: no pending root");
         require(
-            block.timestamp >= pendingRoots[distributionId].submittedAt + timelocks[distributionId],
+            block.timestamp >= pendingRootOf[distributionId].submittedAt + timelocks[distributionId],
             "UniversalRewardsDistributor: timelock not expired"
         );
 
-        roots[distributionId] = pendingRoots[distributionId].root;
-        delete pendingRoots[distributionId];
-        emit RootUpdated(distributionId, roots[distributionId]);
+        rootOf[distributionId] = pendingRootOf[distributionId].root;
+        delete pendingRootOf[distributionId];
+        emit RootUpdated(distributionId, rootOf[distributionId]);
     }
 
     /// @notice Claims rewards.
@@ -112,11 +112,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         external
         notFrozen(distributionId)
     {
-        require(roots[distributionId] != bytes32(0), "UniversalRewardsDistributor: root is not set");
+        require(rootOf[distributionId] != bytes32(0), "UniversalRewardsDistributor: root is not set");
 
         require(
             MerkleProof.verifyCalldata(
-                proof, roots[distributionId], keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
+                proof, rootOf[distributionId], keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
             ),
             "UniversalRewardsDistributor: invalid proof or expired"
         );
@@ -146,7 +146,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         emit DistributionCreated(distributionId, msg.sender, initialTimelock);
         if (initialRoot != bytes32(0)) {
-            roots[distributionId] = initialRoot;
+            rootOf[distributionId] = initialRoot;
             emit RootUpdated(distributionId, initialRoot);
         }
     }
@@ -183,7 +183,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev The distribution must be frozen before.
     function forceUpdateRoot(Id distributionId, bytes32 newRoot) external onlyOwner(distributionId) {
         require(isFrozen[distributionId], "UniversalRewardsDistributor: not frozen");
-        roots[distributionId] = newRoot;
+        rootOf[distributionId] = newRoot;
         emit RootUpdated(distributionId, newRoot);
     }
 
@@ -195,7 +195,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     function updateTimelock(Id distributionId, uint256 newTimelock) external onlyOwner(distributionId) {
         if(newTimelock < timelocks[distributionId]) {
             require(
-                pendingRoots[distributionId].submittedAt == 0 || pendingRoots[distributionId].submittedAt + timelocks[distributionId] <= block.timestamp,
+                pendingRootOf[distributionId].submittedAt == 0 || pendingRootOf[distributionId].submittedAt + timelocks[distributionId] <= block.timestamp,
                 "UniversalRewardsDistributor: timelock not expired"
             );
         }
@@ -216,8 +216,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @dev This function can only be called by the owner of the distribution at any time.
     function revokePendingRoot(Id distributionId) external onlyOwner(distributionId) {
-        require(pendingRoots[distributionId].submittedAt != 0, "UniversalRewardsDistributor: no pending root");
-        delete pendingRoots[distributionId];
+        require(pendingRootOf[distributionId].submittedAt != 0, "UniversalRewardsDistributor: no pending root");
+        delete pendingRootOf[distributionId];
         emit PendingRootRevoked(distributionId);
     }
 
@@ -228,6 +228,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
 
     function getPendingRoot(Id distributionId) external view returns (PendingRoot memory) {
-        return pendingRoots[distributionId];
+        return pendingRootOf[distributionId];
     }
 }

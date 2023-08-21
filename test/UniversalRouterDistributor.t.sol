@@ -64,7 +64,7 @@ contract UniversalRouterDistributor is Test {
         emit IUniversalRewardsDistributor.DistributionCreated(distributionId, randomCreator, timelock);
         distributor.createDistribution(timelock, initialRoot);
 
-        assertEq(distributor.roots(distributionId), initialRoot);
+        assertEq(distributor.rootOf(distributionId), initialRoot);
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionId);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
@@ -83,7 +83,7 @@ contract UniversalRouterDistributor is Test {
         emit IUniversalRewardsDistributor.RootUpdated(distributionWithoutTimeLock, root);
         distributor.proposeRoot(distributionWithoutTimeLock, root);
 
-        assertEq(distributor.roots(distributionWithoutTimeLock), root);
+        assertEq(distributor.rootOf(distributionWithoutTimeLock), root);
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
@@ -99,7 +99,7 @@ contract UniversalRouterDistributor is Test {
         emit IUniversalRewardsDistributor.RootUpdated(distributionWithoutTimeLock, root);
         distributor.proposeRoot(distributionWithoutTimeLock, root);
 
-        assertEq(distributor.roots(distributionWithoutTimeLock), root);
+        assertEq(distributor.rootOf(distributionWithoutTimeLock), root);
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
@@ -112,7 +112,7 @@ contract UniversalRouterDistributor is Test {
         emit IUniversalRewardsDistributor.RootSubmitted(distributionWithTimeLock, root);
         distributor.proposeRoot(distributionWithTimeLock, root);
 
-        assert(distributor.roots(distributionWithTimeLock) != root);
+        assert(distributor.rootOf(distributionWithTimeLock) != root);
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, root);
         assertEq(pendingRoot.submittedAt, block.timestamp);
@@ -121,14 +121,14 @@ contract UniversalRouterDistributor is Test {
     function testUpdateRootWithTimelockWithUpdater(bytes32 root) public {
         vm.assume(root != bytes32(0));
 
-        assertEq(distributor.roots(distributionWithTimeLock), bytes32(0));
+        assertEq(distributor.rootOf(distributionWithTimeLock), bytes32(0));
 
         vm.prank(updater);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootSubmitted(distributionWithTimeLock, root);
         distributor.proposeRoot(distributionWithTimeLock, root);
 
-        assert(distributor.roots(distributionWithTimeLock) != root);
+        assert(distributor.rootOf(distributionWithTimeLock) != root);
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, root);
         assertEq(pendingRoot.submittedAt, block.timestamp);
@@ -171,7 +171,7 @@ contract UniversalRouterDistributor is Test {
         vm.prank(updater);
         distributor.proposeRoot(distributionWithTimeLock, root);
 
-        assert(distributor.roots(distributionWithTimeLock) != root);
+        assert(distributor.rootOf(distributionWithTimeLock) != root);
         vm.warp(block.timestamp + 1 days);
 
         vm.prank(randomCaller);
@@ -179,7 +179,7 @@ contract UniversalRouterDistributor is Test {
         emit IUniversalRewardsDistributor.RootUpdated(distributionWithTimeLock, root);
         distributor.confirmRootUpdate(distributionWithTimeLock);
 
-        assertEq(distributor.roots(distributionWithTimeLock), root);
+        assertEq(distributor.rootOf(distributionWithTimeLock), root);
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
@@ -192,7 +192,7 @@ contract UniversalRouterDistributor is Test {
         vm.prank(updater);
         distributor.proposeRoot(distributionWithTimeLock, root);
 
-        assert(distributor.roots(distributionWithTimeLock) != root);
+        assert(distributor.rootOf(distributionWithTimeLock) != root);
 
         vm.prank(owner);
         distributor.freeze(distributionWithTimeLock, true);
@@ -210,7 +210,7 @@ contract UniversalRouterDistributor is Test {
         vm.prank(updater);
         distributor.proposeRoot(distributionWithTimeLock, root);
 
-        assert(distributor.roots(distributionWithTimeLock) != root);
+        assert(distributor.rootOf(distributionWithTimeLock) != root);
 
         vm.warp(block.timestamp + 0.5 days);
 
@@ -301,7 +301,7 @@ contract UniversalRouterDistributor is Test {
         distributor.forceUpdateRoot(distributionWithoutTimeLock, newRoot);
         vm.stopPrank();
 
-        assertEq(distributor.roots(distributionWithoutTimeLock), newRoot);
+        assertEq(distributor.rootOf(distributionWithoutTimeLock), newRoot);
         assertEq(distributor.isFrozen(distributionWithoutTimeLock), true);
     }
 
