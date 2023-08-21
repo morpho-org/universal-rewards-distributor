@@ -17,7 +17,10 @@ contract UniversalRouterDistributor is Test {
     Merkle merkle = new Merkle();
     MockERC20 internal token1;
     MockERC20 internal token2;
-    Id internal distribution1;
+    Id internal distributionWithoutTimeLock;
+    Id internal distributionWithTimeLock;
+    address owner = _addrFromHashedString("Owner");
+    address updater = _addrFromHashedString("Updater");
 
     event RootUpdated(Id indexed distributionId, bytes32 newRoot);
     event RootSubmitted(Id indexed distributionId, bytes32 newRoot);
@@ -31,49 +34,442 @@ contract UniversalRouterDistributor is Test {
     event RewardsClaimed(Id indexed distributionId, address indexed account, address indexed reward, uint256 amount);
     event DistributionOwnershipTransferred(Id indexed distributionId, address indexed previousOwner, address indexed newOwner);
 
+    function _addrFromHashedString(string memory str) internal pure returns (address) {
+        return address(uint160(uint256(keccak256(bytes(str)))));
+    }
     function setUp() public {
         distributor = new UniversalRewardsDistributor();
         token1 = new MockERC20("Token1", "TKN1", 18);
         token2 = new MockERC20("Token2", "TKN2", 18);
-        distribution1 = distributor.createDistribution(0, bytes32(0));
+
+        vm.prank(owner);
+        distributionWithoutTimeLock = distributor.createDistribution(0, bytes32(0));
+        vm.prank(owner);
+        distributor.editRootUpdater(distributionWithoutTimeLock, updater, true);
+
+        vm.warp(block.number + 12);
+        vm.startPrank(owner);
+        distributionWithTimeLock = distributor.createDistribution(1 days, bytes32(0));
+        distributor.editRootUpdater(distributionWithTimeLock, updater, true);
+        vm.stopPrank();
     }
 
-    function testUpdateRootWithoutTimelock(bytes32 root) public {
+    function testCreateDistributionSetupCorrectly(address randomCreator, uint256 timelock, bytes32 initialRoot) public {
+        vm.assume(timelock != 0 && initialRoot != bytes32(0));
 
+        Id distributionId =  Id.wrap(keccak256(abi.encode(randomCreator, block.timestamp)));
+
+        vm.prank(randomCreator);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.RootUpdated(distribution1, root);
-        distributor.proposeRoot(distribution1, root);
+        emit IUniversalRewardsDistributor.DistributionCreated(distributionId, randomCreator, timelock);
+        distributor.createDistribution(timelock, initialRoot);
 
-        assertEq(distributor.roots(distribution1), root);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distribution1);
+        assertEq(distributor.roots(distributionId), initialRoot);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionId);
+        assertEq(pendingRoot.root, bytes32(0));
+        assertEq(pendingRoot.submittedAt, 0);
+        assertEq(distributor.rootOwner(distributionId), randomCreator);
+        assertEq(distributor.treasuries(distributionId), randomCreator);
+        assertEq(distributor.pendingTreasuries(distributionId), address(0));
+        assertEq(distributor.isFrozen(distributionId), false);
+    }
+
+    function testUpdateRootWithoutTimelockWithOwner(bytes32 root) public {
+
+        vm.assume(root != bytes32(0));
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RootUpdated(distributionWithoutTimeLock, root);
+        distributor.proposeRoot(distributionWithoutTimeLock, root);
+
+        assertEq(distributor.roots(distributionWithoutTimeLock), root);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
-//
-//    function testUpdateRootShouldReversWhenNotOwner(bytes32 root, address caller) public {
-//        vm.assume(caller != distributor.owner());
-//
-//        vm.prank(caller);
-//        vm.expectRevert("Ownable: caller is not the owner");
-//        distributor.updateRoot(root);
-//    }
-//
-//    function testSkim(uint256 amount) public {
-//        deal(address(token1), address(distributor), amount);
-//
-//        distributor.skim(address(token1));
-//
-//        assertEq(ERC20(address(token1)).balanceOf(address(distributor)), 0);
-//        assertEq(ERC20(address(token1)).balanceOf(address(this)), amount);
-//    }
-//
-//    function testSkimShouldReversWhenNotOwner(address caller) public {
-//        vm.assume(caller != distributor.owner());
-//
-//        vm.prank(caller);
-//        vm.expectRevert("Ownable: caller is not the owner");
-//        distributor.skim(address(token1));
-//    }
+
+    function testUpdateRootWithoutTimelockWithUpdater(bytes32 root) public {
+
+        vm.assume(root != bytes32(0));
+
+        vm.prank(updater);
+
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RootUpdated(distributionWithoutTimeLock, root);
+        distributor.proposeRoot(distributionWithoutTimeLock, root);
+
+        assertEq(distributor.roots(distributionWithoutTimeLock), root);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithoutTimeLock);
+        assertEq(pendingRoot.root, bytes32(0));
+        assertEq(pendingRoot.submittedAt, 0);
+    }
+    function testUpdateRootWithTimelockWithOwner(bytes32 root) public {
+        vm.assume(root != bytes32(0));
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RootSubmitted(distributionWithTimeLock, root);
+        distributor.proposeRoot(distributionWithTimeLock, root);
+
+        assert(distributor.roots(distributionWithTimeLock) != root);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithTimeLock);
+        assertEq(pendingRoot.root, root);
+        assertEq(pendingRoot.submittedAt, block.timestamp);
+    }
+
+    function testUpdateRootWithTimelockWithUpdater(bytes32 root) public {
+        vm.assume(root != bytes32(0));
+
+        assertEq(distributor.roots(distributionWithTimeLock), bytes32(0));
+
+        vm.prank(updater);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RootSubmitted(distributionWithTimeLock, root);
+        distributor.proposeRoot(distributionWithTimeLock, root);
+
+        assert(distributor.roots(distributionWithTimeLock) != root);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithTimeLock);
+        assertEq(pendingRoot.root, root);
+        assertEq(pendingRoot.submittedAt, block.timestamp);
+    }
+
+    function testProposeRootShouldRevertWhenNotUpdater(bytes32 root, address caller) public {
+        vm.assume(!distributor.rootUpdaters(distributionWithoutTimeLock, caller) && caller != owner);
+
+        vm.prank(caller);
+        vm.expectRevert("UniversalRewardsDistributor: caller is not the updater");
+        distributor.proposeRoot(distributionWithoutTimeLock, root);
+    }
+
+    function testProposeRootShouldRevertIfFrozenWithOwner(bytes32 root) public {
+
+        vm.startPrank(owner);
+        distributor.freeze(distributionWithoutTimeLock, true);
+
+        vm.expectRevert("UniversalRewardsDistributor: frozen");
+        distributor.proposeRoot(distributionWithoutTimeLock, root);
+
+        vm.stopPrank();
+    }
+
+    function testProposeRootShouldRevertIfFrozenWithUpdater(bytes32 root) public {
+
+
+        vm.prank(owner);
+        distributor.freeze(distributionWithoutTimeLock, true);
+
+        vm.prank(updater);
+        vm.expectRevert("UniversalRewardsDistributor: frozen");
+        distributor.proposeRoot(distributionWithoutTimeLock, root);
+    }
+
+    function testConfirmRootUpdateShouldUpdateMainRoot(bytes32 root, address randomCaller) public {
+
+        vm.assume(root != bytes32(0));
+
+        vm.prank(updater);
+        distributor.proposeRoot(distributionWithTimeLock, root);
+
+        assert(distributor.roots(distributionWithTimeLock) != root);
+        vm.warp(block.timestamp + 1 days);
+
+        vm.prank(randomCaller);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RootUpdated(distributionWithTimeLock, root);
+        distributor.confirmRootUpdate(distributionWithTimeLock);
+
+        assertEq(distributor.roots(distributionWithTimeLock), root);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithTimeLock);
+        assertEq(pendingRoot.root, bytes32(0));
+        assertEq(pendingRoot.submittedAt, 0);
+
+    }
+    function testConfirmRootUpdateShouldRevertIfFrozen(bytes32 root, address randomCaller) public {
+
+        vm.assume(root != bytes32(0));
+
+        vm.prank(updater);
+        distributor.proposeRoot(distributionWithTimeLock, root);
+
+        assert(distributor.roots(distributionWithTimeLock) != root);
+
+        vm.prank(owner);
+        distributor.freeze(distributionWithTimeLock, true);
+        vm.warp(block.timestamp + 1 days);
+
+        vm.prank(randomCaller);
+        vm.expectRevert("UniversalRewardsDistributor: frozen");
+        distributor.confirmRootUpdate(distributionWithTimeLock);
+
+    }
+    function testConfirmRootUpdateShouldRevertIfTimelockNotFinished(bytes32 root, address randomCaller) public {
+
+        vm.assume(root != bytes32(0));
+
+        vm.prank(updater);
+        distributor.proposeRoot(distributionWithTimeLock, root);
+
+        assert(distributor.roots(distributionWithTimeLock) != root);
+
+        vm.warp(block.timestamp + 0.5 days);
+
+        vm.prank(randomCaller);
+        vm.expectRevert("UniversalRewardsDistributor: timelock not expired");
+        distributor.confirmRootUpdate(distributionWithTimeLock);
+
+    }
+    function testConfirmRootUpdateShouldRevertIfNoPendingRoot(address randomCaller) public {
+        vm.prank(randomCaller);
+        vm.expectRevert("UniversalRewardsDistributor: no pending root");
+        distributor.confirmRootUpdate(distributionWithTimeLock);
+    }
+
+
+    function testSuggestTreasuryShouldUpdatePendingTreasury(address newTreasury) public {
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.TreasurySuggested(distributionWithoutTimeLock, newTreasury);
+        distributor.suggestTreasury(distributionWithoutTimeLock, newTreasury);
+
+        assertEq(distributor.pendingTreasuries(distributionWithoutTimeLock), newTreasury);
+    }
+
+    function testSuggestTreasuryShouldRevertIfNotOwner(address caller, address newTreasury) public {
+        vm.assume(caller != owner);
+
+        vm.prank(caller);
+        vm.expectRevert("UniversalRewardsDistributor: caller is not the owner");
+        distributor.suggestTreasury(distributionWithoutTimeLock, newTreasury);
+
+        assertEq(distributor.pendingTreasuries(distributionWithoutTimeLock), address(0));
+    }
+    function testAcceptAsTreasuryShouldUpdateTreasury(address newTreasury) public {
+        vm.prank(owner);
+        distributor.suggestTreasury(distributionWithoutTimeLock, newTreasury);
+
+        vm.prank(newTreasury);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.TreasuryUpdated(distributionWithoutTimeLock, newTreasury);
+        distributor.acceptAsTreasury(distributionWithoutTimeLock);
+
+
+        assertEq(distributor.pendingTreasuries(distributionWithoutTimeLock), address(0));
+    }
+
+
+    function testAcceptAsTreasuryShouldRevertIfNotCalledByTreasury(address caller, address newTreasury) public {
+        vm.assume(caller != newTreasury);
+
+        vm.prank(owner);
+        distributor.suggestTreasury(distributionWithoutTimeLock, newTreasury);
+
+        vm.prank(caller);
+        vm.expectRevert("UniversalRewardsDistributor: caller is not the pending treasury");
+        distributor.acceptAsTreasury(distributionWithoutTimeLock);
+
+        assertEq(distributor.pendingTreasuries(distributionWithoutTimeLock), newTreasury);
+    }
+
+    function testFreezeShouldFreezeTheDistribution() public {
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.Frozen(distributionWithoutTimeLock, true);
+        distributor.freeze(distributionWithoutTimeLock, true);
+
+        assertEq(distributor.isFrozen(distributionWithoutTimeLock), true);
+    }
+
+    function testFreezeShouldRevertIfNotOwner(address randomCaller, bool isFrozen) public {
+        vm.assume(randomCaller != owner);
+
+        vm.prank(randomCaller);
+        vm.expectRevert("UniversalRewardsDistributor: caller is not the owner");
+        distributor.freeze(distributionWithoutTimeLock, isFrozen);
+    }
+
+    function testForceUpdateRootShouldForceNewRootWhenFrozen(bytes32 newRoot) public {
+        vm.assume(newRoot != bytes32(0));
+
+        vm.startPrank(owner);
+        distributor.freeze(distributionWithoutTimeLock, true);
+
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RootUpdated(distributionWithoutTimeLock, newRoot);
+        distributor.forceUpdateRoot(distributionWithoutTimeLock, newRoot);
+        vm.stopPrank();
+
+        assertEq(distributor.roots(distributionWithoutTimeLock), newRoot);
+        assertEq(distributor.isFrozen(distributionWithoutTimeLock), true);
+    }
+
+    function testForceUpdateRootShouldRevertIfNotOwner(bytes32 newRoot, address randomCaller) public {
+        vm.assume(newRoot != bytes32(0) && randomCaller != owner);
+
+        vm.prank(owner);
+        distributor.freeze(distributionWithoutTimeLock, true);
+
+        vm.prank(randomCaller);
+        vm.expectRevert("UniversalRewardsDistributor: caller is not the owner");
+        distributor.forceUpdateRoot(distributionWithoutTimeLock, newRoot);
+    }
+    function testForceUpdateRootShouldRevertIfNotFrozen(bytes32 newRoot) public {
+
+        vm.prank(owner);
+        vm.expectRevert("UniversalRewardsDistributor: not frozen");
+        distributor.forceUpdateRoot(distributionWithoutTimeLock, newRoot);
+    }
+
+    function testUpdateTimelockShouldChangeTheDistributionTimelock(uint256 newTimelock) public {
+        vm.assume(newTimelock != 0);
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.TimelockUpdated(distributionWithoutTimeLock, newTimelock);
+        distributor.updateTimelock(distributionWithoutTimeLock, newTimelock);
+
+        assertEq(distributor.timelocks(distributionWithoutTimeLock), newTimelock);
+    }
+
+    function testUpdateTimelockShouldIncreaseTheQueuedTimestamp(bytes32 root) public {
+
+        vm.prank(owner);
+        distributor.proposeRoot(distributionWithTimeLock, root);
+
+        vm.warp(block.timestamp + 0.5 days);
+
+
+        vm.prank(owner);
+        distributor.updateTimelock(distributionWithTimeLock, 1.5 days);
+
+        assertEq(distributor.timelocks(distributionWithTimeLock), 1.5 days);
+
+        vm.warp(block.timestamp + 0.5 days);
+        vm.expectRevert("UniversalRewardsDistributor: timelock not expired");
+        distributor.confirmRootUpdate(distributionWithTimeLock);
+
+        vm.warp(block.timestamp + 0.5 days);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RootUpdated(distributionWithTimeLock, root);
+        distributor.confirmRootUpdate(distributionWithTimeLock);
+    }
+
+    function testUpdateTimelockShouldRevertIfNotOwner(uint256 newTimelock, address randomCaller) public {
+        vm.assume(newTimelock != 0 && randomCaller != owner);
+
+        vm.prank(randomCaller);
+        vm.expectRevert("UniversalRewardsDistributor: caller is not the owner");
+        distributor.updateTimelock(distributionWithoutTimeLock, newTimelock);
+    }
+
+    function testUpdateTimelockShouldRevertIfNewTimelockIsTooLow(bytes32 pendingRoot) public {
+        vm.assume(pendingRoot != bytes32(0));
+
+        vm.prank(owner);
+        distributor.proposeRoot(distributionWithTimeLock, pendingRoot);
+
+        vm.warp(block.timestamp + 0.5 days);
+
+        vm.prank(owner);
+        vm.expectRevert("UniversalRewardsDistributor: timelock not expired");
+        distributor.updateTimelock(distributionWithTimeLock, 0.7 days);
+    }
+
+    function testUpdateTimelockShouldWorkIfPendingRootIsUpdatableButNotYetUpdated(bytes32 pendingRoot) public {
+        vm.assume(pendingRoot != bytes32(0));
+
+        vm.prank(owner);
+        distributor.proposeRoot(distributionWithTimeLock, pendingRoot);
+
+        vm.warp(block.timestamp + 1 days);
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.TimelockUpdated(distributionWithTimeLock, 0.7 days);
+        distributor.updateTimelock(distributionWithTimeLock, 0.7 days);
+    }
+
+
+    function testEditRootUpdaterShouldAddOrRemoveRootUpdater(address newUpdater, bool active) public {
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RootUpdaterUpdated(distributionWithoutTimeLock, newUpdater, active);
+        distributor.editRootUpdater(distributionWithoutTimeLock, newUpdater, active);
+
+        assertEq(distributor.rootUpdaters(distributionWithoutTimeLock, newUpdater), active);
+    }
+
+
+    function testEditRootUpdaterShouldRevertIfNotOwner(address caller, bool active) public {
+        vm.assume(caller != owner);
+
+        vm.prank(caller);
+        vm.expectRevert("UniversalRewardsDistributor: caller is not the owner");
+        distributor.editRootUpdater(distributionWithoutTimeLock, _addrFromHashedString("RANDOM_UPDATER"), active);
+    }
+
+
+    function testRevokePendingRootShouldRevokeWhenCalledWithOwner(bytes32 proposedRoot) public {
+        vm.assume(proposedRoot != bytes32(0));
+
+        vm.prank(owner);
+        distributor.proposeRoot(distributionWithTimeLock, proposedRoot);
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.PendingRootRevoked(distributionWithTimeLock);
+        distributor.revokePendingRoot(distributionWithTimeLock);
+
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionWithTimeLock);
+        assertEq(pendingRoot.root, bytes32(0));
+        assertEq(pendingRoot.submittedAt, 0);
+    }
+
+
+    function testRevokePendingRootShouldRevertIfNotOwner(bytes32 proposedRoot, address caller) public {
+        vm.assume(proposedRoot != bytes32(0) && caller != owner);
+
+        vm.prank(owner);
+        distributor.proposeRoot(distributionWithTimeLock, proposedRoot);
+
+        vm.prank(caller);
+        vm.expectRevert("UniversalRewardsDistributor: caller is not the owner");
+        distributor.revokePendingRoot(distributionWithTimeLock);
+    }
+
+
+    function testRevokePendingRootShouldRevertWhenNoPendingRoot() public {
+
+        vm.prank(owner);
+        vm.expectRevert("UniversalRewardsDistributor: no pending root");
+        distributor.revokePendingRoot(distributionWithTimeLock);
+    }
+
+
+    function testTransferDistributionOwnershipShouldWorkCorrectly(address newOwner) public {
+        vm.assume(newOwner != owner);
+
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.DistributionOwnershipTransferred(distributionWithTimeLock, owner, newOwner);
+        distributor.transferDistributionOwnership(distributionWithTimeLock, newOwner);
+
+        assertEq(distributor.rootOwner(distributionWithTimeLock), newOwner);
+
+    }
+
+
+    function testTransferDistributionOwnershipShouldRevertIfNotOwner(address newOwner, address caller) public {
+        vm.assume(caller != owner);
+
+        vm.prank(caller);
+        vm.expectRevert("UniversalRewardsDistributor: caller is not the owner");
+        distributor.transferDistributionOwnership(distributionWithTimeLock, newOwner);
+    }
+
 //
 //    function testRewards(uint256 claimable, uint8 size) public {
 //        claimable = bound(claimable, 1 ether, type(uint256).max);

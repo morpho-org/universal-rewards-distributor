@@ -46,7 +46,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice The frozen status of a given distribution.
     /// @dev A frozen distribution cannot be claimed by users.
-    mapping(Id => bool) public frozen;
+    mapping(Id => bool) public isFrozen;
 
     modifier onlyUpdater(Id distributionId) {
         require(
@@ -67,7 +67,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     }
 
     modifier notFrozen(Id distributionId) {
-        require(!frozen[distributionId], "UniversalRewardsDistributor: frozen");
+        require(!isFrozen[distributionId], "UniversalRewardsDistributor: frozen");
         _;
     }
 
@@ -75,7 +75,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice Updates the current merkle tree's root.
     /// @param newRoot The new merkle tree's root.
-    function proposeRoot(Id distributionId, bytes32 newRoot) external onlyUpdater(distributionId) {
+    function proposeRoot(Id distributionId, bytes32 newRoot) external onlyUpdater(distributionId) notFrozen(distributionId) {
         if (timelocks[distributionId] == 0) {
             roots[distributionId] = newRoot;
             delete pendingRoots[distributionId];
@@ -90,15 +90,16 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
-    function confirmRootUpdate(Id distributionId) external {
+    function confirmRootUpdate(Id distributionId) external notFrozen(distributionId) {
         require(pendingRoots[distributionId].submittedAt > 0, "UniversalRewardsDistributor: no pending root");
         require(
             block.timestamp >= pendingRoots[distributionId].submittedAt + timelocks[distributionId],
             "UniversalRewardsDistributor: timelock not expired"
         );
+
         roots[distributionId] = pendingRoots[distributionId].root;
         delete pendingRoots[distributionId];
-        emit RootUpdated(distributionId, pendingRoots[distributionId].root);
+        emit RootUpdated(distributionId, roots[distributionId]);
     }
 
     /// @notice Claims rewards.
@@ -169,10 +170,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice Freeze a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
-    /// @param isFrozen Whether the distribution should be frozen or not.
-    function freeze(Id distributionId, bool isFrozen) external onlyOwner(distributionId) {
-        frozen[distributionId] = isFrozen;
-        emit Frozen(distributionId, isFrozen);
+    /// @param newIsFrozen Whether the distribution should be frozen or not.
+    function freeze(Id distributionId, bool newIsFrozen) external onlyOwner(distributionId) {
+        isFrozen[distributionId] = newIsFrozen;
+        emit Frozen(distributionId, newIsFrozen);
     }
 
     /// @notice Force update the root of a given distribution.
@@ -181,7 +182,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev The distribution must be frozen before.
     function forceUpdateRoot(Id distributionId, bytes32 newRoot) external onlyOwner(distributionId) {
-        require(frozen[distributionId], "UniversalRewardsDistributor: not frozen");
+        require(isFrozen[distributionId], "UniversalRewardsDistributor: not frozen");
         roots[distributionId] = newRoot;
         emit RootUpdated(distributionId, newRoot);
     }
