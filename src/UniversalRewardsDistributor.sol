@@ -24,16 +24,16 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice The treasury address of a given distribution.
     /// @dev The treasury is the address from which the rewards are sent by using a classic approval.
-    mapping(Id => address) public treasuries;
+    mapping(Id => address) public treasuryOf;
 
     /// @notice The address that can update the distributions parameters, and freeze a root.
-    mapping(Id => address) public rootOwner;
+    mapping(Id => address) public ownerOf;
 
     /// @notice The addresses that can update the merkle tree's root for a given distribution.
-    mapping(Id => mapping(address => bool)) public rootUpdaters;
+    mapping(Id => mapping(address => bool)) public isUpdaterOf;
 
     /// @notice The timelock for a given distribution.
-    mapping(Id => uint256) public timelocks;
+    mapping(Id => uint256) public timelockOf;
 
     /// @notice The pending root for a given distribution.
     /// @dev If the pending root is set, the root can be updated after the timelock has expired.
@@ -42,7 +42,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice The pending treasury for a given distribution.
     /// @dev The pending treasury has to accept the treasury role to become the new treasury.
-    mapping(Id => address) public pendingTreasuries;
+    mapping(Id => address) public pendingTreasuryOf;
 
     /// @notice The frozen status of a given distribution.
     /// @dev A frozen distribution cannot be claimed by users.
@@ -50,19 +50,19 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     modifier onlyUpdater(Id distributionId) {
         require(
-            rootUpdaters[distributionId][msg.sender] || msg.sender == rootOwner[distributionId],
+            isUpdaterOf[distributionId][msg.sender] || msg.sender == ownerOf[distributionId],
             "UniversalRewardsDistributor: caller is not the updater"
         );
         _;
     }
 
     modifier onlyTreasury(Id distributionId) {
-        require(msg.sender == treasuries[distributionId], "UniversalRewardsDistributor: caller is not the treasury");
+        require(msg.sender == treasuryOf[distributionId], "UniversalRewardsDistributor: caller is not the treasury");
         _;
     }
 
     modifier onlyOwner(Id distributionId) {
-        require(msg.sender == rootOwner[distributionId], "UniversalRewardsDistributor: caller is not the owner");
+        require(msg.sender == ownerOf[distributionId], "UniversalRewardsDistributor: caller is not the owner");
         _;
     }
 
@@ -80,7 +80,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         onlyUpdater(distributionId)
         notFrozen(distributionId)
     {
-        if (timelocks[distributionId] == 0) {
+        if (timelockOf[distributionId] == 0) {
             rootOf[distributionId] = newRoot;
             delete pendingRootOf[distributionId];
             emit RootUpdated(distributionId, newRoot);
@@ -97,7 +97,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     function confirmRootUpdate(Id distributionId) external notFrozen(distributionId) {
         require(pendingRootOf[distributionId].submittedAt > 0, "UniversalRewardsDistributor: no pending root");
         require(
-            block.timestamp >= pendingRootOf[distributionId].submittedAt + timelocks[distributionId],
+            block.timestamp >= pendingRootOf[distributionId].submittedAt + timelockOf[distributionId],
             "UniversalRewardsDistributor: timelock not expired"
         );
 
@@ -133,7 +133,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         claimed[distributionId][account][reward] = claimable;
 
-        ERC20(reward).safeTransferFrom(treasuries[distributionId], account, amount);
+        ERC20(reward).safeTransferFrom(treasuryOf[distributionId], account, amount);
         emit RewardsClaimed(distributionId, account, reward, amount);
     }
 
@@ -144,11 +144,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external returns (Id distributionId) {
         distributionId = Id.wrap(keccak256(abi.encode(msg.sender, block.timestamp)));
 
-        require(rootOwner[distributionId] == address(0), "UniversalRewardsDistributor: distributionId already exists");
+        require(ownerOf[distributionId] == address(0), "UniversalRewardsDistributor: distributionId already exists");
 
-        rootOwner[distributionId] = msg.sender;
-        treasuries[distributionId] = msg.sender;
-        timelocks[distributionId] = initialTimelock;
+        ownerOf[distributionId] = msg.sender;
+        treasuryOf[distributionId] = msg.sender;
+        timelockOf[distributionId] = initialTimelock;
 
         emit DistributionCreated(distributionId, msg.sender, initialTimelock);
         if (initialRoot != bytes32(0)) {
@@ -161,7 +161,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newTreasury The new treasury address.
     function suggestTreasury(Id distributionId, address newTreasury) external onlyOwner(distributionId) {
-        pendingTreasuries[distributionId] = newTreasury;
+        pendingTreasuryOf[distributionId] = newTreasury;
         emit TreasurySuggested(distributionId, newTreasury);
     }
 
@@ -169,12 +169,12 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     function acceptAsTreasury(Id distributionId) external {
         require(
-            msg.sender == pendingTreasuries[distributionId],
+            msg.sender == pendingTreasuryOf[distributionId],
             "UniversalRewardsDistributor: caller is not the pending treasury"
         );
-        treasuries[distributionId] = pendingTreasuries[distributionId];
-        delete pendingTreasuries[distributionId];
-        emit TreasuryUpdated(distributionId, treasuries[distributionId]);
+        treasuryOf[distributionId] = pendingTreasuryOf[distributionId];
+        delete pendingTreasuryOf[distributionId];
+        emit TreasuryUpdated(distributionId, treasuryOf[distributionId]);
     }
 
     /// @notice Freeze a given distribution.
@@ -202,14 +202,14 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
     function updateTimelock(Id distributionId, uint256 newTimelock) external onlyOwner(distributionId) {
-        if (newTimelock < timelocks[distributionId]) {
+        if (newTimelock < timelockOf[distributionId]) {
             require(
                 pendingRootOf[distributionId].submittedAt == 0
-                    || pendingRootOf[distributionId].submittedAt + timelocks[distributionId] <= block.timestamp,
+                    || pendingRootOf[distributionId].submittedAt + timelockOf[distributionId] <= block.timestamp,
                 "UniversalRewardsDistributor: timelock not expired"
             );
         }
-        timelocks[distributionId] = newTimelock;
+        timelockOf[distributionId] = newTimelock;
         emit TimelockUpdated(distributionId, newTimelock);
     }
 
@@ -218,7 +218,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param updater The new root updater.
     /// @param active Whether the root updater should be active or not.
     function editRootUpdater(Id distributionId, address updater, bool active) external onlyOwner(distributionId) {
-        rootUpdaters[distributionId][updater] = active;
+        isUpdaterOf[distributionId][updater] = active;
         emit RootUpdaterUpdated(distributionId, updater, active);
     }
 
@@ -232,7 +232,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     }
 
     function transferDistributionOwnership(Id distributionId, address newOwner) external onlyOwner(distributionId) {
-        rootOwner[distributionId] = newOwner;
+        ownerOf[distributionId] = newOwner;
         emit DistributionOwnershipTransferred(distributionId, msg.sender, newOwner);
     }
 
