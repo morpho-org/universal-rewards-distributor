@@ -39,10 +39,6 @@ contract UniversalRouterDistributor is Test {
         Id indexed distributionId, address indexed previousOwner, address indexed newOwner
     );
 
-    function _addrFromHashedString(string memory str) internal pure returns (address) {
-        return address(uint160(uint256(keccak256(bytes(str)))));
-    }
-
     function setUp() public {
         distributor = new UniversalRewardsDistributor();
         token1 = new MockERC20("Token1", "TKN1", 18);
@@ -604,5 +600,9 @@ contract UniversalRouterDistributor is Test {
 
             i += 2;
         }
+    }
+
+    function _addrFromHashedString(string memory str) internal pure returns (address) {
+        return address(uint160(uint256(keccak256(bytes(str)))));
     }
 }
