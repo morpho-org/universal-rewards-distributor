@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
 import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
-import {IUniversalRewardsDistributor, Id} from "src/interfaces/IUniversalRewardsDistributor.sol";
+import {IUniversalRewardsDistributor} from "src/interfaces/IUniversalRewardsDistributor.sol";
 import {ERC20} from "@openzeppelin/token/ERC20/ERC20.sol";
 
 import {Merkle} from "@murky/src/Merkle.sol";
@@ -17,26 +17,26 @@ contract UniversalRouterDistributor is Test {
     Merkle merkle = new Merkle();
     MockERC20 internal token1;
     MockERC20 internal token2;
-    Id internal distributionWithoutTimeLock;
-    Id internal distributionWithTimeLock;
+    uint256 internal distributionWithoutTimeLock;
+    uint256 internal distributionWithTimeLock;
     address owner = _addrFromHashedString("Owner");
     address updater = _addrFromHashedString("Updater");
 
     bytes32 DEFAULT_ROOT = bytes32(keccak256(bytes("DEFAULT_ROOT")));
     uint256 DEFAULT_TIMELOCK = 1 days;
 
-    event RootUpdated(Id indexed distributionId, bytes32 newRoot);
-    event RootSubmitted(Id indexed distributionId, bytes32 newRoot);
-    event TreasuryUpdated(Id indexed distributionId, address newTreasury);
-    event TreasurySuggested(Id indexed distributionId, address newTreasury);
-    event Frozen(Id indexed distributionId, bool frozen);
-    event TimelockUpdated(Id indexed distributionId, uint256 timelock);
-    event DistributionCreated(Id indexed distributionId, address indexed owner, uint256 initialTimelock);
-    event RootUpdaterUpdated(Id indexed distributionId, address indexed rootUpdater, bool active);
-    event PendingRootRevoked(Id indexed distributionId);
-    event RewardsClaimed(Id indexed distributionId, address indexed account, address indexed reward, uint256 amount);
+    event RootUpdated(uint256 indexed distributionId, bytes32 newRoot);
+    event RootSubmitted(uint256 indexed distributionId, bytes32 newRoot);
+    event TreasuryUpdated(uint256 indexed distributionId, address newTreasury);
+    event TreasurySuggested(uint256 indexed distributionId, address newTreasury);
+    event Frozen(uint256 indexed distributionId, bool frozen);
+    event TimelockUpdated(uint256 indexed distributionId, uint256 timelock);
+    event DistributionCreated(uint256 indexed distributionId, address indexed owner, uint256 initialTimelock);
+    event RootUpdaterUpdated(uint256 indexed distributionId, address indexed rootUpdater, bool active);
+    event PendingRootRevoked(uint256 indexed distributionId);
+    event RewardsClaimed(uint256 indexed distributionId, address indexed account, address indexed reward, uint256 amount);
     event DistributionOwnershipTransferred(
-        Id indexed distributionId, address indexed previousOwner, address indexed newOwner
+        uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner
     );
 
     function setUp() public {
@@ -64,7 +64,7 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testCreateDistributionSetupCorrectly(address randomCreator) public {
-        Id distributionId = Id.wrap(keccak256(abi.encode(randomCreator, block.timestamp)));
+        uint256 distributionId = distributor.nextDistributionId();
 
         vm.prank(randomCreator);
         vm.expectEmit(true, true, true, true, address(distributor));
@@ -82,6 +82,7 @@ contract UniversalRouterDistributor is Test {
         assertEq(distributor.treasuryOf(distributionId), randomCreator);
         assertEq(distributor.pendingTreasuryOf(distributionId), address(0));
         assertEq(distributor.isFrozen(distributionId), false);
+        assertEq(distributor.nextDistributionId(), distributionId + 1);
     }
 
     function testUpdateRootWithoutTimelockAsOwner() public {
@@ -548,7 +549,7 @@ contract UniversalRouterDistributor is Test {
         root = merkle.getRoot(data);
     }
 
-    function _claimAndVerifyRewards(Id distributionId, bytes32[] memory data, uint256 claimable) internal {
+    function _claimAndVerifyRewards(uint256 distributionId, bytes32[] memory data, uint256 claimable) internal {
         uint256 i;
         while (i < data.length / 2) {
             bytes32[] memory proof1 = merkle.getProof(data, i);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {IUniversalRewardsDistributor, Id} from "./interfaces/IUniversalRewardsDistributor.sol";
+import {IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
 
 import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
 
@@ -16,39 +16,41 @@ import {ERC20} from "@solmate/tokens/ERC20.sol";
 contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     using SafeTransferLib for ERC20;
 
+    uint256 public nextDistributionId = 1;
+
     /// @notice The merkle tree's roots of a given distribution.
-    mapping(Id => bytes32) public rootOf;
+    mapping(uint256 => bytes32) public rootOf;
 
     /// @notice The `amount` of `reward` token already claimed by `account` for one given distribution.
-    mapping(Id => mapping(address account => mapping(address reward => uint256 amount))) public claimed;
+    mapping(uint256 => mapping(address account => mapping(address reward => uint256 amount))) public claimed;
 
     /// @notice The treasury address of a given distribution.
     /// @dev The treasury is the address from which the rewards are sent by using a classic approval.
-    mapping(Id => address) public treasuryOf;
+    mapping(uint256 => address) public treasuryOf;
 
     /// @notice The address that can update the distributions parameters, and freeze a root.
-    mapping(Id => address) public ownerOf;
+    mapping(uint256 => address) public ownerOf;
 
     /// @notice The addresses that can update the merkle tree's root for a given distribution.
-    mapping(Id => mapping(address => bool)) public isUpdaterOf;
+    mapping(uint256 => mapping(address => bool)) public isUpdaterOf;
 
     /// @notice The timelock for a given distribution.
-    mapping(Id => uint256) public timelockOf;
+    mapping(uint256 => uint256) public timelockOf;
 
     /// @notice The pending root for a given distribution.
     /// @dev If the pending root is set, the root can be updated after the timelock has expired.
     /// @dev The pending root is skipped if the timelock is set to 0.
-    mapping(Id => PendingRoot) public pendingRootOf;
+    mapping(uint256 => PendingRoot) public pendingRootOf;
 
     /// @notice The pending treasury for a given distribution.
     /// @dev The pending treasury has to accept the treasury role to become the new treasury.
-    mapping(Id => address) public pendingTreasuryOf;
+    mapping(uint256 => address) public pendingTreasuryOf;
 
     /// @notice The frozen status of a given distribution.
     /// @dev A frozen distribution cannot be claimed by users.
-    mapping(Id => bool) public isFrozen;
+    mapping(uint256 => bool) public isFrozen;
 
-    modifier onlyUpdater(Id distributionId) {
+    modifier onlyUpdater(uint256 distributionId) {
         require(
             isUpdaterOf[distributionId][msg.sender] || msg.sender == ownerOf[distributionId],
             "UniversalRewardsDistributor: caller is not the updater"
@@ -56,17 +58,17 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         _;
     }
 
-    modifier onlyTreasury(Id distributionId) {
+    modifier onlyTreasury(uint256 distributionId) {
         require(msg.sender == treasuryOf[distributionId], "UniversalRewardsDistributor: caller is not the treasury");
         _;
     }
 
-    modifier onlyOwner(Id distributionId) {
+    modifier onlyOwner(uint256 distributionId) {
         require(msg.sender == ownerOf[distributionId], "UniversalRewardsDistributor: caller is not the owner");
         _;
     }
 
-    modifier notFrozen(Id distributionId) {
+    modifier notFrozen(uint256 distributionId) {
         require(!isFrozen[distributionId], "UniversalRewardsDistributor: frozen");
         _;
     }
@@ -75,7 +77,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice Updates the current merkle tree's root.
     /// @param newRoot The new merkle tree's root.
-    function proposeRoot(Id distributionId, bytes32 newRoot)
+    function proposeRoot(uint256 distributionId, bytes32 newRoot)
         external
         onlyUpdater(distributionId)
         notFrozen(distributionId)
@@ -94,7 +96,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
-    function confirmRootUpdate(Id distributionId) external notFrozen(distributionId) {
+    function confirmRootUpdate(uint256 distributionId) external notFrozen(distributionId) {
         require(pendingRootOf[distributionId].submittedAt > 0, "UniversalRewardsDistributor: no pending root");
         require(
             block.timestamp >= pendingRootOf[distributionId].submittedAt + timelockOf[distributionId],
@@ -112,7 +114,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param reward The address of the reward token.
     /// @param claimable The overall claimable amount of token rewards.
     /// @param proof The merkle proof that valdistributionIdates this claim.
-    function claim(Id distributionId, address account, address reward, uint256 claimable, bytes32[] calldata proof)
+    function claim(uint256 distributionId, address account, address reward, uint256 claimable, bytes32[] calldata proof)
         external
         notFrozen(distributionId)
     {
@@ -141,8 +143,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param initialTimelock The initial timelock for the new distribution.
     /// @param initialRoot The initial merkle tree's root for the new distribution.
     /// @dev The caller of this function is the owner and the treasury of the new distribution.
-    function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external returns (Id distributionId) {
-        distributionId = Id.wrap(keccak256(abi.encode(msg.sender, block.timestamp)));
+    function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external returns (uint256 distributionId) {
+        distributionId = nextDistributionId++;
 
         require(ownerOf[distributionId] == address(0), "UniversalRewardsDistributor: distributionId already exists");
 
@@ -160,14 +162,14 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Submits a new treasury address for a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newTreasury The new treasury address.
-    function suggestTreasury(Id distributionId, address newTreasury) external onlyOwner(distributionId) {
+    function suggestTreasury(uint256 distributionId, address newTreasury) external onlyOwner(distributionId) {
         pendingTreasuryOf[distributionId] = newTreasury;
         emit TreasurySuggested(distributionId, newTreasury);
     }
 
     /// @notice Accepts the treasury role for a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
-    function acceptAsTreasury(Id distributionId) external {
+    function acceptAsTreasury(uint256 distributionId) external {
         require(
             msg.sender == pendingTreasuryOf[distributionId],
             "UniversalRewardsDistributor: caller is not the pending treasury"
@@ -180,7 +182,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Freeze a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newIsFrozen Whether the distribution should be frozen or not.
-    function freeze(Id distributionId, bool newIsFrozen) external onlyOwner(distributionId) {
+    function freeze(uint256 distributionId, bool newIsFrozen) external onlyOwner(distributionId) {
         isFrozen[distributionId] = newIsFrozen;
         emit Frozen(distributionId, newIsFrozen);
     }
@@ -190,7 +192,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newRoot The new merkle tree's root.
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev The distribution must be frozen before.
-    function forceUpdateRoot(Id distributionId, bytes32 newRoot) external onlyOwner(distributionId) {
+    function forceUpdateRoot(uint256 distributionId, bytes32 newRoot) external onlyOwner(distributionId) {
         require(isFrozen[distributionId], "UniversalRewardsDistributor: not frozen");
         rootOf[distributionId] = newRoot;
         emit RootUpdated(distributionId, newRoot);
@@ -201,7 +203,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newTimelock The new timelock.
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
-    function updateTimelock(Id distributionId, uint256 newTimelock) external onlyOwner(distributionId) {
+    function updateTimelock(uint256 distributionId, uint256 newTimelock) external onlyOwner(distributionId) {
         if (newTimelock < timelockOf[distributionId]) {
             require(
                 pendingRootOf[distributionId].submittedAt == 0
@@ -217,7 +219,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param updater The new root updater.
     /// @param active Whether the root updater should be active or not.
-    function editRootUpdater(Id distributionId, address updater, bool active) external onlyOwner(distributionId) {
+    function editRootUpdater(uint256 distributionId, address updater, bool active) external onlyOwner(distributionId) {
         isUpdaterOf[distributionId][updater] = active;
         emit RootUpdaterUpdated(distributionId, updater, active);
     }
@@ -225,18 +227,18 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Revoke the pending root of a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @dev This function can only be called by the owner of the distribution at any time.
-    function revokePendingRoot(Id distributionId) external onlyOwner(distributionId) {
+    function revokePendingRoot(uint256 distributionId) external onlyOwner(distributionId) {
         require(pendingRootOf[distributionId].submittedAt != 0, "UniversalRewardsDistributor: no pending root");
         delete pendingRootOf[distributionId];
         emit PendingRootRevoked(distributionId);
     }
 
-    function transferDistributionOwnership(Id distributionId, address newOwner) external onlyOwner(distributionId) {
+    function transferDistributionOwnership(uint256 distributionId, address newOwner) external onlyOwner(distributionId) {
         ownerOf[distributionId] = newOwner;
         emit DistributionOwnershipTransferred(distributionId, msg.sender, newOwner);
     }
 
-    function getPendingRoot(Id distributionId) external view returns (PendingRoot memory) {
+    function getPendingRoot(uint256 distributionId) external view returns (PendingRoot memory) {
         return pendingRootOf[distributionId];
     }
 }
