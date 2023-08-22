@@ -75,7 +75,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice Updates the current merkle tree's root.
     /// @param newRoot The new merkle tree's root.
-    function proposeRoot(Id distributionId, bytes32 newRoot) external onlyUpdater(distributionId) notFrozen(distributionId) {
+    function proposeRoot(Id distributionId, bytes32 newRoot)
+        external
+        onlyUpdater(distributionId)
+        notFrozen(distributionId)
+    {
         if (timelocks[distributionId] == 0) {
             rootOf[distributionId] = newRoot;
             delete pendingRootOf[distributionId];
@@ -116,7 +120,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         require(
             MerkleProof.verifyCalldata(
-                proof, rootOf[distributionId], keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
+                proof,
+                rootOf[distributionId],
+                keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
             ),
             "UniversalRewardsDistributor: invalid proof or expired"
         );
@@ -162,7 +168,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Accepts the treasury role for a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     function acceptAsTreasury(Id distributionId) external {
-        require(msg.sender == pendingTreasuries[distributionId], "UniversalRewardsDistributor: caller is not the pending treasury");
+        require(
+            msg.sender == pendingTreasuries[distributionId],
+            "UniversalRewardsDistributor: caller is not the pending treasury"
+        );
         treasuries[distributionId] = pendingTreasuries[distributionId];
         delete pendingTreasuries[distributionId];
         emit TreasuryUpdated(distributionId, treasuries[distributionId]);
@@ -193,9 +202,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
     function updateTimelock(Id distributionId, uint256 newTimelock) external onlyOwner(distributionId) {
-        if(newTimelock < timelocks[distributionId]) {
+        if (newTimelock < timelocks[distributionId]) {
             require(
-                pendingRootOf[distributionId].submittedAt == 0 || pendingRootOf[distributionId].submittedAt + timelocks[distributionId] <= block.timestamp,
+                pendingRootOf[distributionId].submittedAt == 0
+                    || pendingRootOf[distributionId].submittedAt + timelocks[distributionId] <= block.timestamp,
                 "UniversalRewardsDistributor: timelock not expired"
             );
         }
@@ -223,9 +233,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     function transferDistributionOwnership(Id distributionId, address newOwner) external onlyOwner(distributionId) {
         rootOwner[distributionId] = newOwner;
-        emit DistributionOwnershipTransferred(distributionId, msg.sender,  newOwner);
+        emit DistributionOwnershipTransferred(distributionId, msg.sender, newOwner);
     }
-
 
     function getPendingRoot(Id distributionId) external view returns (PendingRoot memory) {
         return pendingRootOf[distributionId];

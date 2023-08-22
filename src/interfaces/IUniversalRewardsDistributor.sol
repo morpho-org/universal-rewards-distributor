@@ -7,7 +7,6 @@ type Id is bytes32;
 /// @author Morpho Labs
 /// @notice UniversalRewardsDistributor's interface.
 interface IUniversalRewardsDistributor {
-
     /// @notice The pending root struct for a merkle tree distribution during the timelock.
     struct PendingRoot {
         /// @dev The block timestamp of the pending root submission.
@@ -27,7 +26,6 @@ interface IUniversalRewardsDistributor {
     /// @param newRoot The new merkle tree's root.
     event RootSubmitted(Id indexed distributionId, bytes32 newRoot);
 
-
     /// @notice Emitted when a new Treasury.
     /// @param distributionId The id of the merkle tree distribution.
     /// @param newTreasury The new merkle tree's treasury where rewards are pulled from.
@@ -37,7 +35,6 @@ interface IUniversalRewardsDistributor {
     /// @param distributionId The id of the merkle tree distribution.
     /// @param newTreasury The new treasury that needs to approve the change.
     event TreasurySuggested(Id indexed distributionId, address newTreasury);
-
 
     /// @notice Emitted when a merkle tree is frozen or unfrozen by the owner.
     /// @param distributionId The id of the merkle tree distribution.
@@ -72,19 +69,19 @@ interface IUniversalRewardsDistributor {
     /// @param amount The amount of reward token claimed.
     event RewardsClaimed(Id indexed distributionId, address indexed account, address indexed reward, uint256 amount);
 
-
     /// @notice Emitted when the ownership of a merkle tree distribution is transferred.
     /// @param distributionId The id of the merkle tree distribution.
     /// @param previousOwner The previous owner of the merkle tree distribution.
     /// @param newOwner The new owner of the merkle tree distribution.
-    event DistributionOwnershipTransferred(Id indexed distributionId, address indexed previousOwner, address indexed newOwner);
+    event DistributionOwnershipTransferred(
+        Id indexed distributionId, address indexed previousOwner, address indexed newOwner
+    );
     /* EXTERNAL */
 
     function proposeRoot(Id id, bytes32 newRoot) external;
     function confirmRootUpdate(Id id) external;
-    function claim(Id id, address account, address reward, uint256 claimable, bytes32[] calldata proof)
-    external;
-    function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external  returns (Id distributionId);
+    function claim(Id id, address account, address reward, uint256 claimable, bytes32[] calldata proof) external;
+    function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external returns (Id distributionId);
     function suggestTreasury(Id id, address newTreasury) external;
     function acceptAsTreasury(Id id) external;
     function freeze(Id id, bool isFrozen) external;
