@@ -89,7 +89,6 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testUpdateRootWithoutTimelockAsOwner() public {
-
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootUpdated(distributionWithoutTimeLock, DEFAULT_ROOT);
@@ -103,7 +102,6 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testUpdateRootWithoutTimelockAsUpdater() public {
-
         vm.prank(updater);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootUpdated(distributionWithoutTimeLock, DEFAULT_ROOT);
@@ -116,7 +114,6 @@ contract UniversalRouterDistributor is Test {
         assertEq(pendingRoot.submittedAt, 0);
     }
 
-
     function testUpdateRootWithoutTimelockAsRandomCallerShouldRevert(address randomCaller) public {
         vm.assume(!distributor.isUpdaterOf(distributionWithoutTimeLock, randomCaller) && randomCaller != owner);
 
@@ -126,7 +123,6 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testUpdateRootWithTimelockAsOwner() public {
-
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootSubmitted(distributionWithTimeLock, DEFAULT_ROOT);
@@ -140,7 +136,6 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testUpdateRootWithTimelockAsUpdater() public {
-
         vm.prank(updater);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootSubmitted(distributionWithTimeLock, DEFAULT_ROOT);
@@ -181,7 +176,6 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testConfirmRootUpdateShouldUpdateMainRoot(address randomCaller) public {
-
         vm.prank(updater);
         distributor.proposeRoot(distributionWithTimeLock, DEFAULT_ROOT);
 
@@ -201,7 +195,6 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testConfirmRootUpdateShouldRevertIfFrozen(address randomCaller) public {
-
         vm.prank(updater);
         distributor.proposeRoot(distributionWithTimeLock, DEFAULT_ROOT);
 
@@ -217,7 +210,6 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testConfirmRootUpdateShouldRevertIfTimelockNotFinished(address randomCaller) public {
-
         vm.prank(updater);
         distributor.proposeRoot(distributionWithTimeLock, DEFAULT_ROOT);
 
@@ -299,7 +291,6 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testForceUpdateRootShouldForceNewRootWhenFrozen(bytes32 newRoot) public {
-
         vm.startPrank(owner);
         distributor.freeze(distributionWithoutTimeLock, true);
 
@@ -383,7 +374,6 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testUpdateTimelockShouldWorkIfPendingRootIsUpdatableButNotYetUpdated() public {
-
         vm.prank(owner);
         distributor.proposeRoot(distributionWithTimeLock, DEFAULT_ROOT);
 
@@ -415,7 +405,6 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testRevokePendingRootShouldRevokeWhenCalledWithOwner() public {
-
         vm.prank(owner);
         distributor.proposeRoot(distributionWithTimeLock, DEFAULT_ROOT);
 
@@ -466,155 +455,154 @@ contract UniversalRouterDistributor is Test {
         distributor.transferDistributionOwnership(distributionWithTimeLock, newOwner);
     }
 
+    function testClaimRewardsShouldFollowTheMerkleDistribution(uint256 claimable, uint8 size) public {
+        claimable = bound(claimable, 1 ether, 1000 ether);
+        uint256 boundedSize = bound(size, 2, MAX_RECEIVERS);
 
-        function testClaimRewardsShouldFollowTheMerkleDistribution(uint256 claimable, uint8 size) public {
-            claimable = bound(claimable, 1 ether, 1000 ether);
-            uint256 boundedSize = bound(size, 2, MAX_RECEIVERS);
+        (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, boundedSize);
 
-            (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, boundedSize);
+        vm.prank(owner);
+        distributor.proposeRoot(distributionWithoutTimeLock, root);
 
-            vm.prank(owner);
-            distributor.proposeRoot(distributionWithoutTimeLock, root);
+        assertEq(distributor.rootOf(distributionWithoutTimeLock), root);
 
-            assertEq(distributor.rootOf(distributionWithoutTimeLock), root);
+        _claimAndVerifyRewards(distributionWithoutTimeLock, data, claimable);
+    }
 
-            _claimAndVerifyRewards(distributionWithoutTimeLock, data, claimable);
-        }
-    //
-    //    function testRewardsWithUpdate(uint256 claimable1, uint256 claimable2, uint8 size) public {
-    //        claimable1 = bound(claimable1, 1 ether, type(uint128).max);
-    //        claimable2 = bound(claimable2, claimable1 * 2, type(uint256).max);
-    //        uint256 boundedSize = bound(size, 2, MAX_RECEIVERS);
-    //
-    //        bytes32[] memory data = _setupRewards(claimable1, boundedSize);
-    //        _claimAndVerifyRewards(data, claimable1);
-    //
-    //        data = _setupRewards(claimable2, boundedSize);
-    //        _claimAndVerifyRewards(data, claimable2);
-    //    }
-    //
-    //    function testRewardsShouldRevertWhenAlreadyClaimed(uint256 claimable, uint8 size) public {
-    //        claimable = bound(claimable, 1 ether, type(uint256).max);
-    //        uint256 boundedSize = bound(size, 2, MAX_RECEIVERS);
-    //
-    //        bytes32[] memory data = _setupRewards(claimable, boundedSize);
-    //
-    //        bytes32[] memory proof = merkle.getProof(data, 0);
-    //        deal(address(token1), address(distributor), claimable);
-    //        distributor.claim(vm.addr(1), address(token1), claimable, proof);
-    //
-    //        vm.expectRevert(IUniversalRewardsDistributor.AlreadyClaimed.selector);
-    //        distributor.claim(vm.addr(1), address(token1), claimable, proof);
-    //    }
-    //
-    //    function testRewardsShouldRevertWhenInvalidProofAndCorrectInputs(
-    //        bytes32[] memory proof,
-    //        uint256 claimable,
-    //        uint8 size
-    //    ) public {
-    //        claimable = bound(claimable, 1 ether, type(uint256).max);
-    //        uint256 boundedSize = bound(size, 2, MAX_RECEIVERS);
-    //
-    //        _setupRewards(claimable, boundedSize);
-    //
-    //        deal(address(token1), address(distributor), claimable);
-    //        vm.expectRevert(IUniversalRewardsDistributor.ProofInvalidOrExpired.selector);
-    //        distributor.claim(vm.addr(1), address(token1), claimable, proof);
-    //    }
-    //
-    //    function testRewardsShouldRevertWhenValidProofButIncorrectInputs(
-    //        address account,
-    //        address reward,
-    //        uint256 amount,
-    //        uint256 claimable,
-    //        uint8 size
-    //    ) public {
-    //        claimable = bound(claimable, 1 ether, type(uint256).max);
-    //        uint256 boundedSize = bound(size, 2, MAX_RECEIVERS);
-    //
-    //        bytes32[] memory data = _setupRewards(claimable, boundedSize);
-    //
-    //        bytes32[] memory proof = merkle.getProof(data, 0);
-    //        deal(address(token1), address(distributor), claimable);
-    //        vm.expectRevert(IUniversalRewardsDistributor.ProofInvalidOrExpired.selector);
-    //        distributor.claim(account, reward, amount, proof);
-    //    }
-    //
-    //    /// @dev In the implementation, claimed rewards are stored as a mapping.
-    //    ///      The test function use vm.store to emulate assignations.
-    //    ///      | Name    | Type                                            | Slot | Offset | Bytes |
-    //    ///      |---------|-------------------------------------------------|------|--------|-------|
-    //    ///      | _owner  | address                                         | 0    | 0      | 20    |
-    //    ///      | root    | bytes32                                         | 1    | 0      | 32    |
-    //    ///      | claimed | mapping(address => mapping(address => uint256)) | 2    | 0      | 32    |
-    //    function testClaimedGetter(address token, address account, uint256 amount) public {
-    //        vm.store(
-    //            address(distributor),
-    //            keccak256(abi.encode(address(token), keccak256(abi.encode(account, uint256(2))))),
-    //            bytes32(amount)
-    //        );
-    //        assertEq(distributor.claimed(account, token), amount);
-    //    }
-    //
-        function _setupRewards(uint256 claimable, uint256 size) internal returns (bytes32[] memory data, bytes32 root) {
-            data = new bytes32[](size);
+    function testClaimRewardsShouldRevertIfClaimedTwice(uint256 claimable) public {
+        claimable = bound(claimable, 1 ether, 1000 ether);
 
-            uint256 i;
-            while (i < size / 2) {
-                uint256 index = i + 1;
-                data[i] = keccak256(
-                    bytes.concat(keccak256(abi.encode(vm.addr(index), address(token1), uint256(claimable / index))))
-                );
-                data[i + 1] = keccak256(
-                    bytes.concat(keccak256(abi.encode(vm.addr(index), address(token2), uint256(claimable / index))))
-                );
+        (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
 
-                i += 2;
-            }
+        vm.prank(owner);
+        distributor.proposeRoot(distributionWithoutTimeLock, root);
 
-            root = merkle.getRoot(data);
+        assertEq(distributor.rootOf(distributionWithoutTimeLock), root);
+        bytes32[] memory proof1 = merkle.getProof(data, 0);
+
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RewardsClaimed(
+            distributionWithoutTimeLock, vm.addr(1), address(token1), claimable
+        );
+        distributor.claim(distributionWithoutTimeLock, vm.addr(1), address(token1), claimable, proof1);
+
+        vm.expectRevert("UniversalRewardsDistributor: already claimed");
+        distributor.claim(distributionWithoutTimeLock, vm.addr(1), address(token1), claimable, proof1);
+    }
+
+    function testClaimRewardsShouldRevertIfFrozen(uint256 claimable) public {
+        claimable = bound(claimable, 1 ether, 1000 ether);
+
+        (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
+
+        vm.startPrank(owner);
+        distributor.proposeRoot(distributionWithoutTimeLock, root);
+        distributor.freeze(distributionWithoutTimeLock, true);
+        vm.stopPrank();
+
+        assertEq(distributor.rootOf(distributionWithoutTimeLock), root);
+        bytes32[] memory proof1 = merkle.getProof(data, 0);
+
+        vm.expectRevert("UniversalRewardsDistributor: frozen");
+        distributor.claim(distributionWithoutTimeLock, vm.addr(1), address(token1), claimable, proof1);
+    }
+
+    function testClaimRewardsShouldRevertIfNoRoot(uint256 claimable) public {
+        claimable = bound(claimable, 1 ether, 1000 ether);
+
+        (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
+
+        bytes32[] memory proof1 = merkle.getProof(data, 0);
+
+        vm.expectRevert("UniversalRewardsDistributor: root is not set");
+        distributor.claim(distributionWithoutTimeLock, vm.addr(1), address(token1), claimable, proof1);
+    }
+
+    function testClaimRewardsShouldRevertIfInvalidRoot(uint256 claimable, bytes32 invalidRoot) public {
+        claimable = bound(claimable, 1 ether, 1000 ether);
+
+        (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
+
+        vm.assume(root != invalidRoot);
+        vm.prank(owner);
+        distributor.proposeRoot(distributionWithoutTimeLock, invalidRoot);
+
+        bytes32[] memory proof1 = merkle.getProof(data, 0);
+
+        vm.expectRevert("UniversalRewardsDistributor: invalid proof or expired");
+        distributor.claim(distributionWithoutTimeLock, vm.addr(1), address(token1), claimable, proof1);
+    }
+
+    function _setupRewards(uint256 claimable, uint256 size) internal returns (bytes32[] memory data, bytes32 root) {
+        data = new bytes32[](size);
+
+        uint256 i;
+        while (i < size / 2) {
+            uint256 index = i + 1;
+            data[i] = keccak256(
+                bytes.concat(keccak256(abi.encode(vm.addr(index), address(token1), uint256(claimable / index))))
+            );
+            data[i + 1] = keccak256(
+                bytes.concat(keccak256(abi.encode(vm.addr(index), address(token2), uint256(claimable / index))))
+            );
+
+            i += 2;
         }
 
-        function _claimAndVerifyRewards(Id distributionId, bytes32[] memory data, uint256 claimable) internal {
-            uint256 i;
-            while (i < data.length / 2) {
-                bytes32[] memory proof1 = merkle.getProof(data, i);
-                bytes32[] memory proof2 = merkle.getProof(data, i + 1);
+        root = merkle.getRoot(data);
+    }
 
-                uint256 index = i + 1;
-                uint256 claimableInput = claimable / index;
-                uint256 claimableAdjusted1 = claimableInput - distributor.claimed(distributionId, vm.addr(index), address(token1));
-                uint256 claimableAdjusted2 = claimableInput - distributor.claimed(distributionId, vm.addr(index), address(token2));
-                uint256 balanceBefore1 = ERC20(address(token1)).balanceOf(vm.addr(index));
-                uint256 balanceBefore2 = ERC20(address(token2)).balanceOf(vm.addr(index));
-                uint256 treasuryBalanceBefore1 = ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId));
-                uint256 treasuryBalanceBefore2 = ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId));
+    function _claimAndVerifyRewards(Id distributionId, bytes32[] memory data, uint256 claimable) internal {
+        uint256 i;
+        while (i < data.length / 2) {
+            bytes32[] memory proof1 = merkle.getProof(data, i);
+            bytes32[] memory proof2 = merkle.getProof(data, i + 1);
 
-                console.log(claimableInput);
-                // Claim token1
-                vm.expectEmit(true, true, true, true, address(distributor));
-                emit IUniversalRewardsDistributor.RewardsClaimed(distributionId, vm.addr(index), address(token1), claimableAdjusted1);
-                distributor.claim(distributionId, vm.addr(index), address(token1), claimableInput, proof1);
-                console.log(distributor.claimed(distributionId, vm.addr(index), address(token1)));
-                // Claim token2
-                vm.expectEmit(true, true, true, true, address(distributor));
-                emit IUniversalRewardsDistributor.RewardsClaimed(distributionId, vm.addr(index), address(token2), claimableAdjusted2);
-                distributor.claim(distributionId, vm.addr(index), address(token2), claimableInput, proof2);
+            uint256 index = i + 1;
+            uint256 claimableInput = claimable / index;
+            uint256 claimableAdjusted1 =
+                claimableInput - distributor.claimed(distributionId, vm.addr(index), address(token1));
+            uint256 claimableAdjusted2 =
+                claimableInput - distributor.claimed(distributionId, vm.addr(index), address(token2));
+            uint256 balanceBefore1 = ERC20(address(token1)).balanceOf(vm.addr(index));
+            uint256 balanceBefore2 = ERC20(address(token2)).balanceOf(vm.addr(index));
+            uint256 treasuryBalanceBefore1 = ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId));
+            uint256 treasuryBalanceBefore2 = ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId));
 
-                uint256 balanceAfter1 = balanceBefore1 + claimableAdjusted1;
-                uint256 balanceAfter2 = balanceBefore2 + claimableAdjusted2;
+            console.log(claimableInput);
+            // Claim token1
+            vm.expectEmit(true, true, true, true, address(distributor));
+            emit IUniversalRewardsDistributor.RewardsClaimed(
+                distributionId, vm.addr(index), address(token1), claimableAdjusted1
+            );
+            distributor.claim(distributionId, vm.addr(index), address(token1), claimableInput, proof1);
+            console.log(distributor.claimed(distributionId, vm.addr(index), address(token1)));
+            // Claim token2
+            vm.expectEmit(true, true, true, true, address(distributor));
+            emit IUniversalRewardsDistributor.RewardsClaimed(
+                distributionId, vm.addr(index), address(token2), claimableAdjusted2
+            );
+            distributor.claim(distributionId, vm.addr(index), address(token2), claimableInput, proof2);
 
-                assertEq(ERC20(address(token1)).balanceOf(vm.addr(index)), balanceAfter1);
-                assertEq(ERC20(address(token2)).balanceOf(vm.addr(index)), balanceAfter2);
-//                // Assert claimed getter
-                assertEq(distributor.claimed(distributionId, vm.addr(index), address(token1)), balanceAfter1);
-                assertEq(distributor.claimed(distributionId, vm.addr(index), address(token2)), balanceAfter2);
+            uint256 balanceAfter1 = balanceBefore1 + claimableAdjusted1;
+            uint256 balanceAfter2 = balanceBefore2 + claimableAdjusted2;
 
+            assertEq(ERC20(address(token1)).balanceOf(vm.addr(index)), balanceAfter1);
+            assertEq(ERC20(address(token2)).balanceOf(vm.addr(index)), balanceAfter2);
+            // Assert claimed getter
+            assertEq(distributor.claimed(distributionId, vm.addr(index), address(token1)), balanceAfter1);
+            assertEq(distributor.claimed(distributionId, vm.addr(index), address(token2)), balanceAfter2);
 
-                assertEq(ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId)), treasuryBalanceBefore1 - claimableAdjusted1);
-                assertEq(ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId)), treasuryBalanceBefore2 - claimableAdjusted2);
+            assertEq(
+                ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId)),
+                treasuryBalanceBefore1 - claimableAdjusted1
+            );
+            assertEq(
+                ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId)),
+                treasuryBalanceBefore2 - claimableAdjusted2
+            );
 
-                i += 2;
-            }
+            i += 2;
         }
+    }
 }
