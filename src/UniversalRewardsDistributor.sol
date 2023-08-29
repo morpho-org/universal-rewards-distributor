@@ -97,15 +97,17 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
     function confirmRootUpdate(uint256 distributionId) external notFrozen(distributionId) {
-        require(pendingRootOf[distributionId].submittedAt > 0, "UniversalRewardsDistributor: no pending root");
+        PendingRoot memory pendingRoot = pendingRootOf[distributionId];
+        require(pendingRoot.submittedAt > 0, "UniversalRewardsDistributor: no pending root");
         require(
-            block.timestamp >= pendingRootOf[distributionId].submittedAt + timelockOf[distributionId],
+            block.timestamp >= pendingRoot.submittedAt + timelockOf[distributionId],
             "UniversalRewardsDistributor: timelock not expired"
         );
 
-        rootOf[distributionId] = pendingRootOf[distributionId].root;
+        rootOf[distributionId] = pendingRoot.root;
         delete pendingRootOf[distributionId];
-        emit RootUpdated(distributionId, rootOf[distributionId]);
+
+        emit RootUpdated(distributionId, pendingRoot.root);
     }
 
     /// @notice Claims rewards.
