@@ -10,7 +10,7 @@ import {ERC20} from "@solmate/tokens/ERC20.sol";
 
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs
-/// @notice This contract enables the distribution of various reward tokens to multiple accounts using different permissionLess Merkle trees.
+/// @notice This contract enables the distribution of various reward tokens to multiple accounts using different permissionless Merkle trees.
 ///         It is largely inspired by Morpho's current rewards distributor:
 ///         https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
 contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
@@ -153,6 +153,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         timelockOf[distributionId] = initialTimelock;
 
         emit DistributionCreated(distributionId, msg.sender, initialTimelock);
+
         if (initialRoot != bytes32(0)) {
             rootOf[distributionId] = initialRoot;
             emit RootUpdated(distributionId, initialRoot);
@@ -174,9 +175,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             msg.sender == pendingTreasuryOf[distributionId],
             "UniversalRewardsDistributor: caller is not the pending treasury"
         );
-        treasuryOf[distributionId] = pendingTreasuryOf[distributionId];
+
+        treasuryOf[distributionId] = msg.sender;
         delete pendingTreasuryOf[distributionId];
-        emit TreasuryUpdated(distributionId, treasuryOf[distributionId]);
+
+        emit TreasuryUpdated(distributionId, msg.sender);
     }
 
     /// @notice Freezes a given distribution.
@@ -205,12 +208,14 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
     function updateTimelock(uint256 distributionId, uint256 newTimelock) external onlyOwner(distributionId) {
         if (newTimelock < timelockOf[distributionId]) {
+            PendingRoot memory pendingRoot = pendingRootOf[distributionId];
             require(
-                pendingRootOf[distributionId].submittedAt == 0
-                    || pendingRootOf[distributionId].submittedAt + timelockOf[distributionId] <= block.timestamp,
+                pendingRoot.submittedAt == 0
+                    || pendingRoot.submittedAt + timelockOf[distributionId] <= block.timestamp,
                 "UniversalRewardsDistributor: timelock not expired"
             );
         }
+
         timelockOf[distributionId] = newTimelock;
         emit TimelockUpdated(distributionId, newTimelock);
     }
@@ -229,6 +234,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called by the owner of the distribution at any time.
     function revokePendingRoot(uint256 distributionId) external onlyOwner(distributionId) {
         require(pendingRootOf[distributionId].submittedAt != 0, "UniversalRewardsDistributor: no pending root");
+
         delete pendingRootOf[distributionId];
         emit PendingRootRevoked(distributionId);
     }
