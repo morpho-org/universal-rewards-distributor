@@ -3,10 +3,11 @@ pragma solidity ^0.8.19;
 
 import {IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
 
-import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
-
+import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 import {SafeTransferLib} from "@solmate/utils/SafeTransferLib.sol";
+
 import {ERC20} from "@solmate/tokens/ERC20.sol";
+import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
 
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs
@@ -53,23 +54,23 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     modifier onlyUpdater(uint256 distributionId) {
         require(
             isUpdaterOf[distributionId][msg.sender] || msg.sender == ownerOf[distributionId],
-            "UniversalRewardsDistributor: caller is not the updater"
+            ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER
         );
         _;
     }
 
     modifier onlyTreasury(uint256 distributionId) {
-        require(msg.sender == treasuryOf[distributionId], "UniversalRewardsDistributor: caller is not the treasury");
+        require(msg.sender == treasuryOf[distributionId], ErrorsLib.CALLER_NOT_TREASURY);
         _;
     }
 
     modifier onlyOwner(uint256 distributionId) {
-        require(msg.sender == ownerOf[distributionId], "UniversalRewardsDistributor: caller is not the owner");
+        require(msg.sender == ownerOf[distributionId], ErrorsLib.CALLER_NOT_OWNER);
         _;
     }
 
     modifier notFrozen(uint256 distributionId) {
-        require(!isFrozen[distributionId], "UniversalRewardsDistributor: frozen");
+        require(!isFrozen[distributionId], ErrorsLib.FROZEN);
         _;
     }
 
@@ -99,11 +100,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev Anyone can call this function.
     function acceptRootUpdate(uint256 distributionId) external notFrozen(distributionId) {
         PendingRoot memory pendingRoot = pendingRootOf[distributionId];
-        require(pendingRoot.submittedAt > 0, "UniversalRewardsDistributor: no pending root");
-        require(
-            block.timestamp >= pendingRoot.submittedAt + timelockOf[distributionId],
-            "UniversalRewardsDistributor: timelock not expired"
-        );
+        require(pendingRoot.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
+        require(block.timestamp >= pendingRoot.submittedAt + timelockOf[distributionId], ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
         rootOf[distributionId] = pendingRoot.root;
         delete pendingRootOf[distributionId];
@@ -121,19 +119,19 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         external
         notFrozen(distributionId)
     {
-        require(rootOf[distributionId] != bytes32(0), "UniversalRewardsDistributor: root is not set");
+        require(rootOf[distributionId] != bytes32(0), ErrorsLib.ROOT_NOT_SET);
         require(
             MerkleProof.verifyCalldata(
                 proof,
                 rootOf[distributionId],
                 keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
             ),
-            "UniversalRewardsDistributor: invalid proof or expired"
+            ErrorsLib.INVALID_PROOF_OR_EXPIRED
         );
 
         uint256 amount = claimable - claimed[distributionId][account][reward];
 
-        require(amount > 0, "UniversalRewardsDistributor: already claimed");
+        require(amount > 0, ErrorsLib.ALREADY_CLAIMED);
 
         claimed[distributionId][account][reward] = claimable;
 
@@ -174,10 +172,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Accepts the treasury role for a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     function acceptAsTreasury(uint256 distributionId) external {
-        require(
-            msg.sender == pendingTreasuryOf[distributionId],
-            "UniversalRewardsDistributor: caller is not the pending treasury"
-        );
+        require(msg.sender == pendingTreasuryOf[distributionId], ErrorsLib.CALLER_NOT_PENDING_TREASURY);
 
         treasuryOf[distributionId] = msg.sender;
         delete pendingTreasuryOf[distributionId];
@@ -199,7 +194,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev The distribution must be frozen before.
     function forceUpdateRoot(uint256 distributionId, bytes32 newRoot) external onlyOwner(distributionId) {
-        require(isFrozen[distributionId], "UniversalRewardsDistributor: not frozen");
+        require(isFrozen[distributionId], ErrorsLib.NOT_FROZEN);
         rootOf[distributionId] = newRoot;
         emit RootUpdated(distributionId, newRoot);
     }
@@ -214,7 +209,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             PendingRoot memory pendingRoot = pendingRootOf[distributionId];
             require(
                 pendingRoot.submittedAt == 0 || pendingRoot.submittedAt + timelockOf[distributionId] <= block.timestamp,
-                "UniversalRewardsDistributor: timelock not expired"
+                ErrorsLib.TIMELOCK_NOT_EXPIRED
             );
         }
 
@@ -238,7 +233,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @dev This function can only be called by the owner of the distribution at any time.
     function revokePendingRoot(uint256 distributionId) external onlyOwner(distributionId) {
-        require(pendingRootOf[distributionId].submittedAt != 0, "UniversalRewardsDistributor: no pending root");
+        require(pendingRootOf[distributionId].submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
         delete pendingRootOf[distributionId];
         emit PendingRootRevoked(distributionId);
