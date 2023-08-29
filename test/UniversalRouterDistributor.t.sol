@@ -34,7 +34,9 @@ contract UniversalRouterDistributor is Test {
     event DistributionCreated(uint256 indexed distributionId, address indexed owner, uint256 initialTimelock);
     event RootUpdaterUpdated(uint256 indexed distributionId, address indexed rootUpdater, bool active);
     event PendingRootRevoked(uint256 indexed distributionId);
-    event RewardsClaimed(uint256 indexed distributionId, address indexed account, address indexed reward, uint256 amount);
+    event RewardsClaimed(
+        uint256 indexed distributionId, address indexed account, address indexed reward, uint256 amount
+    );
     event DistributionOwnershipTransferred(
         uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner
     );
@@ -532,7 +534,11 @@ contract UniversalRouterDistributor is Test {
         distributor.claim(distributionWithoutTimeLock, vm.addr(1), address(token1), claimable, proof1);
     }
 
-    function _setupRewards(uint256 claimable, uint256 size) internal view returns (bytes32[] memory data, bytes32 root) {
+    function _setupRewards(uint256 claimable, uint256 size)
+        internal
+        view
+        returns (bytes32[] memory data, bytes32 root)
+    {
         data = new bytes32[](size);
 
         uint256 i;

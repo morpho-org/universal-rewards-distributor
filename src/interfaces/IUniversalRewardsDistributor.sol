@@ -65,7 +65,9 @@ interface IUniversalRewardsDistributor {
     /// @param account The address for which rewards are claimd rewards for.
     /// @param reward The address of the reward token.
     /// @param amount The amount of reward token claimed.
-    event RewardsClaimed(uint256 indexed distributionId, address indexed account, address indexed reward, uint256 amount);
+    event RewardsClaimed(
+        uint256 indexed distributionId, address indexed account, address indexed reward, uint256 amount
+    );
 
     /// @notice Emitted when the ownership of a merkle tree distribution is transferred.
     /// @param distributionId The id of the merkle tree distribution.
@@ -80,7 +82,9 @@ interface IUniversalRewardsDistributor {
     function proposeRoot(uint256 id, bytes32 newRoot) external;
     function acceptRootUpdate(uint256 id) external;
     function claim(uint256 id, address account, address reward, uint256 claimable, bytes32[] calldata proof) external;
-    function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external returns (uint256 distributionId);
+    function createDistribution(uint256 initialTimelock, bytes32 initialRoot)
+        external
+        returns (uint256 distributionId);
     function proposeTreasury(uint256 id, address newTreasury) external;
     function acceptAsTreasury(uint256 id) external;
     function freeze(uint256 id, bool isFrozen) external;

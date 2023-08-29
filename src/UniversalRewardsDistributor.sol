@@ -122,7 +122,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         notFrozen(distributionId)
     {
         require(rootOf[distributionId] != bytes32(0), "UniversalRewardsDistributor: root is not set");
-
         require(
             MerkleProof.verifyCalldata(
                 proof,
@@ -139,6 +138,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         claimed[distributionId][account][reward] = claimable;
 
         ERC20(reward).safeTransferFrom(treasuryOf[distributionId], account, amount);
+
         emit RewardsClaimed(distributionId, account, reward, amount);
     }
 
@@ -146,7 +146,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param initialTimelock The initial timelock for the new distribution.
     /// @param initialRoot The initial merkle tree's root for the new distribution.
     /// @dev The caller of this function is the owner and the treasury of the new distribution.
-    function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external returns (uint256 distributionId) {
+    function createDistribution(uint256 initialTimelock, bytes32 initialRoot)
+        external
+        returns (uint256 distributionId)
+    {
         distributionId = nextDistributionId++;
         ownerOf[distributionId] = msg.sender;
         treasuryOf[distributionId] = msg.sender;
@@ -210,8 +213,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         if (newTimelock < timelockOf[distributionId]) {
             PendingRoot memory pendingRoot = pendingRootOf[distributionId];
             require(
-                pendingRoot.submittedAt == 0
-                    || pendingRoot.submittedAt + timelockOf[distributionId] <= block.timestamp,
+                pendingRoot.submittedAt == 0 || pendingRoot.submittedAt + timelockOf[distributionId] <= block.timestamp,
                 "UniversalRewardsDistributor: timelock not expired"
             );
         }
@@ -224,7 +226,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param updater The new root updater.
     /// @param active Whether the root updater should be active or not.
-    function updateRootUpdater(uint256 distributionId, address updater, bool active) external onlyOwner(distributionId) {
+    function updateRootUpdater(uint256 distributionId, address updater, bool active)
+        external
+        onlyOwner(distributionId)
+    {
         isUpdaterOf[distributionId][updater] = active;
         emit RootUpdaterUpdated(distributionId, updater, active);
     }
@@ -239,7 +244,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit PendingRootRevoked(distributionId);
     }
 
-    function transferDistributionOwnership(uint256 distributionId, address newOwner) external onlyOwner(distributionId) {
+    function transferDistributionOwnership(uint256 distributionId, address newOwner)
+        external
+        onlyOwner(distributionId)
+    {
         ownerOf[distributionId] = newOwner;
         emit DistributionOwnershipTransferred(distributionId, msg.sender, newOwner);
     }
