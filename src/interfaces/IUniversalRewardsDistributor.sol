@@ -74,6 +74,7 @@ interface IUniversalRewardsDistributor {
     event DistributionOwnershipTransferred(
         uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner
     );
+
     /* EXTERNAL */
 
     function proposeRoot(uint256 id, bytes32 newRoot) external;

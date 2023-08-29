@@ -28,7 +28,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev The treasury is the address from which the rewards are sent by using a classic approval.
     mapping(uint256 => address) public treasuryOf;
 
-    /// @notice The address that can update the distributions parameters, and freeze a root.
+    /// @notice The address that can update the distribution parameters, and freeze a root.
     mapping(uint256 => address) public ownerOf;
 
     /// @notice The addresses that can update the merkle tree's root for a given distribution.
@@ -113,7 +113,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param account The address to claim rewards for.
     /// @param reward The address of the reward token.
     /// @param claimable The overall claimable amount of token rewards.
-    /// @param proof The merkle proof that valdistributionIdates this claim.
+    /// @param proof The merkle proof that validates this claim.
     function claim(uint256 distributionId, address account, address reward, uint256 claimable, bytes32[] calldata proof)
         external
         notFrozen(distributionId)
@@ -179,7 +179,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit TreasuryUpdated(distributionId, treasuryOf[distributionId]);
     }
 
-    /// @notice Freeze a given distribution.
+    /// @notice Freezes a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newIsFrozen Whether the distribution should be frozen or not.
     function freeze(uint256 distributionId, bool newIsFrozen) external onlyOwner(distributionId) {
@@ -187,7 +187,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit Frozen(distributionId, newIsFrozen);
     }
 
-    /// @notice Force update the root of a given distribution.
+    /// @notice Forces update the root of a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newRoot The new merkle tree's root.
     /// @dev This function can only be called by the owner of the distribution.
@@ -198,7 +198,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit RootUpdated(distributionId, newRoot);
     }
 
-    /// @notice Update the timelock of a given distribution.
+    /// @notice Updates the timelock of a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newTimelock The new timelock.
     /// @dev This function can only be called by the owner of the distribution.
@@ -215,7 +215,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit TimelockUpdated(distributionId, newTimelock);
     }
 
-    /// @notice Update the root updater of a given distribution.
+    /// @notice Updates the root updater of a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param updater The new root updater.
     /// @param active Whether the root updater should be active or not.
@@ -224,7 +224,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit RootUpdaterUpdated(distributionId, updater, active);
     }
 
-    /// @notice Revoke the pending root of a given distribution.
+    /// @notice Revokes the pending root of a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @dev This function can only be called by the owner of the distribution at any time.
     function revokePendingRoot(uint256 distributionId) external onlyOwner(distributionId) {
