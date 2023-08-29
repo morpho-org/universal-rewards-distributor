@@ -219,7 +219,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param updater The new root updater.
     /// @param active Whether the root updater should be active or not.
-    function editRootUpdater(uint256 distributionId, address updater, bool active) external onlyOwner(distributionId) {
+    function updateRootUpdater(uint256 distributionId, address updater, bool active) external onlyOwner(distributionId) {
         isUpdaterOf[distributionId][updater] = active;
         emit RootUpdaterUpdated(distributionId, updater, active);
     }

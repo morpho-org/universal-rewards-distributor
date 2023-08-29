@@ -47,12 +47,12 @@ contract UniversalRouterDistributor is Test {
         vm.prank(owner);
         distributionWithoutTimeLock = distributor.createDistribution(0, bytes32(0));
         vm.prank(owner);
-        distributor.editRootUpdater(distributionWithoutTimeLock, updater, true);
+        distributor.updateRootUpdater(distributionWithoutTimeLock, updater, true);
 
         vm.warp(block.number + 12);
         vm.startPrank(owner);
         distributionWithTimeLock = distributor.createDistribution(1 days, bytes32(0));
-        distributor.editRootUpdater(distributionWithTimeLock, updater, true);
+        distributor.updateRootUpdater(distributionWithTimeLock, updater, true);
         vm.stopPrank();
 
         token1.mint(owner, 1000 ether * 200);
@@ -384,21 +384,21 @@ contract UniversalRouterDistributor is Test {
         assertEq(distributor.timelockOf(distributionWithTimeLock), 0.7 days);
     }
 
-    function testEditRootUpdaterShouldAddOrRemoveRootUpdater(address newUpdater, bool active) public {
+    function testupdateRootUpdaterShouldAddOrRemoveRootUpdater(address newUpdater, bool active) public {
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootUpdaterUpdated(distributionWithoutTimeLock, newUpdater, active);
-        distributor.editRootUpdater(distributionWithoutTimeLock, newUpdater, active);
+        distributor.updateRootUpdater(distributionWithoutTimeLock, newUpdater, active);
 
         assertEq(distributor.isUpdaterOf(distributionWithoutTimeLock, newUpdater), active);
     }
 
-    function testEditRootUpdaterShouldRevertIfNotOwner(address caller, bool active) public {
+    function testupdateRootUpdaterShouldRevertIfNotOwner(address caller, bool active) public {
         vm.assume(caller != owner);
 
         vm.prank(caller);
         vm.expectRevert("UniversalRewardsDistributor: caller is not the owner");
-        distributor.editRootUpdater(distributionWithoutTimeLock, _addrFromHashedString("RANDOM_UPDATER"), active);
+        distributor.updateRootUpdater(distributionWithoutTimeLock, _addrFromHashedString("RANDOM_UPDATER"), active);
     }
 
     function testRevokePendingRootShouldRevokeWhenCalledWithOwner() public {

@@ -86,7 +86,7 @@ interface IUniversalRewardsDistributor {
     function freeze(uint256 id, bool isFrozen) external;
     function forceUpdateRoot(uint256 id, bytes32 newRoot) external;
     function updateTimelock(uint256 id, uint256 newTimelock) external;
-    function editRootUpdater(uint256 id, address updater, bool active) external;
+    function updateRootUpdater(uint256 id, address updater, bool active) external;
     function revokePendingRoot(uint256 id) external;
     function getPendingRoot(uint256 id) external view returns (PendingRoot memory);
 }
