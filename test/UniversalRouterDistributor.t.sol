@@ -26,9 +26,9 @@ contract UniversalRouterDistributor is Test {
     uint256 DEFAULT_TIMELOCK = 1 days;
 
     event RootUpdated(uint256 indexed distributionId, bytes32 newRoot);
-    event RootSubmitted(uint256 indexed distributionId, bytes32 newRoot);
+    event RootProposed(uint256 indexed distributionId, bytes32 newRoot);
     event TreasuryUpdated(uint256 indexed distributionId, address newTreasury);
-    event TreasurySuggested(uint256 indexed distributionId, address newTreasury);
+    event TreasuryProposed(uint256 indexed distributionId, address newTreasury);
     event Frozen(uint256 indexed distributionId, bool frozen);
     event TimelockUpdated(uint256 indexed distributionId, uint256 timelock);
     event DistributionCreated(uint256 indexed distributionId, address indexed owner, uint256 initialTimelock);
@@ -122,7 +122,7 @@ contract UniversalRouterDistributor is Test {
     function testUpdateRootWithTimelockAsOwner() public {
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.RootSubmitted(distributionWithTimeLock, DEFAULT_ROOT);
+        emit IUniversalRewardsDistributor.RootProposed(distributionWithTimeLock, DEFAULT_ROOT);
         distributor.proposeRoot(distributionWithTimeLock, DEFAULT_ROOT);
 
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
@@ -135,7 +135,7 @@ contract UniversalRouterDistributor is Test {
     function testUpdateRootWithTimelockAsUpdater() public {
         vm.prank(updater);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.RootSubmitted(distributionWithTimeLock, DEFAULT_ROOT);
+        emit IUniversalRewardsDistributor.RootProposed(distributionWithTimeLock, DEFAULT_ROOT);
         distributor.proposeRoot(distributionWithTimeLock, DEFAULT_ROOT);
 
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
@@ -228,8 +228,8 @@ contract UniversalRouterDistributor is Test {
     function testSuggestTreasuryShouldUpdatePendingTreasury(address newTreasury) public {
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.TreasurySuggested(distributionWithoutTimeLock, newTreasury);
-        distributor.suggestTreasury(distributionWithoutTimeLock, newTreasury);
+        emit IUniversalRewardsDistributor.TreasuryProposed(distributionWithoutTimeLock, newTreasury);
+        distributor.proposeTreasury(distributionWithoutTimeLock, newTreasury);
 
         assertEq(distributor.pendingTreasuryOf(distributionWithoutTimeLock), newTreasury);
     }
@@ -239,7 +239,7 @@ contract UniversalRouterDistributor is Test {
 
         vm.prank(caller);
         vm.expectRevert("UniversalRewardsDistributor: caller is not the owner");
-        distributor.suggestTreasury(distributionWithoutTimeLock, newTreasury);
+        distributor.proposeTreasury(distributionWithoutTimeLock, newTreasury);
 
         assertEq(distributor.treasuryOf(distributionWithoutTimeLock), owner);
         assertEq(distributor.pendingTreasuryOf(distributionWithoutTimeLock), address(0));
@@ -247,7 +247,7 @@ contract UniversalRouterDistributor is Test {
 
     function testAcceptAsTreasuryShouldUpdateTreasury(address newTreasury) public {
         vm.prank(owner);
-        distributor.suggestTreasury(distributionWithoutTimeLock, newTreasury);
+        distributor.proposeTreasury(distributionWithoutTimeLock, newTreasury);
 
         vm.prank(newTreasury);
         vm.expectEmit(true, true, true, true, address(distributor));
@@ -261,7 +261,7 @@ contract UniversalRouterDistributor is Test {
         vm.assume(caller != newTreasury);
 
         vm.prank(owner);
-        distributor.suggestTreasury(distributionWithoutTimeLock, newTreasury);
+        distributor.proposeTreasury(distributionWithoutTimeLock, newTreasury);
 
         vm.prank(caller);
         vm.expectRevert("UniversalRewardsDistributor: caller is not the pending treasury");

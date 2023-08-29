@@ -22,7 +22,7 @@ interface IUniversalRewardsDistributor {
 
     /// @notice Emitted when a new merkle tree's root is submitted.
     /// @param newRoot The new merkle tree's root.
-    event RootSubmitted(uint256 indexed distributionId, bytes32 newRoot);
+    event RootProposed(uint256 indexed distributionId, bytes32 newRoot);
 
     /// @notice Emitted when a new Treasury.
     /// @param distributionId The id of the merkle tree distribution.
@@ -32,7 +32,7 @@ interface IUniversalRewardsDistributor {
     /// @notice Emitted when a new merkle tree's treasury is suggested by the owner.
     /// @param distributionId The id of the merkle tree distribution.
     /// @param newTreasury The new treasury that needs to approve the change.
-    event TreasurySuggested(uint256 indexed distributionId, address newTreasury);
+    event TreasuryProposed(uint256 indexed distributionId, address newTreasury);
 
     /// @notice Emitted when a merkle tree is frozen or unfrozen by the owner.
     /// @param distributionId The id of the merkle tree distribution.
@@ -81,7 +81,7 @@ interface IUniversalRewardsDistributor {
     function acceptRootUpdate(uint256 id) external;
     function claim(uint256 id, address account, address reward, uint256 claimable, bytes32[] calldata proof) external;
     function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external returns (uint256 distributionId);
-    function suggestTreasury(uint256 id, address newTreasury) external;
+    function proposeTreasury(uint256 id, address newTreasury) external;
     function acceptAsTreasury(uint256 id) external;
     function freeze(uint256 id, bool isFrozen) external;
     function forceUpdateRoot(uint256 id, bytes32 newRoot) external;

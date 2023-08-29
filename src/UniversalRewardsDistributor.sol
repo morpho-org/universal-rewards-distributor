@@ -89,7 +89,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             emit RootUpdated(distributionId, newRoot);
         } else {
             pendingRootOf[distributionId] = PendingRoot(block.timestamp, newRoot);
-            emit RootSubmitted(distributionId, newRoot);
+            emit RootProposed(distributionId, newRoot);
         }
     }
 
@@ -159,12 +159,12 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         }
     }
 
-    /// @notice Submits a new treasury address for a given distribution.
+    /// @notice Proposes a new treasury address for a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newTreasury The new treasury address.
-    function suggestTreasury(uint256 distributionId, address newTreasury) external onlyOwner(distributionId) {
+    function proposeTreasury(uint256 distributionId, address newTreasury) external onlyOwner(distributionId) {
         pendingTreasuryOf[distributionId] = newTreasury;
-        emit TreasurySuggested(distributionId, newTreasury);
+        emit TreasuryProposed(distributionId, newTreasury);
     }
 
     /// @notice Accepts the treasury role for a given distribution.
