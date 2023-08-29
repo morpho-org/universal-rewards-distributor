@@ -51,7 +51,7 @@ contract UniversalRouterDistributor is Test {
         vm.prank(owner);
         distributor.updateRootUpdater(distributionWithoutTimeLock, updater, true);
 
-        vm.warp(block.number + 12);
+        vm.warp(block.timestamp + 1);
         vm.startPrank(owner);
         distributionWithTimeLock = distributor.createDistribution(1 days, bytes32(0));
         distributor.updateRootUpdater(distributionWithTimeLock, updater, true);
@@ -59,6 +59,7 @@ contract UniversalRouterDistributor is Test {
 
         token1.mint(owner, 1000 ether * 200);
         token2.mint(owner, 1000 ether * 200);
+
         vm.startPrank(owner);
         token1.approve(address(distributor), 1000 ether * 200);
         token2.approve(address(distributor), 1000 ether * 200);
@@ -557,57 +558,68 @@ contract UniversalRouterDistributor is Test {
         root = merkle.getRoot(data);
     }
 
-    function _claimAndVerifyRewards(uint256 distributionId, bytes32[] memory data, uint256 claimable) internal {
+    struct Vars {
         uint256 i;
-        while (i < data.length / 2) {
-            bytes32[] memory proof1 = merkle.getProof(data, i);
-            bytes32[] memory proof2 = merkle.getProof(data, i + 1);
+        uint256 index;
+        uint256 claimableInput;
+        uint256 claimableAdjusted1;
+        uint256 claimableAdjusted2;
+        uint256 balanceBefore1;
+        uint256 balanceBefore2;
+        uint256 treasuryBalanceBefore1;
+        uint256 treasuryBalanceBefore2;
+    }
 
-            uint256 index = i + 1;
-            uint256 claimableInput = claimable / index;
-            uint256 claimableAdjusted1 =
-                claimableInput - distributor.claimed(distributionId, vm.addr(index), address(token1));
-            uint256 claimableAdjusted2 =
-                claimableInput - distributor.claimed(distributionId, vm.addr(index), address(token2));
-            uint256 balanceBefore1 = ERC20(address(token1)).balanceOf(vm.addr(index));
-            uint256 balanceBefore2 = ERC20(address(token2)).balanceOf(vm.addr(index));
-            uint256 treasuryBalanceBefore1 = ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId));
-            uint256 treasuryBalanceBefore2 = ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId));
+    function _claimAndVerifyRewards(uint256 distributionId, bytes32[] memory data, uint256 claimable) internal {
+        Vars memory vars;
+        while (vars.i < data.length / 2) {
+            bytes32[] memory proof1 = merkle.getProof(data, vars.i);
+            bytes32[] memory proof2 = merkle.getProof(data, vars.i + 1);
 
-            console.log(claimableInput);
+            vars.index = vars.i + 1;
+            vars.claimableInput = claimable / vars.index;
+            vars.claimableAdjusted1 =
+                vars.claimableInput - distributor.claimed(distributionId, vm.addr(vars.index), address(token1));
+            vars.claimableAdjusted2 =
+                vars.claimableInput - distributor.claimed(distributionId, vm.addr(vars.index), address(token2));
+            vars.balanceBefore1 = ERC20(address(token1)).balanceOf(vm.addr(vars.index));
+            vars.balanceBefore2 = ERC20(address(token2)).balanceOf(vm.addr(vars.index));
+            vars.treasuryBalanceBefore1 = ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId));
+            vars.treasuryBalanceBefore2 = ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId));
+
             // Claim token1
             vm.expectEmit(true, true, true, true, address(distributor));
             emit IUniversalRewardsDistributor.RewardsClaimed(
-                distributionId, vm.addr(index), address(token1), claimableAdjusted1
+                distributionId, vm.addr(vars.index), address(token1), vars.claimableAdjusted1
             );
-            distributor.claim(distributionId, vm.addr(index), address(token1), claimableInput, proof1);
-            console.log(distributor.claimed(distributionId, vm.addr(index), address(token1)));
+            distributor.claim(distributionId, vm.addr(vars.index), address(token1), vars.claimableInput, proof1);
+
             // Claim token2
             vm.expectEmit(true, true, true, true, address(distributor));
             emit IUniversalRewardsDistributor.RewardsClaimed(
-                distributionId, vm.addr(index), address(token2), claimableAdjusted2
+                distributionId, vm.addr(vars.index), address(token2), vars.claimableAdjusted2
             );
-            distributor.claim(distributionId, vm.addr(index), address(token2), claimableInput, proof2);
+            distributor.claim(distributionId, vm.addr(vars.index), address(token2), vars.claimableInput, proof2);
 
-            uint256 balanceAfter1 = balanceBefore1 + claimableAdjusted1;
-            uint256 balanceAfter2 = balanceBefore2 + claimableAdjusted2;
+            uint256 balanceAfter1 = vars.balanceBefore1 + vars.claimableAdjusted1;
+            uint256 balanceAfter2 = vars.balanceBefore2 + vars.claimableAdjusted2;
 
-            assertEq(ERC20(address(token1)).balanceOf(vm.addr(index)), balanceAfter1);
-            assertEq(ERC20(address(token2)).balanceOf(vm.addr(index)), balanceAfter2);
+            assertEq(ERC20(address(token1)).balanceOf(vm.addr(vars.index)), balanceAfter1);
+            assertEq(ERC20(address(token2)).balanceOf(vm.addr(vars.index)), balanceAfter2);
             // Assert claimed getter
-            assertEq(distributor.claimed(distributionId, vm.addr(index), address(token1)), balanceAfter1);
-            assertEq(distributor.claimed(distributionId, vm.addr(index), address(token2)), balanceAfter2);
+            assertEq(distributor.claimed(distributionId, vm.addr(vars.index), address(token1)), balanceAfter1);
+            assertEq(distributor.claimed(distributionId, vm.addr(vars.index), address(token2)), balanceAfter2);
 
             assertEq(
                 ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId)),
-                treasuryBalanceBefore1 - claimableAdjusted1
+                vars.treasuryBalanceBefore1 - vars.claimableAdjusted1
             );
             assertEq(
                 ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId)),
-                treasuryBalanceBefore2 - claimableAdjusted2
+                vars.treasuryBalanceBefore2 - vars.claimableAdjusted2
             );
 
-            i += 2;
+            vars.i += 2;
         }
     }
 
