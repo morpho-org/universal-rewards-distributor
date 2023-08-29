@@ -148,9 +148,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev The caller of this function is the owner and the treasury of the new distribution.
     function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external returns (uint256 distributionId) {
         distributionId = nextDistributionId++;
-
-        require(ownerOf[distributionId] == address(0), "UniversalRewardsDistributor: distributionId already exists");
-
         ownerOf[distributionId] = msg.sender;
         treasuryOf[distributionId] = msg.sender;
         timelockOf[distributionId] = initialTimelock;
