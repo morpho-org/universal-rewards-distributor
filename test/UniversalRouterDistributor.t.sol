@@ -507,7 +507,7 @@ contract UniversalRouterDistributor is Test {
     function testClaimRewardsShouldRevertIfNoRoot(uint256 claimable) public {
         claimable = bound(claimable, 1 ether, 1000 ether);
 
-        (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
+        (bytes32[] memory data,) = _setupRewards(claimable, 2);
 
         bytes32[] memory proof1 = merkle.getProof(data, 0);
 
@@ -516,6 +516,8 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testClaimRewardsShouldRevertIfInvalidRoot(uint256 claimable, bytes32 invalidRoot) public {
+        vm.assume(invalidRoot != bytes32(0));
+
         claimable = bound(claimable, 1 ether, 1000 ether);
 
         (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
@@ -530,7 +532,7 @@ contract UniversalRouterDistributor is Test {
         distributor.claim(distributionWithoutTimeLock, vm.addr(1), address(token1), claimable, proof1);
     }
 
-    function _setupRewards(uint256 claimable, uint256 size) internal returns (bytes32[] memory data, bytes32 root) {
+    function _setupRewards(uint256 claimable, uint256 size) internal view returns (bytes32[] memory data, bytes32 root) {
         data = new bytes32[](size);
 
         uint256 i;
