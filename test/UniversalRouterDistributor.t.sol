@@ -25,21 +25,17 @@ contract UniversalRouterDistributor is Test {
     bytes32 DEFAULT_ROOT = bytes32(keccak256(bytes("DEFAULT_ROOT")));
     uint256 DEFAULT_TIMELOCK = 1 days;
 
-    event RootUpdated(uint256 indexed distributionId, bytes32 newRoot);
-    event RootProposed(uint256 indexed distributionId, bytes32 newRoot);
-    event TreasuryUpdated(uint256 indexed distributionId, address newTreasury);
-    event TreasuryProposed(uint256 indexed distributionId, address newTreasury);
-    event Frozen(uint256 indexed distributionId, bool frozen);
-    event TimelockUpdated(uint256 indexed distributionId, uint256 timelock);
-    event DistributionCreated(uint256 indexed distributionId, address indexed owner, uint256 initialTimelock);
-    event RootUpdaterUpdated(uint256 indexed distributionId, address indexed rootUpdater, bool active);
-    event PendingRootRevoked(uint256 indexed distributionId);
-    event RewardsClaimed(
-        uint256 indexed distributionId, address indexed account, address indexed reward, uint256 amount
-    );
-    event DistributionOwnershipTransferred(
-        uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner
-    );
+    event RootUpdated(uint256 indexed id, bytes32 newRoot);
+    event RootProposed(uint256 indexed id, bytes32 newRoot);
+    event TreasuryUpdated(uint256 indexed id, address newTreasury);
+    event TreasuryProposed(uint256 indexed id, address newTreasury);
+    event Frozen(uint256 indexed id, bool frozen);
+    event TimelockUpdated(uint256 indexed id, uint256 timelock);
+    event DistributionCreated(uint256 indexed id, address indexed owner, uint256 initialTimelock);
+    event RootUpdaterUpdated(uint256 indexed id, address indexed rootUpdater, bool active);
+    event PendingRootRevoked(uint256 indexed id);
+    event RewardsClaimed(uint256 indexed id, address indexed account, address indexed reward, uint256 amount);
+    event DistributionOwnershipTransferred(uint256 indexed id, address indexed previousOwner, address indexed newOwner);
 
     function setUp() public {
         distributor = new UniversalRewardsDistributor();
@@ -67,25 +63,25 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testCreateDistributionSetupCorrectly(address randomCreator) public {
-        uint256 distributionId = distributor.nextDistributionId();
+        uint256 id = distributor.nextId();
 
         vm.prank(randomCreator);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.DistributionCreated(distributionId, randomCreator, DEFAULT_TIMELOCK);
+        emit IUniversalRewardsDistributor.DistributionCreated(id, randomCreator, DEFAULT_TIMELOCK);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.RootUpdated(distributionId, DEFAULT_ROOT);
+        emit IUniversalRewardsDistributor.RootUpdated(id, DEFAULT_ROOT);
         distributor.createDistribution(DEFAULT_TIMELOCK, DEFAULT_ROOT);
 
-        assertEq(distributor.rootOf(distributionId), DEFAULT_ROOT);
-        assertEq(distributor.timelockOf(distributionId), DEFAULT_TIMELOCK);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionId);
+        assertEq(distributor.rootOf(id), DEFAULT_ROOT);
+        assertEq(distributor.timelockOf(id), DEFAULT_TIMELOCK);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(id);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
-        assertEq(distributor.ownerOf(distributionId), randomCreator);
-        assertEq(distributor.treasuryOf(distributionId), randomCreator);
-        assertEq(distributor.pendingTreasuryOf(distributionId), address(0));
-        assertEq(distributor.isFrozen(distributionId), false);
-        assertEq(distributor.nextDistributionId(), distributionId + 1);
+        assertEq(distributor.ownerOf(id), randomCreator);
+        assertEq(distributor.treasuryOf(id), randomCreator);
+        assertEq(distributor.pendingTreasuryOf(id), address(0));
+        assertEq(distributor.isFrozen(id), false);
+        assertEq(distributor.nextId(), id + 1);
     }
 
     function testUpdateRootWithoutTimelockAsOwner() public {
@@ -590,7 +586,7 @@ contract UniversalRouterDistributor is Test {
         uint256 treasuryBalanceBefore2;
     }
 
-    function _claimAndVerifyRewards(uint256 distributionId, bytes32[] memory data, uint256 claimable) internal {
+    function _claimAndVerifyRewards(uint256 id, bytes32[] memory data, uint256 claimable) internal {
         Vars memory vars;
 
         while (vars.i < data.length / 2) {
@@ -600,27 +596,27 @@ contract UniversalRouterDistributor is Test {
             vars.index = vars.i + 1;
             vars.claimableInput = claimable / vars.index;
             vars.claimableAdjusted1 =
-                vars.claimableInput - distributor.claimed(distributionId, vm.addr(vars.index), address(token1));
+                vars.claimableInput - distributor.claimed(id, vm.addr(vars.index), address(token1));
             vars.claimableAdjusted2 =
-                vars.claimableInput - distributor.claimed(distributionId, vm.addr(vars.index), address(token2));
+                vars.claimableInput - distributor.claimed(id, vm.addr(vars.index), address(token2));
             vars.balanceBefore1 = ERC20(address(token1)).balanceOf(vm.addr(vars.index));
             vars.balanceBefore2 = ERC20(address(token2)).balanceOf(vm.addr(vars.index));
-            vars.treasuryBalanceBefore1 = ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId));
-            vars.treasuryBalanceBefore2 = ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId));
+            vars.treasuryBalanceBefore1 = ERC20(address(token1)).balanceOf(distributor.treasuryOf(id));
+            vars.treasuryBalanceBefore2 = ERC20(address(token2)).balanceOf(distributor.treasuryOf(id));
 
             // Claim token1
             vm.expectEmit(true, true, true, true, address(distributor));
             emit IUniversalRewardsDistributor.RewardsClaimed(
-                distributionId, vm.addr(vars.index), address(token1), vars.claimableAdjusted1
+                id, vm.addr(vars.index), address(token1), vars.claimableAdjusted1
             );
-            distributor.claim(distributionId, vm.addr(vars.index), address(token1), vars.claimableInput, proof1);
+            distributor.claim(id, vm.addr(vars.index), address(token1), vars.claimableInput, proof1);
 
             // Claim token2
             vm.expectEmit(true, true, true, true, address(distributor));
             emit IUniversalRewardsDistributor.RewardsClaimed(
-                distributionId, vm.addr(vars.index), address(token2), vars.claimableAdjusted2
+                id, vm.addr(vars.index), address(token2), vars.claimableAdjusted2
             );
-            distributor.claim(distributionId, vm.addr(vars.index), address(token2), vars.claimableInput, proof2);
+            distributor.claim(id, vm.addr(vars.index), address(token2), vars.claimableInput, proof2);
 
             uint256 balanceAfter1 = vars.balanceBefore1 + vars.claimableAdjusted1;
             uint256 balanceAfter2 = vars.balanceBefore2 + vars.claimableAdjusted2;
@@ -628,15 +624,15 @@ contract UniversalRouterDistributor is Test {
             assertEq(ERC20(address(token1)).balanceOf(vm.addr(vars.index)), balanceAfter1);
             assertEq(ERC20(address(token2)).balanceOf(vm.addr(vars.index)), balanceAfter2);
             // Assert claimed getter
-            assertEq(distributor.claimed(distributionId, vm.addr(vars.index), address(token1)), balanceAfter1);
-            assertEq(distributor.claimed(distributionId, vm.addr(vars.index), address(token2)), balanceAfter2);
+            assertEq(distributor.claimed(id, vm.addr(vars.index), address(token1)), balanceAfter1);
+            assertEq(distributor.claimed(id, vm.addr(vars.index), address(token2)), balanceAfter2);
 
             assertEq(
-                ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId)),
+                ERC20(address(token1)).balanceOf(distributor.treasuryOf(id)),
                 vars.treasuryBalanceBefore1 - vars.claimableAdjusted1
             );
             assertEq(
-                ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId)),
+                ERC20(address(token2)).balanceOf(distributor.treasuryOf(id)),
                 vars.treasuryBalanceBefore2 - vars.claimableAdjusted2
             );
 

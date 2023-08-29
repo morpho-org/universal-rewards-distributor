@@ -16,75 +16,69 @@ interface IUniversalRewardsDistributor {
     /* EVENTS */
 
     /// @notice Emitted when the merkle tree's root is updated.
-    /// @param distributionId The id of the merkle tree distribution.
+    /// @param id The id of the merkle tree distribution.
     /// @param newRoot The new merkle tree's root.
-    event RootUpdated(uint256 indexed distributionId, bytes32 newRoot);
+    event RootUpdated(uint256 indexed id, bytes32 newRoot);
 
     /// @notice Emitted when a new merkle tree's root is submitted.
     /// @param newRoot The new merkle tree's root.
-    event RootProposed(uint256 indexed distributionId, bytes32 newRoot);
+    event RootProposed(uint256 indexed id, bytes32 newRoot);
 
     /// @notice Emitted when a new Treasury.
-    /// @param distributionId The id of the merkle tree distribution.
+    /// @param id The id of the merkle tree distribution.
     /// @param newTreasury The new merkle tree's treasury where rewards are pulled from.
-    event TreasuryUpdated(uint256 indexed distributionId, address newTreasury);
+    event TreasuryUpdated(uint256 indexed id, address newTreasury);
 
     /// @notice Emitted when a new merkle tree's treasury is suggested by the owner.
-    /// @param distributionId The id of the merkle tree distribution.
+    /// @param id The id of the merkle tree distribution.
     /// @param newTreasury The new treasury that needs to approve the change.
-    event TreasuryProposed(uint256 indexed distributionId, address newTreasury);
+    event TreasuryProposed(uint256 indexed id, address newTreasury);
 
     /// @notice Emitted when a merkle tree is frozen or unfrozen by the owner.
-    /// @param distributionId The id of the merkle tree distribution.
+    /// @param id The id of the merkle tree distribution.
     /// @param frozen The new merkle tree's frozen state.
-    event Frozen(uint256 indexed distributionId, bool frozen);
+    event Frozen(uint256 indexed id, bool frozen);
 
     /// @notice Emitted when a merkle tree distribution timelock is modified.
-    /// @param distributionId The id of the merkle tree distribution.
+    /// @param id The id of the merkle tree distribution.
     /// @param timelock The new merkle tree's timelock.
-    event TimelockUpdated(uint256 indexed distributionId, uint256 timelock);
+    event TimelockUpdated(uint256 indexed id, uint256 timelock);
 
     /// @notice Emitted when a merkle tree distribution is created.
-    /// @param distributionId The id of the merkle tree distribution.
+    /// @param id The id of the merkle tree distribution.
     /// @param owner The owner of the merkle tree distribution.
     /// @param initialTimelock The initial timelock of the merkle tree distribution.
-    event DistributionCreated(uint256 indexed distributionId, address indexed owner, uint256 initialTimelock);
+    event DistributionCreated(uint256 indexed id, address indexed owner, uint256 initialTimelock);
 
     /// @notice Emitted when a merkle tree updater is added or removed.
-    /// @param distributionId The id of the merkle tree distribution.
+    /// @param id The id of the merkle tree distribution.
     /// @param rootUpdater The merkle tree updater.
     /// @param active The merkle tree updater's active state.
-    event RootUpdaterUpdated(uint256 indexed distributionId, address indexed rootUpdater, bool active);
+    event RootUpdaterUpdated(uint256 indexed id, address indexed rootUpdater, bool active);
 
     /// @notice Emitted when a merkle tree's pending root is revoked.
-    /// @param distributionId The id of the merkle tree distribution.
-    event PendingRootRevoked(uint256 indexed distributionId);
+    /// @param id The id of the merkle tree distribution.
+    event PendingRootRevoked(uint256 indexed id);
 
     /// @notice Emitted when rewards are claimed.
-    /// @param distributionId The id of the merkle tree distribution.
+    /// @param id The id of the merkle tree distribution.
     /// @param account The address for which rewards are claimd rewards for.
     /// @param reward The address of the reward token.
     /// @param amount The amount of reward token claimed.
-    event RewardsClaimed(
-        uint256 indexed distributionId, address indexed account, address indexed reward, uint256 amount
-    );
+    event RewardsClaimed(uint256 indexed id, address indexed account, address indexed reward, uint256 amount);
 
     /// @notice Emitted when the ownership of a merkle tree distribution is transferred.
-    /// @param distributionId The id of the merkle tree distribution.
+    /// @param id The id of the merkle tree distribution.
     /// @param previousOwner The previous owner of the merkle tree distribution.
     /// @param newOwner The new owner of the merkle tree distribution.
-    event DistributionOwnershipTransferred(
-        uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner
-    );
+    event DistributionOwnershipTransferred(uint256 indexed id, address indexed previousOwner, address indexed newOwner);
 
     /* EXTERNAL */
 
     function proposeRoot(uint256 id, bytes32 newRoot) external;
     function acceptRootUpdate(uint256 id) external;
     function claim(uint256 id, address account, address reward, uint256 claimable, bytes32[] calldata proof) external;
-    function createDistribution(uint256 initialTimelock, bytes32 initialRoot)
-        external
-        returns (uint256 distributionId);
+    function createDistribution(uint256 initialTimelock, bytes32 initialRoot) external returns (uint256 id);
     function proposeTreasury(uint256 id, address newTreasury) external;
     function acceptAsTreasury(uint256 id) external;
     function freeze(uint256 id, bool isFrozen) external;
