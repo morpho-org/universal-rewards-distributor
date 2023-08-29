@@ -64,13 +64,25 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     }
 
     modifier onlyOwner(uint256 distributionId) {
-        require(msg.sender == ownerOf[distributionId], "UniversalRewardsDistributor: caller is not the owner");
+        _checkOwner(distributionId);
         _;
     }
 
     modifier notFrozen(uint256 distributionId) {
-        require(!isFrozen[distributionId], "UniversalRewardsDistributor: frozen");
+        _checkFrozen(distributionId);
         _;
+    }
+
+    /* INTERNAL */
+
+    /// @dev This function is called by the 'onlyOwner' modifier
+    function _checkOwner(uint256 _distributionId) internal view {
+        require(msg.sender == ownerOf[_distributionId], "UniversalRewardsDistributor: caller is not the owner");
+    }
+
+    /// @dev This function is called by the 'notFrozen' modifier
+    function _checkFrozen(uint256 _distributionId) internal view {
+        require(!isFrozen[_distributionId], "UniversalRewardsDistributor: frozen");
     }
 
     /* EXTERNAL */
