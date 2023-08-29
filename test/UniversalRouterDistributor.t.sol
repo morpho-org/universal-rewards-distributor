@@ -182,7 +182,7 @@ contract UniversalRouterDistributor is Test {
         vm.prank(randomCaller);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootUpdated(distributionWithTimeLock, DEFAULT_ROOT);
-        distributor.confirmRootUpdate(distributionWithTimeLock);
+        distributor.acceptRootUpdate(distributionWithTimeLock);
 
         assertEq(distributor.rootOf(distributionWithTimeLock), DEFAULT_ROOT);
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
@@ -203,7 +203,7 @@ contract UniversalRouterDistributor is Test {
 
         vm.prank(randomCaller);
         vm.expectRevert("UniversalRewardsDistributor: frozen");
-        distributor.confirmRootUpdate(distributionWithTimeLock);
+        distributor.acceptRootUpdate(distributionWithTimeLock);
     }
 
     function testConfirmRootUpdateShouldRevertIfTimelockNotFinished(address randomCaller) public {
@@ -216,13 +216,13 @@ contract UniversalRouterDistributor is Test {
 
         vm.prank(randomCaller);
         vm.expectRevert("UniversalRewardsDistributor: timelock not expired");
-        distributor.confirmRootUpdate(distributionWithTimeLock);
+        distributor.acceptRootUpdate(distributionWithTimeLock);
     }
 
     function testConfirmRootUpdateShouldRevertIfNoPendingRoot(address randomCaller) public {
         vm.prank(randomCaller);
         vm.expectRevert("UniversalRewardsDistributor: no pending root");
-        distributor.confirmRootUpdate(distributionWithTimeLock);
+        distributor.acceptRootUpdate(distributionWithTimeLock);
     }
 
     function testSuggestTreasuryShouldUpdatePendingTreasury(address newTreasury) public {
@@ -341,12 +341,12 @@ contract UniversalRouterDistributor is Test {
 
         vm.warp(block.timestamp + 0.5 days);
         vm.expectRevert("UniversalRewardsDistributor: timelock not expired");
-        distributor.confirmRootUpdate(distributionWithTimeLock);
+        distributor.acceptRootUpdate(distributionWithTimeLock);
 
         vm.warp(block.timestamp + 0.5 days);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootUpdated(distributionWithTimeLock, DEFAULT_ROOT);
-        distributor.confirmRootUpdate(distributionWithTimeLock);
+        distributor.acceptRootUpdate(distributionWithTimeLock);
     }
 
     function testUpdateTimelockShouldRevertIfNotOwner(uint256 newTimelock, address randomCaller) public {

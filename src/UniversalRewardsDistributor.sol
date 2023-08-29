@@ -75,7 +75,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /* EXTERNAL */
 
-    /// @notice Updates the current merkle tree's root.
+    /// @notice Proposes a new merkle tree root.
+    /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newRoot The new merkle tree's root.
     function proposeRoot(uint256 distributionId, bytes32 newRoot)
         external
@@ -92,11 +93,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         }
     }
 
-    /// @notice Updates the current merkle tree's root.
+    /// @notice Accepts the current pending merkle tree's root.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
-    function confirmRootUpdate(uint256 distributionId) external notFrozen(distributionId) {
+    function acceptRootUpdate(uint256 distributionId) external notFrozen(distributionId) {
         PendingRoot memory pendingRoot = pendingRootOf[distributionId];
         require(pendingRoot.submittedAt > 0, "UniversalRewardsDistributor: no pending root");
         require(
