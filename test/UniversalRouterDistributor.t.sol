@@ -47,13 +47,13 @@ contract UniversalRouterDistributor is Test {
         token2 = new MockERC20("Token2", "TKN2", 18);
 
         vm.prank(owner);
-        distributionWithoutTimeLock = distributor.createDistribution(0, bytes32(0));
+        distributionWithoutTimeLock = distributor.createDistributionPull(0, bytes32(0));
         vm.prank(owner);
         distributor.updateRootUpdater(distributionWithoutTimeLock, updater, true);
 
         vm.warp(block.timestamp + 1);
         vm.startPrank(owner);
-        distributionWithTimeLock = distributor.createDistribution(DEFAULT_TIMELOCK, bytes32(0));
+        distributionWithTimeLock = distributor.createDistributionPull(DEFAULT_TIMELOCK, bytes32(0));
         distributor.updateRootUpdater(distributionWithTimeLock, updater, true);
         vm.stopPrank();
 
@@ -74,7 +74,7 @@ contract UniversalRouterDistributor is Test {
         emit IUniversalRewardsDistributor.DistributionCreated(distributionId, randomCreator, DEFAULT_TIMELOCK);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootUpdated(distributionId, DEFAULT_ROOT);
-        distributor.createDistribution(DEFAULT_TIMELOCK, DEFAULT_ROOT);
+        distributor.createDistributionPull(DEFAULT_TIMELOCK, DEFAULT_ROOT);
 
         assertEq(distributor.rootOf(distributionId), DEFAULT_ROOT);
         assertEq(distributor.timelockOf(distributionId), DEFAULT_TIMELOCK);

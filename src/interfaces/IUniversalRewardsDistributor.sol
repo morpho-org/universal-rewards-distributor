@@ -82,9 +82,15 @@ interface IUniversalRewardsDistributor {
     function proposeRoot(uint256 id, bytes32 newRoot) external;
     function acceptRootUpdate(uint256 id) external;
     function claim(uint256 id, address account, address reward, uint256 claimable, bytes32[] calldata proof) external;
-    function createDistribution(uint256 initialTimelock, bytes32 initialRoot)
+    function createDistributionPull(uint256 initialTimelock, bytes32 initialRoot)
         external
         returns (uint256 distributionId);
+    function createDistributionPush(
+        uint256 initialTimelock,
+        bytes32 initialRoot,
+        address[] calldata rewards,
+        uint256[] calldata amounts
+    ) external returns (uint256 distributionId);
     function proposeTreasury(uint256 id, address newTreasury) external;
     function acceptAsTreasury(uint256 id) external;
     function freeze(uint256 id, bool isFrozen) external;

@@ -50,6 +50,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev A frozen distribution cannot be claimed by users.
     mapping(uint256 => bool) public isFrozen;
 
+    mapping(uint256 => mapping(address reward => uint256 amount)) public pushDistribution;
+
     modifier onlyUpdater(uint256 distributionId) {
         require(
             isUpdaterOf[distributionId][msg.sender] || msg.sender == ownerOf[distributionId],
@@ -137,7 +139,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         claimed[distributionId][account][reward] = claimable;
 
-        ERC20(reward).safeTransferFrom(treasuryOf[distributionId], account, amount);
+        if (pushDistribution[distributionId][reward] > 0) {
+            pushDistribution[distributionId][reward] -= amount;
+            ERC20(reward).safeTransfer(account, amount);
+        } else ERC20(reward).safeTransferFrom(treasuryOf[distributionId], account, amount);
 
         emit RewardsClaimed(distributionId, account, reward, amount);
     }
@@ -146,21 +151,29 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param initialTimelock The initial timelock for the new distribution.
     /// @param initialRoot The initial merkle tree's root for the new distribution.
     /// @dev The caller of this function is the owner and the treasury of the new distribution.
-    function createDistribution(uint256 initialTimelock, bytes32 initialRoot)
+    function createDistributionPush(
+        uint256 initialTimelock,
+        bytes32 initialRoot,
+        address[] calldata rewards,
+        uint256[] calldata amounts
+    ) external returns (uint256 distributionId) {
+        distributionId = _createDistribution(initialTimelock, initialRoot);
+
+        for (uint256 i = 0; i < rewards.length; i++) {
+            pushDistribution[distributionId][rewards[i]] = amounts[i];
+            ERC20(rewards[i]).safeTransferFrom(msg.sender, address(this), amounts[i]);
+        }
+    }
+
+    /// @notice Creates a new distribution.
+    /// @param initialTimelock The initial timelock for the new distribution.
+    /// @param initialRoot The initial merkle tree's root for the new distribution.
+    /// @dev The caller of this function is the owner and the treasury of the new distribution.
+    function createDistributionPull(uint256 initialTimelock, bytes32 initialRoot)
         external
         returns (uint256 distributionId)
     {
-        distributionId = nextDistributionId++;
-        ownerOf[distributionId] = msg.sender;
-        treasuryOf[distributionId] = msg.sender;
-        timelockOf[distributionId] = initialTimelock;
-
-        emit DistributionCreated(distributionId, msg.sender, initialTimelock);
-
-        if (initialRoot != bytes32(0)) {
-            rootOf[distributionId] = initialRoot;
-            emit RootUpdated(distributionId, initialRoot);
-        }
+        distributionId = _createDistribution(initialTimelock, initialRoot);
     }
 
     /// @notice Proposes a new treasury address for a given distribution.
@@ -254,5 +267,19 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     function getPendingRoot(uint256 distributionId) external view returns (PendingRoot memory) {
         return pendingRootOf[distributionId];
+    }
+
+    function _createDistribution(uint256 initialTimelock, bytes32 initialRoot) internal returns(uint256 distributionId) {
+        distributionId = nextDistributionId++;
+        ownerOf[distributionId] = msg.sender;
+        treasuryOf[distributionId] = msg.sender;
+        timelockOf[distributionId] = initialTimelock;
+
+        emit DistributionCreated(distributionId, msg.sender, initialTimelock);
+
+        if (initialRoot != bytes32(0)) {
+            rootOf[distributionId] = initialRoot;
+            emit RootUpdated(distributionId, initialRoot);
+        }
     }
 }
