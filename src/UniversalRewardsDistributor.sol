@@ -184,6 +184,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newIsFrozen Whether the distribution should be frozen or not.
     function freeze(uint256 distributionId, bool newIsFrozen) external onlyOwner(distributionId) {
+        require(isFrozen[distributionId] != newIsFrozen, ErrorsLib.ALREADY_SET);
         isFrozen[distributionId] = newIsFrozen;
         emit Frozen(distributionId, newIsFrozen);
     }
@@ -192,9 +193,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newRoot The new merkle tree's root.
     /// @dev This function can only be called by the owner of the distribution.
-    /// @dev The distribution must be frozen before.
     function forceUpdateRoot(uint256 distributionId, bytes32 newRoot) external onlyOwner(distributionId) {
-        require(isFrozen[distributionId], ErrorsLib.NOT_FROZEN);
         rootOf[distributionId] = newRoot;
         emit RootUpdated(distributionId, newRoot);
     }
@@ -225,6 +224,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         external
         onlyOwner(distributionId)
     {
+        require(isUpdaterOf[distributionId][updater] != active, ErrorsLib.ALREADY_SET);
+
         isUpdaterOf[distributionId][updater] = active;
         emit RootUpdaterUpdated(distributionId, updater, active);
     }

@@ -25,6 +25,8 @@ library ErrorsLib {
 
     string internal constant ALREADY_CLAIMED = "UniversalRewardsDistributor: already claimed";
 
+    string internal constant ALREADY_SET = "UniversalRewardsDistributor: param is already set to this state";
+
     string internal constant CALLER_NOT_PENDING_TREASURY =
         "UniversalRewardsDistributor: caller is not the pending treasury";
 

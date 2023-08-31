@@ -280,13 +280,41 @@ contract UniversalRouterDistributor is Test {
         assertEq(distributor.treasuryOf(distributionWithoutTimeLock), owner);
     }
 
-    function testFreezeShouldFreezeTheDistribution(bool freeze) public {
+    function testFreezeShouldRevertAlreadySet() public {
+        vm.startPrank(owner);
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributor.freeze(distributionWithoutTimeLock, false);
+
+        distributor.freeze(distributionWithoutTimeLock, true);
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributor.freeze(distributionWithoutTimeLock, true);
+        vm.stopPrank();
+    }
+
+    function testFreezeShouldFreezeTheDistribution() public {
+        vm.assume(!distributor.isFrozen(distributionWithoutTimeLock));
+
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.Frozen(distributionWithoutTimeLock, freeze);
-        distributor.freeze(distributionWithoutTimeLock, freeze);
+        emit IUniversalRewardsDistributor.Frozen(distributionWithoutTimeLock, true);
+        distributor.freeze(distributionWithoutTimeLock, true);
 
-        assertEq(distributor.isFrozen(distributionWithoutTimeLock), freeze);
+        assertTrue(distributor.isFrozen(distributionWithoutTimeLock));
+    }
+
+    function testFreezeShouldUnfreezeTheDistribution() public {
+        vm.startPrank(owner);
+
+        if (!distributor.isFrozen(distributionWithoutTimeLock)) {
+            distributor.freeze(distributionWithoutTimeLock, true);
+        }
+
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.Frozen(distributionWithoutTimeLock, false);
+        distributor.freeze(distributionWithoutTimeLock, false);
+        vm.stopPrank();
+
+        assertFalse(distributor.isFrozen(distributionWithoutTimeLock));
     }
 
     function testFreezeShouldRevertIfNotOwner(address randomCaller, bool isFrozen) public {
@@ -310,6 +338,16 @@ contract UniversalRouterDistributor is Test {
         assertEq(distributor.isFrozen(distributionWithoutTimeLock), true);
     }
 
+    function testForceUpdateRootShouldForceNewRootWhenNotFrozen(bytes32 newRoot) public {
+        vm.prank(owner);
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RootUpdated(distributionWithoutTimeLock, newRoot);
+        distributor.forceUpdateRoot(distributionWithoutTimeLock, newRoot);
+
+        assertEq(distributor.rootOf(distributionWithoutTimeLock), newRoot);
+        assertEq(distributor.isFrozen(distributionWithoutTimeLock), false);
+    }
+
     function testForceUpdateRootShouldRevertIfNotOwner(bytes32 newRoot, address randomCaller) public {
         vm.assume(newRoot != bytes32(0) && randomCaller != owner);
 
@@ -318,12 +356,6 @@ contract UniversalRouterDistributor is Test {
 
         vm.prank(randomCaller);
         vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
-        distributor.forceUpdateRoot(distributionWithoutTimeLock, newRoot);
-    }
-
-    function testForceUpdateRootShouldRevertIfNotFrozen(bytes32 newRoot) public {
-        vm.prank(owner);
-        vm.expectRevert(bytes(ErrorsLib.NOT_FROZEN));
         distributor.forceUpdateRoot(distributionWithoutTimeLock, newRoot);
     }
 
@@ -410,13 +442,29 @@ contract UniversalRouterDistributor is Test {
         assertEq(distributor.timelockOf(distributionWithTimeLock), 0.7 days);
     }
 
-    function testUpdateRootUpdaterShouldAddOrRemoveRootUpdater(address newUpdater, bool active) public {
+    function testUpdateRootUpdaterShouldAddRootUpdater(address newUpdater) public {
+        vm.assume(!distributor.isUpdaterOf(distributionWithoutTimeLock, newUpdater));
+
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.RootUpdaterUpdated(distributionWithoutTimeLock, newUpdater, active);
-        distributor.updateRootUpdater(distributionWithoutTimeLock, newUpdater, active);
+        emit IUniversalRewardsDistributor.RootUpdaterUpdated(distributionWithoutTimeLock, newUpdater, true);
+        distributor.updateRootUpdater(distributionWithoutTimeLock, newUpdater, true);
 
-        assertEq(distributor.isUpdaterOf(distributionWithoutTimeLock, newUpdater), active);
+        assertTrue(distributor.isUpdaterOf(distributionWithoutTimeLock, newUpdater));
+    }
+
+    function testUpdateRootUpdaterShouldRemoveRootUpdater(address newUpdater) public {
+        vm.startPrank(owner);
+        if (!distributor.isUpdaterOf(distributionWithoutTimeLock, newUpdater)) {
+            distributor.updateRootUpdater(distributionWithoutTimeLock, newUpdater, true);
+        }
+
+        vm.expectEmit(true, true, true, true, address(distributor));
+        emit IUniversalRewardsDistributor.RootUpdaterUpdated(distributionWithoutTimeLock, newUpdater, false);
+        distributor.updateRootUpdater(distributionWithoutTimeLock, newUpdater, false);
+        vm.stopPrank();
+
+        assertFalse(distributor.isUpdaterOf(distributionWithoutTimeLock, newUpdater));
     }
 
     function testUpdateRootUpdaterShouldRevertIfNotOwner(address caller, bool active) public {
@@ -425,6 +473,19 @@ contract UniversalRouterDistributor is Test {
         vm.prank(caller);
         vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
         distributor.updateRootUpdater(distributionWithoutTimeLock, _addrFromHashedString("RANDOM_UPDATER"), active);
+    }
+
+    function testFreezeShouldRevertAlreadySet(address newUpdater) public {
+        vm.assume(!distributor.isUpdaterOf(distributionWithoutTimeLock, newUpdater));
+
+        vm.startPrank(owner);
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributor.updateRootUpdater(distributionWithoutTimeLock, newUpdater, false);
+
+        distributor.updateRootUpdater(distributionWithoutTimeLock, newUpdater, true);
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributor.updateRootUpdater(distributionWithoutTimeLock, newUpdater, true);
+        vm.stopPrank();
     }
 
     function testRevokePendingRootShouldRevokeWhenCalledWithOwner() public {
