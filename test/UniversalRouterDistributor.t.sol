@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {IUniversalRewardsDistributor} from "src/interfaces/IUniversalRewardsDistributor.sol";
+import {IUniversalRewardsDistributor, IPendingRoot} from "src/interfaces/IUniversalRewardsDistributor.sol";
 
 import {ErrorsLib} from "src/libraries/ErrorsLib.sol";
 
@@ -84,7 +84,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionId), DEFAULT_ROOT);
         assertEq(distributor.timelockOf(distributionId), DEFAULT_TIMELOCK);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = distributor.getPendingRoot(distributionId);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionId);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
         assertEq(distributor.ownerOf(distributionId), randomCreator);
@@ -133,7 +133,7 @@ contract UniversalRouterDistributor is Test {
             distributor.createDistribution(DEFAULT_TIMELOCK, DEFAULT_ROOT, address(0), address(0));
 
         assertEq(distributor.rootOf(distributionId), DEFAULT_ROOT);
-        assertEq(distributor.getPendingRoot(distributionId).root, bytes32(0));
+        assertEq(_getPendingRoot(distributionId).root, bytes32(0));
     }
 
     function testNextDistributionIdShouldBeIncrementedAfterDistributionCreation(
@@ -158,7 +158,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionWithoutTimeLock), DEFAULT_ROOT);
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            distributor.getPendingRoot(distributionWithoutTimeLock);
+            _getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
@@ -171,7 +171,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionWithoutTimeLock), DEFAULT_ROOT);
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            distributor.getPendingRoot(distributionWithoutTimeLock);
+            _getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
@@ -193,7 +193,7 @@ contract UniversalRouterDistributor is Test {
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
 
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            distributor.getPendingRoot(distributionWithTimeLock);
+            _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, DEFAULT_ROOT);
         assertEq(pendingRoot.submittedAt, block.timestamp);
     }
@@ -207,7 +207,7 @@ contract UniversalRouterDistributor is Test {
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
 
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            distributor.getPendingRoot(distributionWithTimeLock);
+            _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, DEFAULT_ROOT);
         assertEq(pendingRoot.submittedAt, block.timestamp);
     }
@@ -234,7 +234,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionWithTimeLock), DEFAULT_ROOT);
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            distributor.getPendingRoot(distributionWithTimeLock);
+            _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
@@ -319,10 +319,10 @@ contract UniversalRouterDistributor is Test {
         vm.startPrank(owner);
         distributor.proposeRoot(distributionWithTimeLock, DEFAULT_ROOT);
 
-        assertEq(distributor.getPendingRoot(distributionWithTimeLock).root, DEFAULT_ROOT);
+        assertEq(_getPendingRoot(distributionWithTimeLock).root, DEFAULT_ROOT);
 
         distributor.forceUpdateRoot(distributionWithTimeLock, newRoot);
-        assertEq(distributor.getPendingRoot(distributionWithTimeLock).root, bytes32(0));
+        assertEq(_getPendingRoot(distributionWithTimeLock).root, bytes32(0));
         vm.stopPrank();
     }
 
@@ -436,7 +436,7 @@ contract UniversalRouterDistributor is Test {
         distributor.revokePendingRoot(distributionWithTimeLock);
 
         IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            distributor.getPendingRoot(distributionWithTimeLock);
+            _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
@@ -631,5 +631,9 @@ contract UniversalRouterDistributor is Test {
 
     function _addrFromHashedString(string memory str) internal pure returns (address) {
         return address(uint160(uint256(keccak256(bytes(str)))));
+    }
+
+    function _getPendingRoot(uint256 distributionId) internal view returns (IUniversalRewardsDistributor.PendingRoot memory) {
+        return IPendingRoot(address(distributor)).pendingRootOf(distributionId);
     }
 }

@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0;
 
+
+
+
 /// @title IUniversalRewardsDistributor
 /// @author Morpho Labs
 /// @notice UniversalRewardsDistributor's interface.
@@ -96,5 +99,9 @@ interface IUniversalRewardsDistributor {
     function updateTimelock(uint256 id, uint256 newTimelock) external;
     function updateRootUpdater(uint256 id, address updater, bool active) external;
     function revokePendingRoot(uint256 id) external;
-    function getPendingRoot(uint256 id) external view returns (PendingRoot memory);
+}
+
+
+interface IPendingRoot {
+    function pendingRootOf(uint256 distributionId) external view returns (IUniversalRewardsDistributor.PendingRoot memory);
 }
