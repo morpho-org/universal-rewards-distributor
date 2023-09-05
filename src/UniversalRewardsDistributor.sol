@@ -132,7 +132,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param initialRoot The initial merkle tree's root for the new distribution.
     /// @param initialOwner The initial owner for the new distribution.
     /// @param initialPendingTreasury The initial pending treasury for the new distribution.
-    /// @dev the initial treasury is always msg.sender. The initialPendingTreasury can be set to address(0).
+    /// @dev The initial treasury is always `msg.sender`. The `initialPendingTreasury` can be set to `address(0)`.
     function createDistribution(
         uint256 initialTimelock,
         bytes32 initialRoot,
