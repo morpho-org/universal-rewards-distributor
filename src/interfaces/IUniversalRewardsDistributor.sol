@@ -11,6 +11,8 @@ interface IUniversalRewardsDistributor {
         uint256 submittedAt;
         /// @dev The submitted pending root.
         bytes32 root;
+        // @dev The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+        bytes32 ipfsHash;
     }
 
     /* EVENTS */
@@ -18,11 +20,13 @@ interface IUniversalRewardsDistributor {
     /// @notice Emitted when the merkle tree's root is updated.
     /// @param distributionId The id of the merkle tree distribution.
     /// @param newRoot The new merkle tree's root.
-    event RootUpdated(uint256 indexed distributionId, bytes32 newRoot);
+    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    event RootUpdated(uint256 indexed distributionId, bytes32 newRoot, bytes32 newIpfsHash);
 
     /// @notice Emitted when a new merkle tree's root is submitted.
     /// @param newRoot The new merkle tree's root.
-    event RootProposed(uint256 indexed distributionId, bytes32 newRoot);
+    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    event RootProposed(uint256 indexed distributionId, bytes32 newRoot, bytes32 newIpfsHash);
 
     /// @notice Emitted when a new Treasury.
     /// @param distributionId The id of the merkle tree distribution.
@@ -81,18 +85,19 @@ interface IUniversalRewardsDistributor {
 
     /* EXTERNAL */
 
-    function proposeRoot(uint256 id, bytes32 newRoot) external;
+    function proposeRoot(uint256 id, bytes32 newRoot, bytes32 newIpfsHash) external;
     function acceptRootUpdate(uint256 id) external;
     function claim(uint256 id, address account, address reward, uint256 claimable, bytes32[] calldata proof) external;
     function createDistribution(
         uint256 initialTimelock,
         bytes32 initialRoot,
+        bytes32 initialIpfsHash,
         address initialOwner,
         address initialPendingTreasury
     ) external returns (uint256 distributionId);
     function proposeTreasury(uint256 id, address newTreasury) external;
     function acceptAsTreasury(uint256 id) external;
-    function forceUpdateRoot(uint256 id, bytes32 newRoot) external;
+    function forceUpdateRoot(uint256 id, bytes32 newRoot, bytes32 newIpfsHash) external;
     function updateTimelock(uint256 id, uint256 newTimelock) external;
     function updateRootUpdater(uint256 id, address updater, bool active) external;
     function revokePendingRoot(uint256 id) external;
