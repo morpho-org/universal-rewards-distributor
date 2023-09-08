@@ -48,7 +48,9 @@ interface IUniversalRewardsDistributor {
     /// @param distributionId The id of the merkle tree distribution.
     /// @param owner The owner of the merkle tree distribution.
     /// @param initialTimelock The initial timelock of the merkle tree distribution.
-    event DistributionCreated(uint256 indexed distributionId, address indexed owner, uint256 initialTimelock);
+    event DistributionCreated(
+        uint256 indexed distributionId, address indexed caller, address indexed owner, uint256 initialTimelock
+    );
 
     /// @notice Emitted when a merkle tree updater is added or removed.
     /// @param distributionId The id of the merkle tree distribution.
@@ -82,15 +84,21 @@ interface IUniversalRewardsDistributor {
     function proposeRoot(uint256 id, bytes32 newRoot) external;
     function acceptRootUpdate(uint256 id) external;
     function claim(uint256 id, address account, address reward, uint256 claimable, bytes32[] calldata proof) external;
-    function createDistribution(uint256 initialTimelock, bytes32 initialRoot)
-        external
-        returns (uint256 distributionId);
+    function createDistribution(
+        uint256 initialTimelock,
+        bytes32 initialRoot,
+        address initialOwner,
+        address initialPendingTreasury
+    ) external returns (uint256 distributionId);
     function proposeTreasury(uint256 id, address newTreasury) external;
     function acceptAsTreasury(uint256 id) external;
-    function freeze(uint256 id, bool isFrozen) external;
     function forceUpdateRoot(uint256 id, bytes32 newRoot) external;
     function updateTimelock(uint256 id, uint256 newTimelock) external;
     function updateRootUpdater(uint256 id, address updater, bool active) external;
     function revokePendingRoot(uint256 id) external;
-    function getPendingRoot(uint256 id) external view returns (PendingRoot memory);
+}
+
+
+interface IPendingRoot {
+    function pendingRootOf(uint256 distributionId) external view returns (IUniversalRewardsDistributor.PendingRoot memory);
 }

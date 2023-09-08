@@ -13,8 +13,6 @@ library ErrorsLib {
 
     string internal constant CALLER_NOT_OWNER = "UniversalRewardsDistributor: caller is not the owner";
 
-    string internal constant FROZEN = "UniversalRewardsDistributor: frozen";
-
     string internal constant NO_PENDING_ROOT = "UniversalRewardsDistributor: no pending root";
 
     string internal constant TIMELOCK_NOT_EXPIRED = "UniversalRewardsDistributor: timelock is not expired";
@@ -27,6 +25,4 @@ library ErrorsLib {
 
     string internal constant CALLER_NOT_PENDING_TREASURY =
         "UniversalRewardsDistributor: caller is not the pending treasury";
-
-    string internal constant NOT_FROZEN = "UniversalRewardsDistributor: not frozen";
 }
