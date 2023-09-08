@@ -103,7 +103,9 @@ interface IUniversalRewardsDistributor {
     function revokePendingRoot(uint256 id) external;
 }
 
-
 interface IPendingRoot {
-    function pendingRootOf(uint256 distributionId) external view returns (IUniversalRewardsDistributor.PendingRoot memory);
+    function pendingRootOf(uint256 distributionId)
+        external
+        view
+        returns (IUniversalRewardsDistributor.PendingRoot memory);
 }

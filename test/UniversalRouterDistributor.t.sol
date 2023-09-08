@@ -58,7 +58,8 @@ contract UniversalRouterDistributor is Test {
 
         vm.warp(block.timestamp + 1);
         vm.startPrank(owner);
-        distributionWithTimeLock = distributor.createDistribution(DEFAULT_TIMELOCK, bytes32(0), bytes32(0), address(0), address(0));
+        distributionWithTimeLock =
+            distributor.createDistribution(DEFAULT_TIMELOCK, bytes32(0), bytes32(0), address(0), address(0));
         distributor.updateRootUpdater(distributionWithTimeLock, updater, true);
         vm.stopPrank();
 
@@ -80,8 +81,8 @@ contract UniversalRouterDistributor is Test {
             distributionId, randomCreator, randomCreator, DEFAULT_TIMELOCK
         );
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.RootUpdated(distributionId, DEFAULT_ROOT, DEFAULT_IPFS_HASH );
-        distributor.createDistribution(DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH,  address(0), address(0));
+        emit IUniversalRewardsDistributor.RootUpdated(distributionId, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        distributor.createDistribution(DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH, address(0), address(0));
 
         assertEq(distributor.rootOf(distributionId), DEFAULT_ROOT);
         assertEq(distributor.timelockOf(distributionId), DEFAULT_TIMELOCK);
@@ -102,10 +103,9 @@ contract UniversalRouterDistributor is Test {
 
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.DistributionCreated(
-            distributionId, owner, newOwner, DEFAULT_TIMELOCK
-        );
-        distributionId = distributor.createDistribution(DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH, newOwner, address(0));
+        emit IUniversalRewardsDistributor.DistributionCreated(distributionId, owner, newOwner, DEFAULT_TIMELOCK);
+        distributionId =
+            distributor.createDistribution(DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH, newOwner, address(0));
 
         assertEq(distributor.ownerOf(distributionId), newOwner);
         assertEq(distributor.treasuryOf(distributionId), owner);
@@ -118,8 +118,9 @@ contract UniversalRouterDistributor is Test {
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.TreasuryProposed(distributionId, newPendingTreasury);
-        distributionId =
-            distributor.createDistribution(DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH, address(0), newPendingTreasury);
+        distributionId = distributor.createDistribution(
+            DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH, address(0), newPendingTreasury
+        );
 
         assertEq(distributor.ownerOf(distributionId), owner);
         assertEq(distributor.treasuryOf(distributionId), owner);
@@ -127,12 +128,11 @@ contract UniversalRouterDistributor is Test {
     }
 
     function testCreateDistributionWithAnInitialRoot() public {
-
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootUpdated(distributor.nextDistributionId(), DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         uint256 distributionId =
-            distributor.createDistribution(DEFAULT_TIMELOCK, DEFAULT_ROOT,  DEFAULT_IPFS_HASH, address(0), address(0));
+            distributor.createDistribution(DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH, address(0), address(0));
 
         assertEq(distributor.rootOf(distributionId), DEFAULT_ROOT);
         assertEq(distributor.ipfsHashOf(distributionId), DEFAULT_IPFS_HASH);
@@ -147,7 +147,8 @@ contract UniversalRouterDistributor is Test {
     ) public {
         uint256 initialRootId = distributor.nextDistributionId();
         vm.prank(owner);
-        uint256 distributionId = distributor.createDistribution(timelock, initialRoot, DEFAULT_IPFS_HASH, newOwner, newPendingTreasury);
+        uint256 distributionId =
+            distributor.createDistribution(timelock, initialRoot, DEFAULT_IPFS_HASH, newOwner, newPendingTreasury);
 
         assertEq(distributionId, initialRootId);
         assertEq(distributor.nextDistributionId(), initialRootId + 1);
@@ -161,8 +162,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionWithoutTimeLock), DEFAULT_ROOT);
         assertEq(distributor.ipfsHashOf(distributionWithoutTimeLock), DEFAULT_IPFS_HASH);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            _getPendingRoot(distributionWithoutTimeLock);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
         assertEq(pendingRoot.ipfsHash, bytes32(0));
@@ -176,8 +176,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionWithoutTimeLock), DEFAULT_ROOT);
         assertEq(distributor.ipfsHashOf(distributionWithoutTimeLock), DEFAULT_IPFS_HASH);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            _getPendingRoot(distributionWithoutTimeLock);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
         assertEq(pendingRoot.ipfsHash, bytes32(0));
@@ -199,8 +198,7 @@ contract UniversalRouterDistributor is Test {
 
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
 
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            _getPendingRoot(distributionWithTimeLock);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, DEFAULT_ROOT);
         assertEq(pendingRoot.ipfsHash, DEFAULT_IPFS_HASH);
         assertEq(pendingRoot.submittedAt, block.timestamp);
@@ -214,8 +212,7 @@ contract UniversalRouterDistributor is Test {
 
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
 
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            _getPendingRoot(distributionWithTimeLock);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, DEFAULT_ROOT);
         assertEq(pendingRoot.ipfsHash, DEFAULT_IPFS_HASH);
         assertEq(pendingRoot.submittedAt, block.timestamp);
@@ -231,7 +228,7 @@ contract UniversalRouterDistributor is Test {
 
     function testAcceptRootUpdateShouldUpdateMainRoot(address randomCaller) public {
         vm.prank(updater);
-        distributor.proposeRoot(distributionWithTimeLock, DEFAULT_ROOT,  DEFAULT_IPFS_HASH);
+        distributor.proposeRoot(distributionWithTimeLock, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
         vm.warp(block.timestamp + 1 days);
@@ -243,8 +240,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionWithTimeLock), DEFAULT_ROOT);
         assertEq(distributor.ipfsHashOf(distributionWithTimeLock), DEFAULT_IPFS_HASH);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            _getPendingRoot(distributionWithTimeLock);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
@@ -323,12 +319,20 @@ contract UniversalRouterDistributor is Test {
         distributor.forceUpdateRoot(distributionWithoutTimeLock, newRoot, DEFAULT_IPFS_HASH);
     }
 
-    function testForceUpdateRootShouldSetupTheCurrentRoot(bytes32 newRoot, bytes32 newIpfsHash) public {
+    function testForceUpdateRootShouldUpdateTheCurrentRoot(bytes32 newRoot, bytes32 newIpfsHash) public {
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
         emit IUniversalRewardsDistributor.RootUpdated(distributionWithTimeLock, newRoot, newIpfsHash);
         distributor.forceUpdateRoot(distributionWithTimeLock, newRoot, newIpfsHash);
+
+        assertEq(distributor.rootOf(distributionWithTimeLock), newRoot);
+        assertEq(distributor.ipfsHashOf(distributionWithTimeLock), newIpfsHash);
+
+        assertEq(_getPendingRoot(distributionWithTimeLock).root, bytes32(0));
+        assertEq(_getPendingRoot(distributionWithTimeLock).ipfsHash, bytes32(0));
+        assertEq(_getPendingRoot(distributionWithTimeLock).submittedAt, 0);
     }
+
     function testForceUpdateRootShouldRemovePendingRoot(bytes32 newRoot, address randomCaller) public {
         vm.assume(newRoot != DEFAULT_ROOT && randomCaller != owner);
 
@@ -451,8 +455,7 @@ contract UniversalRouterDistributor is Test {
         emit IUniversalRewardsDistributor.PendingRootRevoked(distributionWithTimeLock);
         distributor.revokePendingRoot(distributionWithTimeLock);
 
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot =
-            _getPendingRoot(distributionWithTimeLock);
+        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
@@ -649,7 +652,11 @@ contract UniversalRouterDistributor is Test {
         return address(uint160(uint256(keccak256(bytes(str)))));
     }
 
-    function _getPendingRoot(uint256 distributionId) internal view returns (IUniversalRewardsDistributor.PendingRoot memory) {
+    function _getPendingRoot(uint256 distributionId)
+        internal
+        view
+        returns (IUniversalRewardsDistributor.PendingRoot memory)
+    {
         return IPendingRoot(address(distributor)).pendingRootOf(distributionId);
     }
 }

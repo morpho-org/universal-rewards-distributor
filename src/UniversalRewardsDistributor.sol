@@ -75,7 +75,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newRoot The new merkle tree's root.
     /// @param ipfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    function proposeRoot(uint256 distributionId, bytes32 newRoot, bytes32 ipfsHash) external onlyUpdater(distributionId) {
+    function proposeRoot(uint256 distributionId, bytes32 newRoot, bytes32 ipfsHash)
+        external
+        onlyUpdater(distributionId)
+    {
         if (timelockOf[distributionId] == 0) {
             _forceUpdateRoot(distributionId, newRoot, ipfsHash);
         } else {
@@ -186,7 +189,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev Set to bytes32(0) to remove the root.
-    function forceUpdateRoot(uint256 distributionId, bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner(distributionId) {
+    function forceUpdateRoot(uint256 distributionId, bytes32 newRoot, bytes32 newIpfsHash)
+        external
+        onlyOwner(distributionId)
+    {
         _forceUpdateRoot(distributionId, newRoot, newIpfsHash);
     }
 
