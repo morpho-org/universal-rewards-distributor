@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity 0.8.21;
 
 import {IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
 
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
-import {SafeTransferLib} from "@solmate/utils/SafeTransferLib.sol";
+import {SafeTransferLib, ERC20} from "@solmate/utils/SafeTransferLib.sol";
 
-import {ERC20} from "@solmate/tokens/ERC20.sol";
 import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
 
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs
+/// @custom:contact security@morpho.org
 /// @notice This contract enables the distribution of various reward tokens to multiple accounts using different permissionless Merkle trees.
 ///         It is largely inspired by Morpho's current rewards distributor:
 ///         https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
@@ -22,9 +22,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice The merkle tree's roots of a given distribution.
     mapping(uint256 => bytes32) public rootOf;
 
+    /// @notice The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    mapping(uint256 => bytes32) public ipfsHashOf;
+
     /// @notice The `amount` of `reward` token already claimed by `account` for one given distribution.
-    mapping(uint256 distributionId => mapping(address account => mapping(address reward => uint256 amount))) public
-        claimed;
+    mapping(uint256 => mapping(address => mapping(address => uint256))) public claimed;
 
     /// @notice The treasury address of a given distribution.
     /// @dev The treasury is the address from which the rewards are sent by using a classic approval.
@@ -71,14 +73,16 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Proposes a new merkle tree root.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newRoot The new merkle tree's root.
-    function proposeRoot(uint256 distributionId, bytes32 newRoot) external onlyUpdater(distributionId) {
+    /// @param ipfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    function proposeRoot(uint256 distributionId, bytes32 newRoot, bytes32 ipfsHash)
+        external
+        onlyUpdater(distributionId)
+    {
         if (timelockOf[distributionId] == 0) {
-            rootOf[distributionId] = newRoot;
-            delete pendingRootOf[distributionId];
-            emit RootUpdated(distributionId, newRoot);
+            _forceUpdateRoot(distributionId, newRoot, ipfsHash);
         } else {
-            pendingRootOf[distributionId] = PendingRoot(block.timestamp, newRoot);
-            emit RootProposed(distributionId, newRoot);
+            pendingRootOf[distributionId] = PendingRoot(block.timestamp, newRoot, ipfsHash);
+            emit RootProposed(distributionId, newRoot, ipfsHash);
         }
     }
 
@@ -92,9 +96,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         require(block.timestamp >= pendingRoot.submittedAt + timelockOf[distributionId], ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
         rootOf[distributionId] = pendingRoot.root;
+        ipfsHashOf[distributionId] = pendingRoot.ipfsHash;
         delete pendingRootOf[distributionId];
 
-        emit RootUpdated(distributionId, pendingRoot.root);
+        emit RootUpdated(distributionId, pendingRoot.root, pendingRoot.ipfsHash);
     }
 
     /// @notice Claims rewards.
@@ -111,6 +116,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             MerkleProof.verifyCalldata(
                 proof,
                 rootOf[distributionId],
+                // TODO: why do we keccak256 it twice? we should highlight here
                 keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
             ),
             ErrorsLib.INVALID_PROOF_OR_EXPIRED
@@ -130,12 +136,14 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Creates a new distribution.
     /// @param initialTimelock The initial timelock for the new distribution.
     /// @param initialRoot The initial merkle tree's root for the new distribution.
+    /// @param initialIpfsHash The optional ipfs hash containing metadata about the root, if any (e.g. the merkle tree itself).
     /// @param initialOwner The initial owner for the new distribution.
     /// @param initialPendingTreasury The initial pending treasury for the new distribution.
     /// @dev The initial treasury is always `msg.sender`. The `initialPendingTreasury` can be set to `address(0)`.
     function createDistribution(
         uint256 initialTimelock,
         bytes32 initialRoot,
+        bytes32 initialIpfsHash,
         address initialOwner,
         address initialPendingTreasury
     ) external returns (uint256 distributionId) {
@@ -153,7 +161,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         }
 
         if (initialRoot != bytes32(0)) {
-            _forceUpdateRoot(distributionId, initialRoot);
+            _forceUpdateRoot(distributionId, initialRoot, initialIpfsHash);
         }
     }
 
@@ -178,10 +186,14 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Forces update the root of a given distribution.
     /// @param distributionId The distributionId of the merkle tree distribution.
     /// @param newRoot The new merkle tree's root.
+    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev Set to bytes32(0) to remove the root.
-    function forceUpdateRoot(uint256 distributionId, bytes32 newRoot) external onlyOwner(distributionId) {
-        _forceUpdateRoot(distributionId, newRoot);
+    function forceUpdateRoot(uint256 distributionId, bytes32 newRoot, bytes32 newIpfsHash)
+        external
+        onlyOwner(distributionId)
+    {
+        _forceUpdateRoot(distributionId, newRoot, newIpfsHash);
     }
 
     /// @notice Updates the timelock of a given distribution.
@@ -232,10 +244,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit DistributionOwnershipTransferred(distributionId, msg.sender, newOwner);
     }
 
-    function _forceUpdateRoot(uint256 distributionId, bytes32 newRoot) internal {
+    function _forceUpdateRoot(uint256 distributionId, bytes32 newRoot, bytes32 newIpfsHash) internal {
         rootOf[distributionId] = newRoot;
+        ipfsHashOf[distributionId] = newIpfsHash;
         delete pendingRootOf[distributionId];
-        emit RootUpdated(distributionId, newRoot);
+        emit RootUpdated(distributionId, newRoot, newIpfsHash);
     }
 
     function _proposeTreasury(uint256 distributionId, address newTreasury) internal {
