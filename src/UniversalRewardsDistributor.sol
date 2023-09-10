@@ -236,12 +236,12 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit PendingRootRevoked(distributionId);
     }
 
-    function transferDistributionOwnership(uint256 distributionId, address newOwner)
+    function setDistributionOwner(uint256 distributionId, address newOwner)
         external
         onlyOwner(distributionId)
     {
         ownerOf[distributionId] = newOwner;
-        emit DistributionOwnershipTransferred(distributionId, msg.sender, newOwner);
+        emit DistributionOwnerSet(distributionId, msg.sender, newOwner);
     }
 
     function _forceUpdateRoot(uint256 distributionId, bytes32 newRoot, bytes32 newIpfsHash) internal {
