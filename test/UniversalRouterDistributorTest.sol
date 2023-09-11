@@ -43,9 +43,7 @@ contract UniversalRewardsDistributorTest is Test {
     event RewardsClaimed(
         uint256 indexed distributionId, address indexed account, address indexed reward, uint256 amount
     );
-    event DistributionOwnershipTransferred(
-        uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner
-    );
+    event DistributionOwnerSet(uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner);
 
     function setUp() public {
         distributor = new UniversalRewardsDistributor();
@@ -478,13 +476,13 @@ contract UniversalRewardsDistributorTest is Test {
         distributor.revokePendingRoot(distributionWithTimeLock);
     }
 
-    function testTransferDistributionOwnership(address newOwner) public {
+    function testSetDistributionOwner(address newOwner) public {
         vm.assume(newOwner != owner);
 
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.DistributionOwnershipTransferred(distributionWithTimeLock, owner, newOwner);
-        distributor.transferDistributionOwnership(distributionWithTimeLock, newOwner);
+        emit IUniversalRewardsDistributor.DistributionOwnerSet(distributionWithTimeLock, owner, newOwner);
+        distributor.setDistributionOwner(distributionWithTimeLock, newOwner);
 
         assertEq(distributor.ownerOf(distributionWithTimeLock), newOwner);
     }
@@ -494,7 +492,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(caller);
         vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
-        distributor.transferDistributionOwnership(distributionWithTimeLock, newOwner);
+        distributor.setDistributionOwner(distributionWithTimeLock, newOwner);
     }
 
     function testClaimRewardsShouldFollowTheMerkleDistribution(uint256 claimable, uint8 size) public {
