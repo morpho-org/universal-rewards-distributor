@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {IUniversalRewardsDistributor, IPendingRoot} from "src/interfaces/IUniversalRewardsDistributor.sol";
+import {
+    PendingRoot, IUniversalRewardsDistributor, IPendingRoot
+} from "src/interfaces/IUniversalRewardsDistributor.sol";
 
 import {ErrorsLib} from "src/libraries/ErrorsLib.sol";
 
@@ -85,7 +87,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         assertEq(distributor.rootOf(distributionId), DEFAULT_ROOT);
         assertEq(distributor.timelockOf(distributionId), DEFAULT_TIMELOCK);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionId);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionId);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
         assertEq(distributor.ownerOf(distributionId), randomCreator);
@@ -161,7 +163,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         assertEq(distributor.rootOf(distributionWithoutTimeLock), DEFAULT_ROOT);
         assertEq(distributor.ipfsHashOf(distributionWithoutTimeLock), DEFAULT_IPFS_HASH);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithoutTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
         assertEq(pendingRoot.ipfsHash, bytes32(0));
@@ -175,7 +177,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         assertEq(distributor.rootOf(distributionWithoutTimeLock), DEFAULT_ROOT);
         assertEq(distributor.ipfsHashOf(distributionWithoutTimeLock), DEFAULT_IPFS_HASH);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithoutTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
         assertEq(pendingRoot.ipfsHash, bytes32(0));
@@ -197,7 +199,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
 
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, DEFAULT_ROOT);
         assertEq(pendingRoot.ipfsHash, DEFAULT_IPFS_HASH);
         assertEq(pendingRoot.submittedAt, block.timestamp);
@@ -211,7 +213,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
 
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, DEFAULT_ROOT);
         assertEq(pendingRoot.ipfsHash, DEFAULT_IPFS_HASH);
         assertEq(pendingRoot.submittedAt, block.timestamp);
@@ -239,7 +241,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         assertEq(distributor.rootOf(distributionWithTimeLock), DEFAULT_ROOT);
         assertEq(distributor.ipfsHashOf(distributionWithTimeLock), DEFAULT_IPFS_HASH);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
@@ -451,10 +453,10 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.PendingRootRevoked(distributionWithTimeLock);
+        emit PendingRootRevoked(distributionWithTimeLock);
         distributor.revokePendingRoot(distributionWithTimeLock);
 
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
@@ -651,11 +653,7 @@ contract UniversalRewardsDistributorTest is Test {
         return address(uint160(uint256(keccak256(bytes(str)))));
     }
 
-    function _getPendingRoot(uint256 distributionId)
-        internal
-        view
-        returns (IUniversalRewardsDistributor.PendingRoot memory)
-    {
+    function _getPendingRoot(uint256 distributionId) internal view returns (PendingRoot memory) {
         return IPendingRoot(address(distributor)).pendingRootOf(distributionId);
     }
 }

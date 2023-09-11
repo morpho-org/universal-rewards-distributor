@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
+import {PendingRoot, IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
 
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 import {SafeTransferLib, ERC20} from "@solmate/utils/SafeTransferLib.sol";
@@ -116,7 +116,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             MerkleProof.verifyCalldata(
                 proof,
                 rootOf[distributionId],
-                // TODO: why do we keccak256 it twice? we should highlight here
                 keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
             ),
             ErrorsLib.INVALID_PROOF_OR_EXPIRED
