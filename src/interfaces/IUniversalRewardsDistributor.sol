@@ -79,7 +79,7 @@ interface IUniversalRewardsDistributor {
     /// @param distributionId The id of the merkle tree distribution.
     /// @param previousOwner The previous owner of the merkle tree distribution.
     /// @param newOwner The new owner of the merkle tree distribution.
-    event DistributionOwnershipTransferred(
+    event DistributionOwnerSet(
         uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner
     );
 
@@ -101,6 +101,7 @@ interface IUniversalRewardsDistributor {
     function updateTimelock(uint256 id, uint256 newTimelock) external;
     function updateRootUpdater(uint256 id, address updater, bool active) external;
     function revokePendingRoot(uint256 id) external;
+    function setDistributionOwner(uint256 id, address newOwner) external;
 }
 
 interface IPendingRoot {
