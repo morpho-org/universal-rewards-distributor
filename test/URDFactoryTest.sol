@@ -1,21 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {
-    PendingRoot, IUniversalRewardsDistributor, IPendingRoot
-} from "src/interfaces/IUniversalRewardsDistributor.sol";
-
-import {ErrorsLib} from "src/libraries/ErrorsLib.sol";
-
-import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
+import {IUniversalRewardsDistributor} from "src/interfaces/IUniversalRewardsDistributor.sol";
 import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
-
-import {Merkle} from "@murky/src/Merkle.sol";
 
 import "@forge-std/Test.sol";
 import {URDFactory} from "src/URDFactory.sol";
 
-contract UniversalRewardsDistributorTest is Test {
+contract URDFactoryTest is Test {
     URDFactory factory = new URDFactory();
 
     event URDCreated(address indexed urd, address indexed caller, address indexed owner);
