@@ -42,9 +42,7 @@ contract UniversalRouterDistributor is Test {
     event RewardsClaimed(
         uint256 indexed distributionId, address indexed account, address indexed reward, uint256 amount
     );
-    event DistributionOwnerSet(
-        uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner
-    );
+    event DistributionOwnerSet(uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner);
 
     function setUp() public {
         distributor = new UniversalRewardsDistributor();
