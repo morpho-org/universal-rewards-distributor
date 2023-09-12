@@ -35,9 +35,10 @@ Now you can run tests, using forge:
 forge test
 ```
 
-## Specifications
+## Limitations
 
 ### The pending root is not a queue
+
 The pending root does not have a queue mechanism. Therefore, pushing a root to the pending root as a root updater in a distribution with a timelock will essentially erase the previous root. This means that a compromised root updater can always suggest a root and reset the timelock of the pending root.
 
 Additionally, if the pending root is ready to be accepted but a root updater suggests a new root at the same time, the pending root will be erased and the timelock will restart.
