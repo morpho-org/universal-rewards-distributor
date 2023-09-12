@@ -21,12 +21,12 @@ interface IUniversalRewardsDistributor {
     /// @notice Emitted when the merkle tree's root is updated.
     /// @param newRoot The new merkle tree's root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    event RootUpdated(bytes32 newRoot, bytes32 newIpfsHash);
+    event RootUpdated(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
     /// @notice Emitted when a new merkle tree's root is submitted.
     /// @param newRoot The new merkle tree's root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    event RootProposed(bytes32 newRoot, bytes32 newIpfsHash);
+    event RootProposed(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
 
     /// @notice Emitted when a merkle tree distribution timelock is modified.

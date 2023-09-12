@@ -103,7 +103,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         ipfsHash = pendingRootMem.ipfsHash;
         delete pendingRoot;
 
-        emit RootUpdated(pendingRoot.root, pendingRoot.ipfsHash);
+        emit RootUpdated(pendingRootMem.root, pendingRootMem.ipfsHash);
     }
 
     /// @notice Claims rewards.
