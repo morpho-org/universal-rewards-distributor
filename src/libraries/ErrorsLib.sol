@@ -9,8 +9,6 @@ library ErrorsLib {
     string internal constant CALLER_NOT_OWNER_OR_UPDATER =
         "UniversalRewardsDistributor: caller is not the owner or updater";
 
-    string internal constant CALLER_NOT_TREASURY = "UniversalRewardsDistributor: caller is not the treasury";
-
     string internal constant CALLER_NOT_OWNER = "UniversalRewardsDistributor: caller is not the owner";
 
     string internal constant NO_PENDING_ROOT = "UniversalRewardsDistributor: no pending root";
@@ -23,6 +21,4 @@ library ErrorsLib {
 
     string internal constant ALREADY_CLAIMED = "UniversalRewardsDistributor: already claimed";
 
-    string internal constant CALLER_NOT_PENDING_TREASURY =
-        "UniversalRewardsDistributor: caller is not the pending treasury";
 }
