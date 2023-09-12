@@ -34,9 +34,7 @@ contract UniversalRewardsDistributorTest is Test {
     event TimelockUpdated(uint256 timelock);
     event RootUpdaterUpdated(address indexed rootUpdater, bool active);
     event PendingRootRevoked();
-    event RewardsClaimed(
-        address indexed account, address indexed reward, uint256 amount
-    );
+    event RewardsClaimed(address indexed account, address indexed reward, uint256 amount);
     event DistributionOwnerSet(address indexed previousOwner, address indexed newOwner);
 
     function setUp() public {
@@ -46,12 +44,11 @@ contract UniversalRewardsDistributorTest is Test {
         token1 = new MockERC20("Token1", "TKN1", 18);
         token2 = new MockERC20("Token2", "TKN2", 18);
 
-
         vm.startPrank(owner);
         distributionWithoutTimeLock.updateRootUpdater(updater, true);
 
         vm.warp(block.timestamp + 1);
-        distributionWithTimeLock =  new UniversalRewardsDistributor(
+        distributionWithTimeLock = new UniversalRewardsDistributor(
             owner, DEFAULT_TIMELOCK, bytes32(0), bytes32(0)
         );
         distributionWithTimeLock.updateRootUpdater(updater, true);
@@ -67,7 +64,6 @@ contract UniversalRewardsDistributorTest is Test {
     }
 
     function testDistributionConstructorSetupCorrectly(address randomCreator) public {
-
         vm.prank(randomCreator);
         UniversalRewardsDistributor distributor = new UniversalRewardsDistributor(
             randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH
@@ -200,7 +196,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(randomCaller);
         vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
-        distributionWithoutTimeLock.forceUpdateRoot( newRoot, DEFAULT_IPFS_HASH);
+        distributionWithoutTimeLock.forceUpdateRoot(newRoot, DEFAULT_IPFS_HASH);
     }
 
     function testForceUpdateRootShouldUpdateTheCurrentRoot(bytes32 newRoot, bytes32 newIpfsHash) public {
@@ -409,9 +405,7 @@ contract UniversalRewardsDistributorTest is Test {
         bytes32[] memory proof1 = merkle.getProof(data, 0);
 
         vm.expectEmit(true, true, true, true, address(distributionWithoutTimeLock));
-        emit IUniversalRewardsDistributor.RewardsClaimed(
-            vm.addr(1), address(token1), claimable
-        );
+        emit IUniversalRewardsDistributor.RewardsClaimed(vm.addr(1), address(token1), claimable);
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
 
         vm.expectRevert(bytes(ErrorsLib.ALREADY_CLAIMED));
@@ -481,7 +475,9 @@ contract UniversalRewardsDistributorTest is Test {
         uint256 URDBalanceBefore2;
     }
 
-    function _claimAndVerifyRewards(IUniversalRewardsDistributor distribution, bytes32[] memory data, uint256 claimable) internal {
+    function _claimAndVerifyRewards(IUniversalRewardsDistributor distribution, bytes32[] memory data, uint256 claimable)
+        internal
+    {
         Vars memory vars;
 
         while (vars.i < data.length / 2) {
@@ -490,10 +486,8 @@ contract UniversalRewardsDistributorTest is Test {
 
             vars.index = vars.i + 1;
             vars.claimableInput = claimable / vars.index;
-            vars.claimableAdjusted1 =
-                vars.claimableInput - distribution.claimed(vm.addr(vars.index), address(token1));
-            vars.claimableAdjusted2 =
-                vars.claimableInput - distribution.claimed(vm.addr(vars.index), address(token2));
+            vars.claimableAdjusted1 = vars.claimableInput - distribution.claimed(vm.addr(vars.index), address(token1));
+            vars.claimableAdjusted2 = vars.claimableInput - distribution.claimed(vm.addr(vars.index), address(token2));
             vars.balanceBefore1 = token1.balanceOf(vm.addr(vars.index));
             vars.balanceBefore2 = token2.balanceOf(vm.addr(vars.index));
             vars.URDBalanceBefore1 = token1.balanceOf(address(distribution));
@@ -522,14 +516,8 @@ contract UniversalRewardsDistributorTest is Test {
             assertEq(distribution.claimed(vm.addr(vars.index), address(token1)), balanceAfter1);
             assertEq(distribution.claimed(vm.addr(vars.index), address(token2)), balanceAfter2);
 
-            assertEq(
-                token1.balanceOf(address(distribution)),
-                vars.URDBalanceBefore1 - vars.claimableAdjusted1
-            );
-            assertEq(
-                token2.balanceOf(address(distribution)),
-                vars.URDBalanceBefore2 - vars.claimableAdjusted2
-            );
+            assertEq(token1.balanceOf(address(distribution)), vars.URDBalanceBefore1 - vars.claimableAdjusted1);
+            assertEq(token2.balanceOf(address(distribution)), vars.URDBalanceBefore2 - vars.claimableAdjusted2);
 
             vars.i += 2;
         }

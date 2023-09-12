@@ -17,7 +17,6 @@ import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
 contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     using SafeTransferLib for ERC20;
 
-
     /// @notice The merkle tree's roots of a given distribution.
     bytes32 public root;
 
@@ -25,7 +24,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     bytes32 public ipfsHash;
 
     /// @notice The `amount` of `reward` token already claimed by `account` for one given distribution.
-     mapping(address => mapping(address => uint256)) public claimed;
+    mapping(address => mapping(address => uint256)) public claimed;
 
     /// @notice The address that can update the distribution parameters, and freeze a root.
     address public owner;
@@ -42,10 +41,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     PendingRoot public pendingRoot;
 
     modifier onlyUpdater() {
-        require(
-            isUpdater[msg.sender] || msg.sender == owner,
-            ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER
-        );
+        require(isUpdater[msg.sender] || msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER);
         _;
     }
 
@@ -59,30 +55,21 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param _initialTimelock The initial timelock of the distribution.
     /// @param _initialRoot The initial merkle tree's root.
     /// @param _initialIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    constructor(
-    address _initialOwner,
-    uint256 _initialTimelock,
-    bytes32 _initialRoot,
-    bytes32 _initialIpfsHash
-    ) {
+    constructor(address _initialOwner, uint256 _initialTimelock, bytes32 _initialRoot, bytes32 _initialIpfsHash) {
         owner = _initialOwner;
         timelock = _initialTimelock;
 
-        if(_initialRoot != bytes32(0)) {
+        if (_initialRoot != bytes32(0)) {
             _forceUpdateRoot(_initialRoot, _initialIpfsHash);
         }
     }
-
 
     /* EXTERNAL */
 
     /// @notice Proposes a new merkle tree root.
     /// @param newRoot The new merkle tree's root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    function proposeRoot(bytes32 newRoot, bytes32 newIpfsHash)
-        external
-        onlyUpdater
-    {
+    function proposeRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdater {
         if (timelock == 0) {
             _forceUpdateRoot(newRoot, newIpfsHash);
         } else {
@@ -111,15 +98,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param reward The address of the reward token.
     /// @param claimable The overall claimable amount of token rewards.
     /// @param proof The merkle proof that validates this claim.
-    function claim(address account, address reward, uint256 claimable, bytes32[] calldata proof)
-        external
-    {
+    function claim(address account, address reward, uint256 claimable, bytes32[] calldata proof) external {
         require(root != bytes32(0), ErrorsLib.ROOT_NOT_SET);
         require(
             MerkleProof.verifyCalldata(
-                proof,
-                root,
-                keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
+                proof, root, keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
             ),
             ErrorsLib.INVALID_PROOF_OR_EXPIRED
         );
@@ -140,10 +123,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev Set to bytes32(0) to remove the root.
-    function forceUpdateRoot(bytes32 newRoot, bytes32 newIpfsHash)
-        external
-        onlyOwner
-    {
+    function forceUpdateRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner {
         _forceUpdateRoot(newRoot, newIpfsHash);
     }
 
@@ -167,10 +147,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Updates the root updater of a given distribution.
     /// @param updater The new root updater.
     /// @param active Whether the root updater should be active or not.
-    function updateRootUpdater(address updater, bool active)
-        external
-        onlyOwner
-    {
+    function updateRootUpdater(address updater, bool active) external onlyOwner {
         isUpdater[updater] = active;
         emit RootUpdaterUpdated(updater, active);
     }
@@ -195,5 +172,4 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         delete pendingRoot;
         emit RootUpdated(newRoot, newIpfsHash);
     }
-
 }

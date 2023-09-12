@@ -28,11 +28,9 @@ interface IUniversalRewardsDistributor {
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     event RootProposed(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
-
     /// @notice Emitted when a merkle tree distribution timelock is modified.
     /// @param timelock The new merkle tree's timelock.
     event TimelockUpdated(uint256 timelock);
-
 
     /// @notice Emitted when a merkle tree updater is added or removed.
     /// @param rootUpdater The merkle tree updater.
@@ -46,8 +44,7 @@ interface IUniversalRewardsDistributor {
     /// @param account The address for which rewards are claimd rewards for.
     /// @param reward The address of the reward token.
     /// @param amount The amount of reward token claimed.
-    event RewardsClaimed(address indexed account, address indexed reward, uint256 amount
-    );
+    event RewardsClaimed(address indexed account, address indexed reward, uint256 amount);
 
     /// @notice Emitted when the ownership of a merkle tree distribution is transferred.
     /// @param previousOwner The previous owner of the merkle tree distribution.
@@ -71,10 +68,9 @@ interface IUniversalRewardsDistributor {
     function revokePendingRoot() external;
     function setDistributionOwner(address newOwner) external;
 
-    function proposeRoot( bytes32 newRoot, bytes32 ipfsHash) external;
+    function proposeRoot(bytes32 newRoot, bytes32 ipfsHash) external;
 
-    function claim(address account, address reward, uint256 claimable, bytes32[] memory proof)
-        external;
+    function claim(address account, address reward, uint256 claimable, bytes32[] memory proof) external;
 }
 
 interface IPendingRoot {

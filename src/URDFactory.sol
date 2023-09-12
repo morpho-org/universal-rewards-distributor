@@ -8,7 +8,6 @@ import {UniversalRewardsDistributor} from "./UniversalRewardsDistributor.sol";
 /// @custom:contact security@morpho.org
 /// @notice This contract permits to create UniversalRewardsDistributor contracts, and to index them easily.
 contract URDFactory {
-
     event URDCreated(address indexed urd, address indexed caller, address indexed owner);
 
     function createURD(
@@ -19,12 +18,14 @@ contract URDFactory {
         bytes32 salt
     ) public returns (address urd) {
         // it uses the CREATE2 opcode, so the address is deterministic
-        urd = address(new UniversalRewardsDistributor{salt: salt}(
+        urd = address(
+            new UniversalRewardsDistributor{salt: salt}(
             _initialOwner,
             _initialTimelock,
             _initialRoot,
             _initialIpfsHash
-        ));
+            )
+        );
         emit URDCreated(urd, msg.sender, _initialOwner);
     }
 }

@@ -20,5 +20,4 @@ library ErrorsLib {
     string internal constant INVALID_PROOF_OR_EXPIRED = "UniversalRewardsDistributor: invalid proof or expired";
 
     string internal constant ALREADY_CLAIMED = "UniversalRewardsDistributor: already claimed";
-
 }

@@ -8,8 +8,11 @@ import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
 contract DeployUniversalRewardsDistributor is Script {
     function run() public {
         vm.broadcast();
-        console.log(address(new UniversalRewardsDistributor(
-        msg.sender, 0, bytes32(0), bytes32(0))
-        ));
+        console.log(
+            address(
+                new UniversalRewardsDistributor(
+                msg.sender, 0, bytes32(0), bytes32(0))
+            )
+        );
     }
 }
