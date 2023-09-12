@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity 0.8.21;
 
-import {IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
+import {PendingRoot, IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
 
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
-import {SafeTransferLib} from "@solmate/utils/SafeTransferLib.sol";
+import {SafeTransferLib, ERC20} from "@solmate/utils/SafeTransferLib.sol";
 
-import {ERC20} from "@solmate/tokens/ERC20.sol";
 import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
 
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs
+/// @custom:contact security@morpho.org
 /// @notice This contract enables the distribution of various reward tokens to multiple accounts using different permissionless Merkle trees.
 ///         It is largely inspired by Morpho's current rewards distributor:
 ///         https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
@@ -26,8 +26,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     mapping(uint256 => bytes32) public ipfsHashOf;
 
     /// @notice The `amount` of `reward` token already claimed by `account` for one given distribution.
-    mapping(uint256 distributionId => mapping(address account => mapping(address reward => uint256 amount))) public
-        claimed;
+    mapping(uint256 => mapping(address => mapping(address => uint256))) public claimed;
 
     /// @notice The treasury address of a given distribution.
     /// @dev The treasury is the address from which the rewards are sent by using a classic approval.
@@ -236,10 +235,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit PendingRootRevoked(distributionId);
     }
 
-    function setDistributionOwner(uint256 distributionId, address newOwner)
-        external
-        onlyOwner(distributionId)
-    {
+    function setDistributionOwner(uint256 distributionId, address newOwner) external onlyOwner(distributionId) {
         ownerOf[distributionId] = newOwner;
         emit DistributionOwnerSet(distributionId, msg.sender, newOwner);
     }

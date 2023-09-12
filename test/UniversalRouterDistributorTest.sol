@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {IUniversalRewardsDistributor, IPendingRoot} from "src/interfaces/IUniversalRewardsDistributor.sol";
+import {
+    PendingRoot, IUniversalRewardsDistributor, IPendingRoot
+} from "src/interfaces/IUniversalRewardsDistributor.sol";
 
 import {ErrorsLib} from "src/libraries/ErrorsLib.sol";
 
-import {ERC20} from "@openzeppelin/token/ERC20/ERC20.sol";
 import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
 import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
 
@@ -13,7 +14,7 @@ import {Merkle} from "@murky/src/Merkle.sol";
 
 import "@forge-std/Test.sol";
 
-contract UniversalRouterDistributor is Test {
+contract UniversalRewardsDistributorTest is Test {
     uint256 internal constant MAX_RECEIVERS = 20;
 
     UniversalRewardsDistributor internal distributor;
@@ -42,9 +43,7 @@ contract UniversalRouterDistributor is Test {
     event RewardsClaimed(
         uint256 indexed distributionId, address indexed account, address indexed reward, uint256 amount
     );
-    event DistributionOwnerSet(
-        uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner
-    );
+    event DistributionOwnerSet(uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner);
 
     function setUp() public {
         distributor = new UniversalRewardsDistributor();
@@ -86,7 +85,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionId), DEFAULT_ROOT);
         assertEq(distributor.timelockOf(distributionId), DEFAULT_TIMELOCK);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionId);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionId);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
         assertEq(distributor.ownerOf(distributionId), randomCreator);
@@ -162,7 +161,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionWithoutTimeLock), DEFAULT_ROOT);
         assertEq(distributor.ipfsHashOf(distributionWithoutTimeLock), DEFAULT_IPFS_HASH);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithoutTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
         assertEq(pendingRoot.ipfsHash, bytes32(0));
@@ -176,7 +175,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionWithoutTimeLock), DEFAULT_ROOT);
         assertEq(distributor.ipfsHashOf(distributionWithoutTimeLock), DEFAULT_IPFS_HASH);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithoutTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithoutTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
         assertEq(pendingRoot.ipfsHash, bytes32(0));
@@ -198,7 +197,7 @@ contract UniversalRouterDistributor is Test {
 
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
 
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, DEFAULT_ROOT);
         assertEq(pendingRoot.ipfsHash, DEFAULT_IPFS_HASH);
         assertEq(pendingRoot.submittedAt, block.timestamp);
@@ -212,7 +211,7 @@ contract UniversalRouterDistributor is Test {
 
         assert(distributor.rootOf(distributionWithTimeLock) != DEFAULT_ROOT);
 
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, DEFAULT_ROOT);
         assertEq(pendingRoot.ipfsHash, DEFAULT_IPFS_HASH);
         assertEq(pendingRoot.submittedAt, block.timestamp);
@@ -240,7 +239,7 @@ contract UniversalRouterDistributor is Test {
 
         assertEq(distributor.rootOf(distributionWithTimeLock), DEFAULT_ROOT);
         assertEq(distributor.ipfsHashOf(distributionWithTimeLock), DEFAULT_IPFS_HASH);
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
@@ -452,10 +451,10 @@ contract UniversalRouterDistributor is Test {
 
         vm.prank(owner);
         vm.expectEmit(true, true, true, true, address(distributor));
-        emit IUniversalRewardsDistributor.PendingRootRevoked(distributionWithTimeLock);
+        emit PendingRootRevoked(distributionWithTimeLock);
         distributor.revokePendingRoot(distributionWithTimeLock);
 
-        IUniversalRewardsDistributor.PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
@@ -607,10 +606,10 @@ contract UniversalRouterDistributor is Test {
                 vars.claimableInput - distributor.claimed(distributionId, vm.addr(vars.index), address(token1));
             vars.claimableAdjusted2 =
                 vars.claimableInput - distributor.claimed(distributionId, vm.addr(vars.index), address(token2));
-            vars.balanceBefore1 = ERC20(address(token1)).balanceOf(vm.addr(vars.index));
-            vars.balanceBefore2 = ERC20(address(token2)).balanceOf(vm.addr(vars.index));
-            vars.treasuryBalanceBefore1 = ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId));
-            vars.treasuryBalanceBefore2 = ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId));
+            vars.balanceBefore1 = token1.balanceOf(vm.addr(vars.index));
+            vars.balanceBefore2 = token2.balanceOf(vm.addr(vars.index));
+            vars.treasuryBalanceBefore1 = token1.balanceOf(distributor.treasuryOf(distributionId));
+            vars.treasuryBalanceBefore2 = token2.balanceOf(distributor.treasuryOf(distributionId));
 
             // Claim token1
             vm.expectEmit(true, true, true, true, address(distributor));
@@ -629,18 +628,18 @@ contract UniversalRouterDistributor is Test {
             uint256 balanceAfter1 = vars.balanceBefore1 + vars.claimableAdjusted1;
             uint256 balanceAfter2 = vars.balanceBefore2 + vars.claimableAdjusted2;
 
-            assertEq(ERC20(address(token1)).balanceOf(vm.addr(vars.index)), balanceAfter1);
-            assertEq(ERC20(address(token2)).balanceOf(vm.addr(vars.index)), balanceAfter2);
+            assertEq(token1.balanceOf(vm.addr(vars.index)), balanceAfter1);
+            assertEq(token2.balanceOf(vm.addr(vars.index)), balanceAfter2);
             // Assert claimed getter
             assertEq(distributor.claimed(distributionId, vm.addr(vars.index), address(token1)), balanceAfter1);
             assertEq(distributor.claimed(distributionId, vm.addr(vars.index), address(token2)), balanceAfter2);
 
             assertEq(
-                ERC20(address(token1)).balanceOf(distributor.treasuryOf(distributionId)),
+                token1.balanceOf(distributor.treasuryOf(distributionId)),
                 vars.treasuryBalanceBefore1 - vars.claimableAdjusted1
             );
             assertEq(
-                ERC20(address(token2)).balanceOf(distributor.treasuryOf(distributionId)),
+                token2.balanceOf(distributor.treasuryOf(distributionId)),
                 vars.treasuryBalanceBefore2 - vars.claimableAdjusted2
             );
 
@@ -652,11 +651,7 @@ contract UniversalRouterDistributor is Test {
         return address(uint160(uint256(keccak256(bytes(str)))));
     }
 
-    function _getPendingRoot(uint256 distributionId)
-        internal
-        view
-        returns (IUniversalRewardsDistributor.PendingRoot memory)
-    {
+    function _getPendingRoot(uint256 distributionId) internal view returns (PendingRoot memory) {
         return IPendingRoot(address(distributor)).pendingRootOf(distributionId);
     }
 }

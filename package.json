@@ -1,12 +1,36 @@
 {
   "name": "universal-rewards-distributor",
-  "version": "1.0.0",
   "description": "A universal rewards distributor written in Solidity.",
-  "main": "index.js",
-  "repository": "git@github.com:MerlinEgalite/universal-rewards-distributor.git",
-  "author": "MerlinEgalite <egalite.merlin@gmail.com>",
+  "version": "1.0.0",
+  "author": "Morpho Labs <security@morpho.org>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/morpho-org/universal-rewards-distributor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/morpho-org/universal-rewards-distributor/issues"
+  },
+  "scripts": {
+    "postinstall": "husky install && forge install",
+    "build": "FOUNDRY_PROFILE=build forge build",
+    "test": "FOUNDRY_PROFILE=test forge test",
+    "lint": "forge fmt --check",
+    "lint:fix": "forge fmt",
+    "clean": "forge clean"
+  },
   "devDependencies": {
-    "husky": "^8.0.3"
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-conventional": "^17.7.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.1"
+  },
+  "lint-staged": {
+    "*.sol": "forge fmt"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   }
 }

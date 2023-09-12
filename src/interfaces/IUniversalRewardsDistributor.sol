@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.5.0;
+pragma solidity >=0.7.4;
+
+/// @notice The pending root struct for a merkle tree distribution during the timelock.
+struct PendingRoot {
+    /// @dev The block timestamp of the pending root submission.
+    uint256 submittedAt;
+    /// @dev The submitted pending root.
+    bytes32 root;
+    /// @dev The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    bytes32 ipfsHash;
+}
 
 /// @title IUniversalRewardsDistributor
 /// @author Morpho Labs
+/// @custom:contact security@morpho.org
 /// @notice UniversalRewardsDistributor's interface.
 interface IUniversalRewardsDistributor {
-    /// @notice The pending root struct for a merkle tree distribution during the timelock.
-    struct PendingRoot {
-        /// @dev The block timestamp of the pending root submission.
-        uint256 submittedAt;
-        /// @dev The submitted pending root.
-        bytes32 root;
-        // @dev The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-        bytes32 ipfsHash;
-    }
-
     /* EVENTS */
 
     /// @notice Emitted when the merkle tree's root is updated.
@@ -79,15 +80,21 @@ interface IUniversalRewardsDistributor {
     /// @param distributionId The id of the merkle tree distribution.
     /// @param previousOwner The previous owner of the merkle tree distribution.
     /// @param newOwner The new owner of the merkle tree distribution.
-    event DistributionOwnerSet(
-        uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner
-    );
+    event DistributionOwnerSet(uint256 indexed distributionId, address indexed previousOwner, address indexed newOwner);
 
     /* EXTERNAL */
 
-    function proposeRoot(uint256 id, bytes32 newRoot, bytes32 newIpfsHash) external;
-    function acceptRootUpdate(uint256 id) external;
-    function claim(uint256 id, address account, address reward, uint256 claimable, bytes32[] calldata proof) external;
+    function rootOf(uint256) external view returns (bytes32);
+    function ownerOf(uint256) external view returns (address);
+    function treasuryOf(uint256) external view returns (address);
+    function timelockOf(uint256) external view returns (uint256);
+    function ipfsHashOf(uint256) external view returns (bytes32);
+    function isUpdaterOf(uint256, address) external view returns (bool);
+    function pendingRootOf(uint256) external view returns (uint256 submittedAt, bytes32 root, bytes32 ipfsHash);
+    function pendingTreasuryOf(uint256) external view returns (address);
+    function claimed(uint256, address, address) external view returns (uint256);
+    function nextDistributionId() external view returns (uint256);
+
     function createDistribution(
         uint256 initialTimelock,
         bytes32 initialRoot,
@@ -95,18 +102,21 @@ interface IUniversalRewardsDistributor {
         address initialOwner,
         address initialPendingTreasury
     ) external returns (uint256 distributionId);
-    function proposeTreasury(uint256 id, address newTreasury) external;
-    function acceptAsTreasury(uint256 id) external;
-    function forceUpdateRoot(uint256 id, bytes32 newRoot, bytes32 newIpfsHash) external;
-    function updateTimelock(uint256 id, uint256 newTimelock) external;
-    function updateRootUpdater(uint256 id, address updater, bool active) external;
-    function revokePendingRoot(uint256 id) external;
-    function setDistributionOwner(uint256 id, address newOwner) external;
+    function acceptAsTreasury(uint256 distributionId) external;
+    function acceptRootUpdate(uint256 distributionId) external;
+    function forceUpdateRoot(uint256 distributionId, bytes32 newRoot, bytes32 newIpfsHash) external;
+    function updateTimelock(uint256 distributionId, uint256 newTimelock) external;
+    function updateRootUpdater(uint256 distributionId, address updater, bool active) external;
+    function revokePendingRoot(uint256 distributionId) external;
+    function setDistributionOwner(uint256 distributionId, address newOwner) external;
+
+    function proposeRoot(uint256 distributionId, bytes32 newRoot, bytes32 ipfsHash) external;
+    function proposeTreasury(uint256 distributionId, address newTreasury) external;
+
+    function claim(uint256 distributionId, address account, address reward, uint256 claimable, bytes32[] memory proof)
+        external;
 }
 
 interface IPendingRoot {
-    function pendingRootOf(uint256 distributionId)
-        external
-        view
-        returns (IUniversalRewardsDistributor.PendingRoot memory);
+    function pendingRootOf(uint256 distributionId) external view returns (PendingRoot memory);
 }
