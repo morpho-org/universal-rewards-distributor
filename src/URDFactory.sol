@@ -15,9 +15,11 @@ contract URDFactory {
         address _initialOwner,
         uint256 _initialTimelock,
         bytes32 _initialRoot,
-        bytes32 _initialIpfsHash
+        bytes32 _initialIpfsHash,
+        bytes32 salt
     ) public returns (address urd) {
-        urd = address(new UniversalRewardsDistributor(
+        // it uses the CREATE2 opcode, so the address is deterministic
+        urd = address(new UniversalRewardsDistributor{salt: salt}(
             _initialOwner,
             _initialTimelock,
             _initialRoot,
