@@ -24,7 +24,7 @@ contract URDFactoryTest is Test {
         address urdAddress = _precomputeAddress(randomSalt, encodedParams);
 
         vm.prank(randomCaller);
-        vm.expectEmit(true, true, true, true, address(factory));
+        vm.expectEmit(address(factory));
         emit URDCreated(urdAddress, randomCaller, randomOwner);
         address realAddress = factory.createURD(randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt);
 
