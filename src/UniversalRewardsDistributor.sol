@@ -41,7 +41,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev The pending root is skipped if the timelock is set to 0.
     PendingRoot public pendingRoot;
 
-    modifier onlyUpdater() {
+    modifier onlyOwnerOrUpdater() {
         require(isUpdater[msg.sender] || msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER);
         _;
     }
@@ -61,7 +61,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         timelock = initialTimelock;
 
         if (initialRoot != bytes32(0)) {
-            _forceUpdateRoot(initialRoot, initialIpfsHash);
+            _updateRoot(initialRoot, initialIpfsHash);
         }
     }
 
@@ -70,9 +70,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Proposes a new merkle tree root.
     /// @param newRoot The new merkle tree's root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    function proposeRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdater {
+    function proposeRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwnerOrUpdater {
         if (timelock == 0) {
-            _forceUpdateRoot(newRoot, newIpfsHash);
+            _updateRoot(newRoot, newIpfsHash);
         } else {
             pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
             emit EventsLib.RootProposed(newRoot, newIpfsHash);
@@ -82,16 +82,15 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Accepts the current pending merkle tree's root.
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
-    function acceptRootUpdate() external {
-        PendingRoot memory pendingRootMem = pendingRoot;
-        require(pendingRootMem.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
-        require(block.timestamp >= pendingRootMem.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
+    function acceptRoot() external {
+        require(pendingRoot.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
+        require(block.timestamp >= pendingRoot.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
-        root = pendingRootMem.root;
-        ipfsHash = pendingRootMem.ipfsHash;
+        root = pendingRoot.root;
+        ipfsHash = pendingRoot.ipfsHash;
+        emit EventsLib.RootUpdated(pendingRoot.root, pendingRoot.ipfsHash);
+
         delete pendingRoot;
-
-        emit EventsLib.RootUpdated(pendingRootMem.root, pendingRootMem.ipfsHash);
     }
 
     /// @notice Claims rewards.
@@ -130,7 +129,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev Set to bytes32(0) to remove the root.
     function forceUpdateRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner {
-        _forceUpdateRoot(newRoot, newIpfsHash);
+        _updateRoot(newRoot, newIpfsHash);
     }
 
     /// @notice Updates the timelock of a given distribution.
@@ -172,7 +171,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit EventsLib.DistributionOwnerSet(msg.sender, newOwner);
     }
 
-    function _forceUpdateRoot(bytes32 newRoot, bytes32 newIpfsHash) internal {
+    function _updateRoot(bytes32 newRoot, bytes32 newIpfsHash) internal {
         root = newRoot;
         ipfsHash = newIpfsHash;
         delete pendingRoot;

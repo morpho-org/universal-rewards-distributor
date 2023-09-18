@@ -153,7 +153,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.prank(randomCaller);
         vm.expectEmit(address(distributionWithTimeLock));
         emit EventsLib.RootUpdated(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
-        distributionWithTimeLock.acceptRootUpdate();
+        distributionWithTimeLock.acceptRoot();
 
         assertEq(distributionWithTimeLock.root(), DEFAULT_ROOT);
         assertEq(distributionWithTimeLock.ipfsHash(), DEFAULT_IPFS_HASH);
@@ -175,13 +175,13 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(randomCaller);
         vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
-        distributionWithTimeLock.acceptRootUpdate();
+        distributionWithTimeLock.acceptRoot();
     }
 
     function testAcceptRootUpdateShouldRevertIfNoPendingRoot(address randomCaller) public {
         vm.prank(randomCaller);
         vm.expectRevert(bytes(ErrorsLib.NO_PENDING_ROOT));
-        distributionWithTimeLock.acceptRootUpdate();
+        distributionWithTimeLock.acceptRoot();
     }
 
     function testForceUpdateRootShouldRevertIfNotOwner(bytes32 newRoot, address randomCaller) public {
@@ -256,12 +256,12 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.warp(block.timestamp + beforeEndOfTimelock);
         vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
-        distributionWithTimeLock.acceptRootUpdate();
+        distributionWithTimeLock.acceptRoot();
 
         vm.warp(block.timestamp + afterEndOfTimelock);
         vm.expectEmit(address(distributionWithTimeLock));
         emit EventsLib.RootUpdated(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
-        distributionWithTimeLock.acceptRootUpdate();
+        distributionWithTimeLock.acceptRoot();
     }
 
     function testUpdateTimelockShouldRevertIfNotOwner(uint256 newTimelock, address randomCaller) public {

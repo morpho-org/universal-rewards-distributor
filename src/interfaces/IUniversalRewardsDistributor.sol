@@ -26,7 +26,7 @@ interface IUniversalRewardsDistributor {
     function pendingRoot() external view returns (uint256 submittedAt, bytes32 root, bytes32 ipfsHash);
     function claimed(address, address) external view returns (uint256);
 
-    function acceptRootUpdate() external;
+    function acceptRoot() external;
     function forceUpdateRoot(bytes32 newRoot, bytes32 newIpfsHash) external;
     function updateTimelock(uint256 newTimelock) external;
     function updateRootUpdater(address updater, bool active) external;
