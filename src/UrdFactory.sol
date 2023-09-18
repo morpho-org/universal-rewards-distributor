@@ -7,7 +7,7 @@ import {EventsLib} from "./libraries/EventsLib.sol";
 /// @title Universal Rewards Distributor Factory
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org
-/// @notice This contract permits to create UniversalRewardsDistributor contracts, and to index them easily.
+/// @notice This contract allows to create UniversalRewardsDistributor contracts, and to index them easily.
 contract UrdFactory {
     /// @notice Creates a new Urd contract using CREATE2 opcode.
     /// @param initialOwner The initial owner of the Urd.

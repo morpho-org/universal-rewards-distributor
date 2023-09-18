@@ -139,9 +139,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
     function updateTimelock(uint256 newTimelock) external onlyOwner {
         if (newTimelock < timelock) {
-            PendingRoot memory pendingRootMemory = pendingRoot;
+            PendingRoot memory pendingRootMem = pendingRoot;
             require(
-                pendingRootMemory.submittedAt == 0 || pendingRootMemory.submittedAt + timelock <= block.timestamp,
+                pendingRootMem.submittedAt == 0 || pendingRootMem.submittedAt + timelock <= block.timestamp,
                 ErrorsLib.TIMELOCK_NOT_EXPIRED
             );
         }
