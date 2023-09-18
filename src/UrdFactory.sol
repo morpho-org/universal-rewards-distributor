@@ -25,14 +25,13 @@ contract UrdFactory {
     ) public returns (address urd) {
         urd = address(
             new UniversalRewardsDistributor{salt: salt}(
-            initialOwner,
-            initialTimelock,
-            initialRoot,
-            initialIpfsHash
+                initialOwner,
+                initialTimelock,
+                initialRoot,
+                initialIpfsHash
             )
         );
-        emit EventsLib.UrdCreated(
-            urd, msg.sender, initialOwner, initialTimelock, initialRoot, initialIpfsHash, salt
-        );
+
+        emit EventsLib.UrdCreated(urd, msg.sender, initialOwner, initialTimelock, initialRoot, initialIpfsHash, salt);
     }
 }

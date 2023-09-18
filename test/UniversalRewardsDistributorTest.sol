@@ -32,7 +32,7 @@ contract UniversalRewardsDistributorTest is Test {
 
     function setUp() public {
         distributionWithoutTimeLock = new UniversalRewardsDistributor(
-        owner, 0, bytes32(0), bytes32(0)
+            owner, 0, bytes32(0), bytes32(0)
         );
         token1 = new MockERC20("Token1", "TKN1", 18);
         token2 = new MockERC20("Token2", "TKN2", 18);
