@@ -15,18 +15,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        type: ["slow", "fast"]
-        include:
-          - type: "slow"
-            fuzz-runs: 10000
-            max-test-rejects: 500000
-            invariant-runs: 64
-            invariant-depth: 2048
-          - type: "fast"
-            fuzz-runs: 256
-            max-test-rejects: 65536
-            invariant-runs: 16
-            invariant-depth: 256
+        type: ["test-slow", "test-fast"]
 
     runs-on: ubuntu-latest
     steps:
@@ -40,7 +29,4 @@ jobs:
       - name: Run Forge tests in ${{ matrix.type }} mode
         run: forge test -vvv
         env:
-          FOUNDRY_FUZZ_RUNS: ${{ matrix.fuzz-runs }}
-          FOUNDRY_FUZZ_MAX_TEST_REJECTS: ${{ matrix.max-test-rejects }}
-          FOUNDRY_INVARIANT_RUNS: ${{ matrix.invariant-runs }}
-          FOUNDRY_INVARIANT_DEPTH: ${{ matrix.invariant-depth }}
+          FOUNDRY_PROFILE: ${{ matrix.type }}
