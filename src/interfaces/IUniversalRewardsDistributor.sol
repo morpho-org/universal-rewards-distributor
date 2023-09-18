@@ -35,7 +35,9 @@ interface IUniversalRewardsDistributor {
 
     function proposeRoot(bytes32 newRoot, bytes32 ipfsHash) external;
 
-    function claim(address account, address reward, uint256 claimable, bytes32[] memory proof) external;
+    function claim(address account, address reward, uint256 claimable, bytes32[] memory proof)
+        external
+        returns (uint256 amount);
 }
 
 interface IPendingRoot {

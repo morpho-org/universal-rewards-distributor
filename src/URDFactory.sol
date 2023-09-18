@@ -4,7 +4,6 @@ pragma solidity 0.8.21;
 import {UniversalRewardsDistributor} from "./UniversalRewardsDistributor.sol";
 import {FactoryEventsLib} from "./libraries/FactoryEventsLib.sol";
 
-
 /// @title Universal Rewards Distributor Factory
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org

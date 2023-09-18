@@ -405,6 +405,36 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
     }
 
+    function testClaimRewardsShouldReturnsTheAmountClaimed(uint256 claimable) public {
+        claimable = bound(claimable, 1 ether, 1000 ether);
+
+        (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
+
+        vm.prank(owner);
+        distributionWithoutTimeLock.proposeRoot(root, DEFAULT_IPFS_HASH);
+
+        assertEq(distributionWithoutTimeLock.root(), root);
+        bytes32[] memory proof1 = merkle.getProof(data, 0);
+
+        uint256 claimed = distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
+
+        assertEq(claimed, claimable);
+
+        // now, we will check if the amount claimed is reduced with the already claimed amount
+
+        (bytes32[] memory data2, bytes32 root2) = _setupRewards(claimable * 2, 2);
+
+        vm.prank(owner);
+        distributionWithoutTimeLock.proposeRoot(root2, DEFAULT_IPFS_HASH);
+
+        assertEq(distributionWithoutTimeLock.root(), root2);
+        bytes32[] memory proof2 = merkle.getProof(data2, 0);
+
+        uint256 claimed2 = distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable * 2, proof2);
+
+        assertEq(claimed2, claimable);
+    }
+
     function testClaimRewardsShouldRevertIfNoRoot(uint256 claimable) public {
         claimable = bound(claimable, 1 ether, 1000 ether);
 

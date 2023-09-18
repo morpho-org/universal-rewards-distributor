@@ -60,7 +60,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         owner = initialOwner;
         timelock = initialTimelock;
 
-        if (_initialRoot != bytes32(0)) {
+        if (initialRoot != bytes32(0)) {
             _forceUpdateRoot(initialRoot, initialIpfsHash);
         }
     }
@@ -99,8 +99,13 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param reward The address of the reward token.
     /// @param claimable The overall claimable amount of token rewards.
     /// @param proof The merkle proof that validates this claim.
-    function claim(address account, address reward, uint256 claimable, bytes32[] calldata proof) external {
-        require(root != bytes32(0), ErrorsLib.ROOT_NOT_SET);
+    /// @return amount The amount of reward token claimed.
+    /// @dev Anyone can claim rewards on behalf of an account.
+    function claim(address account, address reward, uint256 claimable, bytes32[] calldata proof)
+        external
+        returns (uint256 amount)
+    {
+        require(root != bytes32(0), URDErrorsLib.ROOT_NOT_SET);
         require(
             MerkleProof.verifyCalldata(
                 proof, root, keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
@@ -108,7 +113,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             URDErrorsLib.INVALID_PROOF_OR_EXPIRED
         );
 
-        uint256 amount = claimable - claimed[account][reward];
+        amount = claimable - claimed[account][reward];
 
         require(amount > 0, URDErrorsLib.ALREADY_CLAIMED);
 

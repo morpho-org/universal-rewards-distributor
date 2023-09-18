@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-
 library FactoryEventsLib {
     /// @notice Emitted when a new URD is created.
     /// @param urd The address of the newly created URD.
