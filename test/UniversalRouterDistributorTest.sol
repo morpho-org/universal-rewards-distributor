@@ -5,11 +5,11 @@ import {
     PendingRoot, IUniversalRewardsDistributor, IPendingRoot
 } from "src/interfaces/IUniversalRewardsDistributor.sol";
 
-import {ErrorsLib} from "src/libraries/ErrorsLib.sol";
+import {URDErrorsLib} from "src/libraries/URDErrorsLib.sol";
 
 import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
 import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
-import {EventsLib} from "src/libraries/EventsLib.sol";
+import {URDEventsLib} from "src/libraries/URDEventsLib.sol";
 
 import {Merkle} from "@murky/src/Merkle.sol";
 
@@ -74,7 +74,7 @@ contract UniversalRewardsDistributorTest is Test {
     function testUpdateRootWithoutTimelockAsOwner() public {
         vm.prank(owner);
         vm.expectEmit(address(distributionWithoutTimeLock));
-        emit EventsLib.RootUpdated(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        emit URDEventsLib.RootUpdated(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithoutTimeLock.proposeRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
         assertEq(distributionWithoutTimeLock.root(), DEFAULT_ROOT);
@@ -88,7 +88,7 @@ contract UniversalRewardsDistributorTest is Test {
     function testUpdateRootWithoutTimelockAsUpdater() public {
         vm.prank(updater);
         vm.expectEmit(address(distributionWithoutTimeLock));
-        emit EventsLib.RootUpdated(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        emit URDEventsLib.RootUpdated(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithoutTimeLock.proposeRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
         assertEq(distributionWithoutTimeLock.root(), DEFAULT_ROOT);
@@ -103,14 +103,14 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(!distributionWithoutTimeLock.isUpdater(randomCaller) && randomCaller != owner);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER));
+        vm.expectRevert(bytes(URDErrorsLib.CALLER_NOT_OWNER_OR_UPDATER));
         distributionWithoutTimeLock.proposeRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
     }
 
     function testUpdateRootWithTimelockAsOwner() public {
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.RootProposed(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        emit URDEventsLib.RootProposed(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.proposeRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
         assert(distributionWithTimeLock.root() != DEFAULT_ROOT);
@@ -124,7 +124,7 @@ contract UniversalRewardsDistributorTest is Test {
     function testUpdateRootWithTimelockAsUpdater() public {
         vm.prank(updater);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.RootProposed(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        emit URDEventsLib.RootProposed(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.proposeRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
         assert(distributionWithTimeLock.root() != DEFAULT_ROOT);
@@ -139,7 +139,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(!distributionWithTimeLock.isUpdater(randomCaller) && randomCaller != owner);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER));
+        vm.expectRevert(bytes(URDErrorsLib.CALLER_NOT_OWNER_OR_UPDATER));
         distributionWithTimeLock.proposeRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
     }
 
@@ -152,7 +152,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(randomCaller);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.RootUpdated(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        emit URDEventsLib.RootUpdated(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.acceptRootUpdate();
 
         assertEq(distributionWithTimeLock.root(), DEFAULT_ROOT);
@@ -174,13 +174,13 @@ contract UniversalRewardsDistributorTest is Test {
         vm.warp(block.timestamp + timeElapsed);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
+        vm.expectRevert(bytes(URDErrorsLib.TIMELOCK_NOT_EXPIRED));
         distributionWithTimeLock.acceptRootUpdate();
     }
 
     function testAcceptRootUpdateShouldRevertIfNoPendingRoot(address randomCaller) public {
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.NO_PENDING_ROOT));
+        vm.expectRevert(bytes(URDErrorsLib.NO_PENDING_ROOT));
         distributionWithTimeLock.acceptRootUpdate();
     }
 
@@ -188,14 +188,14 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(randomCaller != owner);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
+        vm.expectRevert(bytes(URDErrorsLib.CALLER_NOT_OWNER));
         distributionWithoutTimeLock.forceUpdateRoot(newRoot, DEFAULT_IPFS_HASH);
     }
 
     function testForceUpdateRootShouldUpdateTheCurrentRoot(bytes32 newRoot, bytes32 newIpfsHash) public {
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.RootUpdated(newRoot, newIpfsHash);
+        emit URDEventsLib.RootUpdated(newRoot, newIpfsHash);
         distributionWithTimeLock.forceUpdateRoot(newRoot, newIpfsHash);
 
         assertEq(distributionWithTimeLock.root(), newRoot);
@@ -227,7 +227,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(owner);
         vm.expectEmit(address(distributionWithoutTimeLock));
-        emit EventsLib.TimelockUpdated(newTimelock);
+        emit URDEventsLib.TimelockUpdated(newTimelock);
         distributionWithoutTimeLock.updateTimelock(newTimelock);
 
         assertEq(distributionWithoutTimeLock.timelock(), newTimelock);
@@ -255,12 +255,12 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(distributionWithTimeLock.timelock(), newTimelock);
 
         vm.warp(block.timestamp + beforeEndOfTimelock);
-        vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
+        vm.expectRevert(bytes(URDErrorsLib.TIMELOCK_NOT_EXPIRED));
         distributionWithTimeLock.acceptRootUpdate();
 
         vm.warp(block.timestamp + afterEndOfTimelock);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.RootUpdated(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        emit URDEventsLib.RootUpdated(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.acceptRootUpdate();
     }
 
@@ -269,7 +269,7 @@ contract UniversalRewardsDistributorTest is Test {
         newTimelock = bound(newTimelock, 0, type(uint256).max);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
+        vm.expectRevert(bytes(URDErrorsLib.CALLER_NOT_OWNER));
         distributionWithoutTimeLock.updateTimelock(newTimelock);
     }
 
@@ -287,7 +287,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.warp(block.timestamp + timeElapsed);
 
         vm.prank(owner);
-        vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
+        vm.expectRevert(bytes(URDErrorsLib.TIMELOCK_NOT_EXPIRED));
         distributionWithTimeLock.updateTimelock(newTimelock);
     }
 
@@ -299,7 +299,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.TimelockUpdated(0.7 days);
+        emit URDEventsLib.TimelockUpdated(0.7 days);
         distributionWithTimeLock.updateTimelock(0.7 days);
 
         assertEq(distributionWithTimeLock.timelock(), 0.7 days);
@@ -308,7 +308,7 @@ contract UniversalRewardsDistributorTest is Test {
     function testUpdateRootUpdaterShouldAddOrRemoveRootUpdater(address newUpdater, bool active) public {
         vm.prank(owner);
         vm.expectEmit(address(distributionWithoutTimeLock));
-        emit EventsLib.RootUpdaterUpdated(newUpdater, active);
+        emit URDEventsLib.RootUpdaterUpdated(newUpdater, active);
         distributionWithoutTimeLock.updateRootUpdater(newUpdater, active);
 
         assertEq(distributionWithoutTimeLock.isUpdater(newUpdater), active);
@@ -318,7 +318,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(caller != owner);
 
         vm.prank(caller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
+        vm.expectRevert(bytes(URDErrorsLib.CALLER_NOT_OWNER));
         distributionWithoutTimeLock.updateRootUpdater(_addrFromHashedString("RANDOM_UPDATER"), active);
     }
 
@@ -328,7 +328,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.PendingRootRevoked();
+        emit URDEventsLib.PendingRootRevoked();
         distributionWithTimeLock.revokePendingRoot();
 
         PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
@@ -343,13 +343,13 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.proposeRoot(proposedRoot, DEFAULT_IPFS_HASH);
 
         vm.prank(caller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
+        vm.expectRevert(bytes(URDErrorsLib.CALLER_NOT_OWNER));
         distributionWithTimeLock.revokePendingRoot();
     }
 
     function testRevokePendingRootShouldRevertWhenNoPendingRoot() public {
         vm.prank(owner);
-        vm.expectRevert(bytes(ErrorsLib.NO_PENDING_ROOT));
+        vm.expectRevert(bytes(URDErrorsLib.NO_PENDING_ROOT));
         distributionWithTimeLock.revokePendingRoot();
     }
 
@@ -358,7 +358,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.DistributionOwnerSet(owner, newOwner);
+        emit URDEventsLib.DistributionOwnerSet(owner, newOwner);
         distributionWithTimeLock.setDistributionOwner(newOwner);
 
         assertEq(distributionWithTimeLock.owner(), newOwner);
@@ -368,7 +368,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(caller != owner);
 
         vm.prank(caller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
+        vm.expectRevert(bytes(URDErrorsLib.CALLER_NOT_OWNER));
         distributionWithTimeLock.setDistributionOwner(newOwner);
     }
 
@@ -398,10 +398,10 @@ contract UniversalRewardsDistributorTest is Test {
         bytes32[] memory proof1 = merkle.getProof(data, 0);
 
         vm.expectEmit(address(distributionWithoutTimeLock));
-        emit EventsLib.RewardsClaimed(vm.addr(1), address(token1), claimable);
+        emit URDEventsLib.RewardsClaimed(vm.addr(1), address(token1), claimable);
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
 
-        vm.expectRevert(bytes(ErrorsLib.ALREADY_CLAIMED));
+        vm.expectRevert(bytes(URDErrorsLib.ALREADY_CLAIMED));
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
     }
 
@@ -412,7 +412,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         bytes32[] memory proof1 = merkle.getProof(data, 0);
 
-        vm.expectRevert(bytes(ErrorsLib.ROOT_NOT_SET));
+        vm.expectRevert(bytes(URDErrorsLib.ROOT_NOT_SET));
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
     }
 
@@ -429,7 +429,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         bytes32[] memory proof1 = merkle.getProof(data, 0);
 
-        vm.expectRevert(bytes(ErrorsLib.INVALID_PROOF_OR_EXPIRED));
+        vm.expectRevert(bytes(URDErrorsLib.INVALID_PROOF_OR_EXPIRED));
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
     }
 
@@ -488,12 +488,12 @@ contract UniversalRewardsDistributorTest is Test {
 
             // Claim token1
             vm.expectEmit(address(distribution));
-            emit EventsLib.RewardsClaimed(vm.addr(vars.index), address(token1), vars.claimableAdjusted1);
+            emit URDEventsLib.RewardsClaimed(vm.addr(vars.index), address(token1), vars.claimableAdjusted1);
             distribution.claim(vm.addr(vars.index), address(token1), vars.claimableInput, proof1);
 
             // Claim token2
             vm.expectEmit(address(distribution));
-            emit EventsLib.RewardsClaimed(vm.addr(vars.index), address(token2), vars.claimableAdjusted2);
+            emit URDEventsLib.RewardsClaimed(vm.addr(vars.index), address(token2), vars.claimableAdjusted2);
             distribution.claim(vm.addr(vars.index), address(token2), vars.claimableInput, proof2);
 
             uint256 balanceAfter1 = vars.balanceBefore1 + vars.claimableAdjusted1;

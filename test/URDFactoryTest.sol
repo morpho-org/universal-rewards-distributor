@@ -3,14 +3,13 @@ pragma solidity ^0.8.0;
 
 import {IUniversalRewardsDistributor} from "src/interfaces/IUniversalRewardsDistributor.sol";
 import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
+import {FactoryEventsLib} from "src/libraries/FactoryEventsLib.sol";
 
 import "@forge-std/Test.sol";
 import {URDFactory} from "src/URDFactory.sol";
 
 contract URDFactoryTest is Test {
     URDFactory factory = new URDFactory();
-
-    event URDCreated(address indexed urd, address indexed caller, address indexed owner);
 
     function testURDFactoryGenerateCorrectly(
         address randomCaller,
@@ -25,7 +24,7 @@ contract URDFactoryTest is Test {
 
         vm.prank(randomCaller);
         vm.expectEmit(address(factory));
-        emit URDCreated(urdAddress, randomCaller, randomOwner);
+        emit FactoryEventsLib.URDCreated(urdAddress, randomCaller, randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt);
         address realAddress = factory.createURD(randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt);
 
         assertEq(realAddress, urdAddress);
