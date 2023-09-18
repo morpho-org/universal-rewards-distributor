@@ -2,7 +2,7 @@
 pragma solidity 0.8.21;
 
 import {UniversalRewardsDistributor} from "./UniversalRewardsDistributor.sol";
-import {FactoryEventsLib} from "./libraries/FactoryEventsLib.sol";
+import {EventsLib} from "./libraries/EventsLib.sol";
 
 /// @title Universal Rewards Distributor Factory
 /// @author Morpho Labs
@@ -31,7 +31,7 @@ contract UrdFactory {
             initialIpfsHash
             )
         );
-        emit FactoryEventsLib.UrdCreated(
+        emit EventsLib.UrdCreated(
             urd, msg.sender, initialOwner, initialTimelock, initialRoot, initialIpfsHash, salt
         );
     }

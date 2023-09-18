@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org
 /// @notice Library exposing error messages.
-library UrdErrorsLib {
+library ErrorsLib {
     string internal constant CALLER_NOT_OWNER_OR_UPDATER =
         "UniversalRewardsDistributor: caller is not the owner or updater";
 

@@ -3,11 +3,11 @@ pragma solidity 0.8.21;
 
 import {PendingRoot, IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
 
-import {UrdErrorsLib} from "./libraries/UrdErrorsLib.sol";
+import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 import {SafeTransferLib, ERC20} from "@solmate/utils/SafeTransferLib.sol";
 
 import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
-import {UrdEventsLib} from "./libraries/UrdEventsLib.sol";
+import {EventsLib} from "./libraries/EventsLib.sol";
 
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs
@@ -42,12 +42,12 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     PendingRoot public pendingRoot;
 
     modifier onlyUpdater() {
-        require(isUpdater[msg.sender] || msg.sender == owner, UrdErrorsLib.CALLER_NOT_OWNER_OR_UPDATER);
+        require(isUpdater[msg.sender] || msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER);
         _;
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, UrdErrorsLib.CALLER_NOT_OWNER);
+        require(msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER);
         _;
     }
 
@@ -75,7 +75,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             _forceUpdateRoot(newRoot, newIpfsHash);
         } else {
             pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
-            emit UrdEventsLib.RootProposed(newRoot, newIpfsHash);
+            emit EventsLib.RootProposed(newRoot, newIpfsHash);
         }
     }
 
@@ -84,14 +84,14 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev Anyone can call this function.
     function acceptRootUpdate() external {
         PendingRoot memory pendingRootMem = pendingRoot;
-        require(pendingRootMem.submittedAt > 0, UrdErrorsLib.NO_PENDING_ROOT);
-        require(block.timestamp >= pendingRootMem.submittedAt + timelock, UrdErrorsLib.TIMELOCK_NOT_EXPIRED);
+        require(pendingRootMem.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
+        require(block.timestamp >= pendingRootMem.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
         root = pendingRootMem.root;
         ipfsHash = pendingRootMem.ipfsHash;
         delete pendingRoot;
 
-        emit UrdEventsLib.RootUpdated(pendingRootMem.root, pendingRootMem.ipfsHash);
+        emit EventsLib.RootUpdated(pendingRootMem.root, pendingRootMem.ipfsHash);
     }
 
     /// @notice Claims rewards.
@@ -105,23 +105,23 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         external
         returns (uint256 amount)
     {
-        require(root != bytes32(0), UrdErrorsLib.ROOT_NOT_SET);
+        require(root != bytes32(0), ErrorsLib.ROOT_NOT_SET);
         require(
             MerkleProof.verifyCalldata(
                 proof, root, keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
             ),
-            UrdErrorsLib.INVALID_PROOF_OR_EXPIRED
+            ErrorsLib.INVALID_PROOF_OR_EXPIRED
         );
 
         amount = claimable - claimed[account][reward];
 
-        require(amount > 0, UrdErrorsLib.ALREADY_CLAIMED);
+        require(amount > 0, ErrorsLib.ALREADY_CLAIMED);
 
         claimed[account][reward] = claimable;
 
         ERC20(reward).safeTransfer(account, amount);
 
-        emit UrdEventsLib.RewardsClaimed(account, reward, amount);
+        emit EventsLib.RewardsClaimed(account, reward, amount);
     }
 
     /// @notice Forces update the root of a given distribution.
@@ -142,12 +142,12 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             PendingRoot memory pendingRootMemory = pendingRoot;
             require(
                 pendingRootMemory.submittedAt == 0 || pendingRootMemory.submittedAt + timelock <= block.timestamp,
-                UrdErrorsLib.TIMELOCK_NOT_EXPIRED
+                ErrorsLib.TIMELOCK_NOT_EXPIRED
             );
         }
 
         timelock = newTimelock;
-        emit UrdEventsLib.TimelockUpdated(newTimelock);
+        emit EventsLib.TimelockUpdated(newTimelock);
     }
 
     /// @notice Updates the root updater of a given distribution.
@@ -155,27 +155,27 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param active Whether the root updater should be active or not.
     function updateRootUpdater(address updater, bool active) external onlyOwner {
         isUpdater[updater] = active;
-        emit UrdEventsLib.RootUpdaterUpdated(updater, active);
+        emit EventsLib.RootUpdaterUpdated(updater, active);
     }
 
     /// @notice Revokes the pending root of a given distribution.
     /// @dev This function can only be called by the owner of the distribution at any time.
     function revokePendingRoot() external onlyOwner {
-        require(pendingRoot.submittedAt != 0, UrdErrorsLib.NO_PENDING_ROOT);
+        require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
         delete pendingRoot;
-        emit UrdEventsLib.PendingRootRevoked();
+        emit EventsLib.PendingRootRevoked();
     }
 
     function setDistributionOwner(address newOwner) external onlyOwner {
         owner = newOwner;
-        emit UrdEventsLib.DistributionOwnerSet(msg.sender, newOwner);
+        emit EventsLib.DistributionOwnerSet(msg.sender, newOwner);
     }
 
     function _forceUpdateRoot(bytes32 newRoot, bytes32 newIpfsHash) internal {
         root = newRoot;
         ipfsHash = newIpfsHash;
         delete pendingRoot;
-        emit UrdEventsLib.RootUpdated(newRoot, newIpfsHash);
+        emit EventsLib.RootUpdated(newRoot, newIpfsHash);
     }
 }
