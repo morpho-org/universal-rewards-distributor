@@ -8,15 +8,15 @@ import {FactoryEventsLib} from "./libraries/FactoryEventsLib.sol";
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org
 /// @notice This contract permits to create UniversalRewardsDistributor contracts, and to index them easily.
-contract URDFactory {
-    /// @notice Creates a new URD contract using CREATE2 opcode.
-    /// @param initialOwner The initial owner of the URD.
-    /// @param initialTimelock The initial timelock of the URD.
-    /// @param initialRoot The initial merkle tree's root of the URD.
+contract UrdFactory {
+    /// @notice Creates a new Urd contract using CREATE2 opcode.
+    /// @param initialOwner The initial owner of the Urd.
+    /// @param initialTimelock The initial timelock of the Urd.
+    /// @param initialRoot The initial merkle tree's root of the Urd.
     /// @param initialIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @param salt The salt used for CREATE2 opcode.
-    /// @return urd The address of the newly created URD.
-    function createURD(
+    /// @return urd The address of the newly created Urd.
+    function createUrd(
         address initialOwner,
         uint256 initialTimelock,
         bytes32 initialRoot,
@@ -31,7 +31,7 @@ contract URDFactory {
             initialIpfsHash
             )
         );
-        emit FactoryEventsLib.URDCreated(
+        emit FactoryEventsLib.UrdCreated(
             urd, msg.sender, initialOwner, initialTimelock, initialRoot, initialIpfsHash, salt
         );
     }

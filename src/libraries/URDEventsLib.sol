@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org
 /// @notice Library exposing events.
-library URDEventsLib {
+library UrdEventsLib {
     /* EVENTS */
 
     /// @notice Emitted when the merkle tree's root is updated.

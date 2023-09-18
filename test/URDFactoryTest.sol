@@ -6,12 +6,12 @@ import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
 import {FactoryEventsLib} from "src/libraries/FactoryEventsLib.sol";
 
 import "@forge-std/Test.sol";
-import {URDFactory} from "src/URDFactory.sol";
+import {UrdFactory} from "src/UrdFactory.sol";
 
-contract URDFactoryTest is Test {
-    URDFactory factory = new URDFactory();
+contract UrdFactoryTest is Test {
+    UrdFactory factory = new UrdFactory();
 
-    function testURDFactoryGenerateCorrectly(
+    function testUrdFactoryGenerateCorrectly(
         address randomCaller,
         address randomOwner,
         uint256 randomTimelock,
@@ -24,10 +24,10 @@ contract URDFactoryTest is Test {
 
         vm.prank(randomCaller);
         vm.expectEmit(address(factory));
-        emit FactoryEventsLib.URDCreated(
+        emit FactoryEventsLib.UrdCreated(
             urdAddress, randomCaller, randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt
         );
-        address realAddress = factory.createURD(randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt);
+        address realAddress = factory.createUrd(randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt);
 
         assertEq(realAddress, urdAddress);
         IUniversalRewardsDistributor distributor = IUniversalRewardsDistributor(realAddress);

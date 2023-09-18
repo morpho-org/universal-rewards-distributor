@@ -45,6 +45,6 @@ Additionally, if the pending root is ready to be accepted but a root updater sug
 
 This can lead to infinite loops of pending root if an automation mechanism suggests a root at an interval smaller than the timelock.
 
-This behavior is acknowledged. When designing a strategy on top of the URD, you must ensure that the epoch interval at which you update the root is longer than the timelock. Define these parameters accordingly.
+This behavior is acknowledged. When designing a strategy on top of the Urd, you must ensure that the epoch interval at which you update the root is longer than the timelock. Define these parameters accordingly.
 
-Additionally, you can build a queue mechanism on top of the URD with a 0 timelock distribution, where the root updater is a queue designed as the [Delay Modifier of Zodiac](https://github.com/gnosis/zodiac-modifier-delay/blob/36f56fd2e7a4aeb128971c5567fb8dffb6c6a21b/contracts/Delay.sol).
+Additionally, you can build a queue mechanism on top of the Urd with a 0 timelock distribution, where the root updater is a queue designed as the [Delay Modifier of Zodiac](https://github.com/gnosis/zodiac-modifier-delay/blob/36f56fd2e7a4aeb128971c5567fb8dffb6c6a21b/contracts/Delay.sol).
