@@ -61,7 +61,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         timelock = initialTimelock;
 
         if (initialRoot != bytes32(0)) {
-            _updateRoot(initialRoot, initialIpfsHash);
+            _setRoot(initialRoot, initialIpfsHash);
         }
     }
 
@@ -72,7 +72,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     function proposeRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwnerOrUpdater {
         if (timelock == 0) {
-            _updateRoot(newRoot, newIpfsHash);
+            _setRoot(newRoot, newIpfsHash);
         } else {
             pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
             emit EventsLib.RootProposed(newRoot, newIpfsHash);
@@ -88,7 +88,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         root = pendingRoot.root;
         ipfsHash = pendingRoot.ipfsHash;
-        emit EventsLib.RootUpdated(pendingRoot.root, pendingRoot.ipfsHash);
+        emit EventsLib.RootSet(pendingRoot.root, pendingRoot.ipfsHash);
 
         delete pendingRoot;
     }
@@ -120,7 +120,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         ERC20(reward).safeTransfer(account, amount);
 
-        emit EventsLib.RewardsClaimed(account, reward, amount);
+        emit EventsLib.Claimed(account, reward, amount);
     }
 
     /// @notice Forces update the root of a given distribution.
@@ -128,8 +128,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev Set to bytes32(0) to remove the root.
-    function forceUpdateRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner {
-        _updateRoot(newRoot, newIpfsHash);
+    function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner {
+        _setRoot(newRoot, newIpfsHash);
     }
 
     /// @notice Updates the timelock of a given distribution.
@@ -146,35 +146,35 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         }
 
         timelock = newTimelock;
-        emit EventsLib.TimelockUpdated(newTimelock);
+        emit EventsLib.TimelockSet(newTimelock);
     }
 
     /// @notice Updates the root updater of a given distribution.
     /// @param updater The new root updater.
     /// @param active Whether the root updater should be active or not.
-    function updateRootUpdater(address updater, bool active) external onlyOwner {
+    function setRootUpdater(address updater, bool active) external onlyOwner {
         isUpdater[updater] = active;
-        emit EventsLib.RootUpdaterUpdated(updater, active);
+        emit EventsLib.RootUpdaterSet(updater, active);
     }
 
     /// @notice Revokes the pending root of a given distribution.
     /// @dev This function can only be called by the owner of the distribution at any time.
-    function revokePendingRoot() external onlyOwner {
+    function revokeRoot() external onlyOwner {
         require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
         delete pendingRoot;
-        emit EventsLib.PendingRootRevoked();
+        emit EventsLib.RootRevoked();
     }
 
-    function setDistributionOwner(address newOwner) external onlyOwner {
+    function setOwner(address newOwner) external onlyOwner {
         owner = newOwner;
-        emit EventsLib.DistributionOwnerSet(msg.sender, newOwner);
+        emit EventsLib.OwnerSet(msg.sender, newOwner);
     }
 
-    function _updateRoot(bytes32 newRoot, bytes32 newIpfsHash) internal {
+    function _setRoot(bytes32 newRoot, bytes32 newIpfsHash) internal {
         root = newRoot;
         ipfsHash = newIpfsHash;
         delete pendingRoot;
-        emit EventsLib.RootUpdated(newRoot, newIpfsHash);
+        emit EventsLib.RootSet(newRoot, newIpfsHash);
     }
 }

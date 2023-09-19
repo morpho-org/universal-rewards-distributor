@@ -27,11 +27,11 @@ interface IUniversalRewardsDistributor {
     function claimed(address, address) external view returns (uint256);
 
     function acceptRoot() external;
-    function forceUpdateRoot(bytes32 newRoot, bytes32 newIpfsHash) external;
+    function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external;
     function updateTimelock(uint256 newTimelock) external;
-    function updateRootUpdater(address updater, bool active) external;
-    function revokePendingRoot() external;
-    function setDistributionOwner(address newOwner) external;
+    function setRootUpdater(address updater, bool active) external;
+    function revokeRoot() external;
+    function setOwner(address newOwner) external;
 
     function proposeRoot(bytes32 newRoot, bytes32 ipfsHash) external;
 
