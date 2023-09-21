@@ -27,14 +27,14 @@ contract UrdFactoryTest is Test {
         emit EventsLib.UrdCreated(
             urdAddress, randomCaller, randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt
         );
-        address realAddress = factory.createUrd(randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt);
+        IUniversalRewardsDistributor urd =
+            factory.createUrd(randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt);
 
-        assertEq(realAddress, urdAddress);
-        IUniversalRewardsDistributor distributor = IUniversalRewardsDistributor(realAddress);
-        assertEq(distributor.ipfsHash(), randomIpfsHash);
-        assertEq(distributor.root(), randomRoot);
-        assertEq(distributor.owner(), randomOwner);
-        assertEq(distributor.timelock(), randomTimelock);
+        assertEq(address(urd), urdAddress);
+        assertEq(urd.ipfsHash(), randomIpfsHash);
+        assertEq(urd.root(), randomRoot);
+        assertEq(urd.owner(), randomOwner);
+        assertEq(urd.timelock(), randomTimelock);
     }
 
     function _precomputeAddress(bytes32 salt, bytes memory encodedParams) internal view returns (address) {

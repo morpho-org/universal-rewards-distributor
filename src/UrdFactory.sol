@@ -22,16 +22,16 @@ contract UrdFactory {
         bytes32 initialRoot,
         bytes32 initialIpfsHash,
         bytes32 salt
-    ) public returns (address urd) {
-        urd = address(
-            new UniversalRewardsDistributor{salt: salt}(
+    ) public returns (UniversalRewardsDistributor urd) {
+        urd = new UniversalRewardsDistributor{salt: salt}(
                 initialOwner,
                 initialTimelock,
                 initialRoot,
                 initialIpfsHash
-            )
-        );
+            );
 
-        emit EventsLib.UrdCreated(urd, msg.sender, initialOwner, initialTimelock, initialRoot, initialIpfsHash, salt);
+        emit EventsLib.UrdCreated(
+            address(urd), msg.sender, initialOwner, initialTimelock, initialRoot, initialIpfsHash, salt
+        );
     }
 }
