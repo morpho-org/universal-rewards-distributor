@@ -72,7 +72,6 @@ contract UniversalRewardsDistributorTest is BaseTest {
     }
 
     function testDistributionConstructorEmitsOwnerSet(address randomCreator) public {
-
         bytes32 salt = bytes32(0);
         bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         address urdAddress = _precomputeAddress(randomCreator, encodedParams, salt);
@@ -86,7 +85,6 @@ contract UniversalRewardsDistributorTest is BaseTest {
     }
 
     function testDistributionConstructorEmitsTimelockSet(address randomCreator) public {
-
         bytes32 salt = bytes32(0);
         bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         address urdAddress = _precomputeAddress(randomCreator, encodedParams, salt);
@@ -100,7 +98,6 @@ contract UniversalRewardsDistributorTest is BaseTest {
     }
 
     function testDistributionConstructorEmitsRootSet(address randomCreator) public {
-
         bytes32 salt = bytes32(0);
         bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         address urdAddress = _precomputeAddress(randomCreator, encodedParams, salt);
@@ -591,5 +588,4 @@ contract UniversalRewardsDistributorTest is BaseTest {
     function _getPendingRoot(IUniversalRewardsDistributor distribution) internal view returns (PendingRoot memory) {
         return IPendingRoot(address(distribution)).pendingRoot();
     }
-
 }

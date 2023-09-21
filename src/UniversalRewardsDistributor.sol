@@ -58,8 +58,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param initialIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     constructor(address initialOwner, uint256 initialTimelock, bytes32 initialRoot, bytes32 initialIpfsHash) {
         _setOwner(initialOwner);
-        if(initialTimelock > 0)
+        if (initialTimelock > 0) {
             _setTimelock(initialTimelock);
+        }
 
         if (initialRoot != bytes32(0)) {
             _setRoot(initialRoot, initialIpfsHash);
@@ -146,7 +147,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             );
         }
         _setTimelock(newTimelock);
-
     }
 
     /// @notice Updates the root updater of a given distribution.
