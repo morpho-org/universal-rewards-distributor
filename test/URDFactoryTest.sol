@@ -31,11 +31,10 @@ contract UrdFactoryTest is Test {
             factory.createUrd(randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt);
 
         assertEq(address(urd), urdAddress);
-        IUniversalRewardsDistributor distributor = IUniversalRewardsDistributor(address(urd));
-        assertEq(distributor.ipfsHash(), randomIpfsHash);
-        assertEq(distributor.root(), randomRoot);
-        assertEq(distributor.owner(), randomOwner);
-        assertEq(distributor.timelock(), randomTimelock);
+        assertEq(urd.ipfsHash(), randomIpfsHash);
+        assertEq(urd.root(), randomRoot);
+        assertEq(urd.owner(), randomOwner);
+        assertEq(urd.timelock(), randomTimelock);
     }
 
     function _precomputeAddress(bytes32 salt, bytes memory encodedParams) internal view returns (address) {
