@@ -35,9 +35,8 @@ library EventsLib {
     event Claimed(address indexed account, address indexed reward, uint256 amount);
 
     /// @notice Emitted when the ownership of a merkle tree distribution is transferred.
-    /// @param previousOwner The previous owner of the merkle tree distribution.
-    /// @param newOwner The new owner of the merkle tree distribution.
-    event OwnerSet(address indexed previousOwner, address indexed newOwner);
+    /// @param newOwner The new owner of the contract.
+    event OwnerSet(address indexed newOwner);
 
     /// @notice Emitted when a new Urd is created.
     /// @param urd The address of the newly created Urd.

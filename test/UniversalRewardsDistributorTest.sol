@@ -71,7 +71,7 @@ contract UniversalRewardsDistributorTest is BaseTest {
         assertEq(distributor.ipfsHash(), DEFAULT_IPFS_HASH);
     }
 
-    function testDistributionConstructorEmittingOwnerSet(address randomCreator) public {
+    function testDistributionConstructorEmitsOwnerSet(address randomCreator) public {
 
         bytes32 salt = bytes32(0);
         bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
@@ -79,13 +79,13 @@ contract UniversalRewardsDistributorTest is BaseTest {
 
         vm.prank(randomCreator);
         vm.expectEmit(address(urdAddress));
-        emit EventsLib.OwnerSet(address(0), randomCreator);
+        emit EventsLib.OwnerSet(randomCreator);
         new UniversalRewardsDistributor{salt: salt}(
             randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH
         );
     }
 
-    function testDistributionConstructorEmittingTimelockSet(address randomCreator) public {
+    function testDistributionConstructorEmitsTimelockSet(address randomCreator) public {
 
         bytes32 salt = bytes32(0);
         bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
@@ -99,7 +99,7 @@ contract UniversalRewardsDistributorTest is BaseTest {
         );
     }
 
-    function testDistributionConstructorEmittingRootSet(address randomCreator) public {
+    function testDistributionConstructorEmitsRootSet(address randomCreator) public {
 
         bytes32 salt = bytes32(0);
         bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
@@ -400,7 +400,7 @@ contract UniversalRewardsDistributorTest is BaseTest {
 
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.OwnerSet(owner, newOwner);
+        emit EventsLib.OwnerSet(newOwner);
         distributionWithTimeLock.setOwner(newOwner);
 
         assertEq(distributionWithTimeLock.owner(), newOwner);

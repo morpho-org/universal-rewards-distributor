@@ -178,8 +178,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     }
 
     function _setOwner(address newOwner) internal {
-        emit EventsLib.OwnerSet(owner, newOwner);
         owner = newOwner;
+        emit EventsLib.OwnerSet(newOwner);
     }
 
     function _setTimelock(uint256 newTimelock) internal {
