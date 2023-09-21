@@ -24,14 +24,12 @@ contract UrdFactory {
         bytes32 initialIpfsHash,
         bytes32 salt
     ) public returns (IUniversalRewardsDistributor urd) {
-        urd = IUniversalRewardsDistributor(
-            new UniversalRewardsDistributor{salt: salt}(
+        urd = new UniversalRewardsDistributor{salt: salt}(
                 initialOwner,
                 initialTimelock,
                 initialRoot,
                 initialIpfsHash
-            )
-        );
+            );
 
         emit EventsLib.UrdCreated(
             address(urd), msg.sender, initialOwner, initialTimelock, initialRoot, initialIpfsHash, salt
