@@ -2,6 +2,7 @@
 pragma solidity 0.8.21;
 
 import {UniversalRewardsDistributor} from "./UniversalRewardsDistributor.sol";
+import {IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
 import {EventsLib} from "./libraries/EventsLib.sol";
 
 /// @title Universal Rewards Distributor Factory
@@ -22,8 +23,8 @@ contract UrdFactory {
         bytes32 initialRoot,
         bytes32 initialIpfsHash,
         bytes32 salt
-    ) public returns (address urd) {
-        urd = address(
+    ) public returns (IUniversalRewardsDistributor urd) {
+        urd = IUniversalRewardsDistributor(
             new UniversalRewardsDistributor{salt: salt}(
                 initialOwner,
                 initialTimelock,
@@ -32,6 +33,8 @@ contract UrdFactory {
             )
         );
 
-        emit EventsLib.UrdCreated(urd, msg.sender, initialOwner, initialTimelock, initialRoot, initialIpfsHash, salt);
+        emit EventsLib.UrdCreated(
+            address(urd), msg.sender, initialOwner, initialTimelock, initialRoot, initialIpfsHash, salt
+        );
     }
 }
