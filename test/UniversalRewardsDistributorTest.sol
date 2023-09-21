@@ -228,7 +228,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.prank(owner);
         vm.expectEmit(address(distributionWithoutTimeLock));
         emit EventsLib.TimelockSet(newTimelock);
-        distributionWithoutTimeLock.updateTimelock(newTimelock);
+        distributionWithoutTimeLock.setTimelock(newTimelock);
 
         assertEq(distributionWithoutTimeLock.timelock(), newTimelock);
     }
@@ -250,7 +250,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.warp(block.timestamp + timeElapsed);
 
         vm.prank(owner);
-        distributionWithTimeLock.updateTimelock(newTimelock);
+        distributionWithTimeLock.setTimelock(newTimelock);
 
         assertEq(distributionWithTimeLock.timelock(), newTimelock);
 
@@ -270,7 +270,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(randomCaller);
         vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
-        distributionWithoutTimeLock.updateTimelock(newTimelock);
+        distributionWithoutTimeLock.setTimelock(newTimelock);
     }
 
     function testSetTimelockShouldRevertIfNewTimelockShorterThanCurrentTimelockAndTimelockNotExpired(
@@ -288,7 +288,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(owner);
         vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
-        distributionWithTimeLock.updateTimelock(newTimelock);
+        distributionWithTimeLock.setTimelock(newTimelock);
     }
 
     function testSetTimelockShouldWorkIfPendingRootIsUpdatableButNotYetUpdated() public {
@@ -300,7 +300,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
         emit EventsLib.TimelockSet(0.7 days);
-        distributionWithTimeLock.updateTimelock(0.7 days);
+        distributionWithTimeLock.setTimelock(0.7 days);
 
         assertEq(distributionWithTimeLock.timelock(), 0.7 days);
     }
