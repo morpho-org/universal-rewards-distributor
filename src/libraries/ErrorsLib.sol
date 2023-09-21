@@ -6,8 +6,7 @@ pragma solidity ^0.8.0;
 /// @custom:contact security@morpho.org
 /// @notice Library exposing error messages.
 library ErrorsLib {
-    string internal constant CALLER_NOT_OWNER_OR_UPDATER =
-        "Caller is not the owner or updater";
+    string internal constant CALLER_NOT_OWNER_OR_UPDATER = "Caller is not the owner or updater";
 
     string internal constant CALLER_NOT_OWNER = "Caller is not the owner";
 
