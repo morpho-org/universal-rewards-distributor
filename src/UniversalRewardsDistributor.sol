@@ -136,7 +136,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newTimelock The new timelock.
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
-    function updateTimelock(uint256 newTimelock) external onlyOwner {
+    function setTimelock(uint256 newTimelock) external onlyOwner {
         if (newTimelock < timelock) {
             PendingRoot memory pendingRootMem = pendingRoot;
             require(
