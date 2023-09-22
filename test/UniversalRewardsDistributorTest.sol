@@ -13,9 +13,9 @@ import {EventsLib} from "src/libraries/EventsLib.sol";
 
 import {Merkle} from "@murky/src/Merkle.sol";
 
-import "@forge-std/Test.sol";
+import {BaseTest} from "./BaseTest.sol";
 
-contract UniversalRewardsDistributorTest is Test {
+contract UniversalRewardsDistributorTest is BaseTest {
     uint256 internal constant MAX_RECEIVERS = 20;
 
     Merkle merkle = new Merkle();
@@ -69,6 +69,45 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(distributor.timelock(), DEFAULT_TIMELOCK);
         assertEq(distributor.root(), DEFAULT_ROOT);
         assertEq(distributor.ipfsHash(), DEFAULT_IPFS_HASH);
+    }
+
+    function testDistributionConstructorEmitsOwnerSet(address randomCreator) public {
+        bytes32 salt = bytes32(0);
+        bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        address urdAddress = _precomputeAddress(randomCreator, encodedParams, salt);
+
+        vm.prank(randomCreator);
+        vm.expectEmit(address(urdAddress));
+        emit EventsLib.OwnerSet(randomCreator);
+        new UniversalRewardsDistributor{salt: salt}(
+            randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH
+        );
+    }
+
+    function testDistributionConstructorEmitsTimelockSet(address randomCreator) public {
+        bytes32 salt = bytes32(0);
+        bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        address urdAddress = _precomputeAddress(randomCreator, encodedParams, salt);
+
+        vm.prank(randomCreator);
+        vm.expectEmit(address(urdAddress));
+        emit EventsLib.TimelockSet(DEFAULT_TIMELOCK);
+        new UniversalRewardsDistributor{salt: salt}(
+            randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH
+        );
+    }
+
+    function testDistributionConstructorEmitsRootSet(address randomCreator) public {
+        bytes32 salt = bytes32(0);
+        bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        address urdAddress = _precomputeAddress(randomCreator, encodedParams, salt);
+
+        vm.prank(randomCreator);
+        vm.expectEmit(address(urdAddress));
+        emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        new UniversalRewardsDistributor{salt: salt}(
+            randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH
+        );
     }
 
     function testProposeRootWithoutTimelockAsOwner() public {
@@ -358,7 +397,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.OwnerSet(owner, newOwner);
+        emit EventsLib.OwnerSet(newOwner);
         distributionWithTimeLock.setOwner(newOwner);
 
         assertEq(distributionWithTimeLock.owner(), newOwner);
