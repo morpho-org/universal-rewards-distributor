@@ -12,8 +12,8 @@ import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org
-/// @notice This contract enables the distribution of various reward tokens to multiple accounts using different permissionless Merkle trees.
-/// It is largely inspired by Morpho's current rewards distributor:
+/// @notice This contract enables the distribution of various reward tokens to multiple accounts using different
+/// permissionless Merkle trees. It is largely inspired by Morpho's current rewards distributor:
 /// https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
 contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     using SafeTransferLib for ERC20;
@@ -170,6 +170,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice Revokes the pending root of a given distribution.
     /// @dev This function can only be called by the owner of the distribution at any time.
+    /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has passed. This if the
+    /// `owner` responsibility to trigger this function before the end of the timelock.
     function revokeRoot() external onlyOwner {
         require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 

@@ -6,17 +6,17 @@ pragma solidity ^0.8.0;
 /// @custom:contact security@morpho.org
 /// @notice Library exposing events.
 library EventsLib {
-    /// @notice Emitted when the merkle tree's root is updated.
+    /// @notice Emitted when the merkle tree's root is set.
     /// @param newRoot The new merkle tree's root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     event RootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
-    /// @notice Emitted when a new merkle tree's root is submitted.
+    /// @notice Emitted when a new merkle tree's root is proposed.
     /// @param newRoot The new merkle tree's root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     event RootProposed(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
-    /// @notice Emitted when a merkle tree distribution timelock is modified.
+    /// @notice Emitted when a merkle tree distribution timelock is set.
     /// @param timelock The new merkle tree's timelock.
     event TimelockSet(uint256 timelock);
 
