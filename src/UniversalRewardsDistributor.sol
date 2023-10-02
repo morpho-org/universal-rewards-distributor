@@ -4,10 +4,10 @@ pragma solidity 0.8.21;
 import {PendingRoot, IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
 
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
+import {EventsLib} from "./libraries/EventsLib.sol";
 import {SafeTransferLib, ERC20} from "@solmate/utils/SafeTransferLib.sol";
 
 import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
-import {EventsLib} from "./libraries/EventsLib.sol";
 
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs
@@ -18,14 +18,16 @@ import {EventsLib} from "./libraries/EventsLib.sol";
 contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     using SafeTransferLib for ERC20;
 
-    /// @notice The merkle tree's roots of a given distribution.
+    /* STORAGE */
+
+    /// @notice The merkle tree's root of a given distribution.
     bytes32 public root;
 
     /// @notice The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     bytes32 public ipfsHash;
 
     /// @notice The `amount` of `reward` token already claimed by `account` for one given distribution.
-    mapping(address => mapping(address => uint256)) public claimed;
+    mapping(address account => mapping(address reward => uint256 amount)) public claimed;
 
     /// @notice The address that can update the distribution parameters, and freeze a root.
     address public owner;
@@ -33,7 +35,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice The addresses that can update the merkle tree's root for a given distribution.
     mapping(address => bool) public isUpdater;
 
-    /// @notice The timelock before a root update
+    /// @notice The timelock before a root update.
     uint256 public timelock;
 
     /// @notice The pending root of the distribution.
@@ -41,15 +43,21 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev The pending root is skipped if the timelock is set to 0.
     PendingRoot public pendingRoot;
 
+    /* MODIFIERS */
+
+    /// @notice Reverts if the caller is not the owner.
+    modifier onlyOwner() {
+        require(msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER);
+        _;
+    }
+
+    /// @notice Reverts if the caller is not the owner nor an updater.
     modifier onlyOwnerOrUpdater() {
         require(isUpdater[msg.sender] || msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER);
         _;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER);
-        _;
-    }
+    /* CONSTRUCTOR */
 
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
@@ -59,13 +67,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     constructor(address initialOwner, uint256 initialTimelock, bytes32 initialRoot, bytes32 initialIpfsHash) {
         _setOwner(initialOwner);
 
-        if (initialTimelock > 0) {
-            _setTimelock(initialTimelock);
-        }
+        if (initialTimelock > 0) _setTimelock(initialTimelock);
 
-        if (initialRoot != bytes32(0)) {
-            _setRoot(initialRoot, initialIpfsHash);
-        }
+        if (initialRoot != bytes32(0)) _setRoot(initialRoot, initialIpfsHash);
     }
 
     /* EXTERNAL */
@@ -91,6 +95,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         root = pendingRoot.root;
         ipfsHash = pendingRoot.ipfsHash;
+
         emit EventsLib.RootSet(pendingRoot.root, pendingRoot.ipfsHash);
 
         delete pendingRoot;
@@ -135,7 +140,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         _setRoot(newRoot, newIpfsHash);
     }
 
-    /// @notice Updates the timelock of a given distribution.
+    /// @notice Sets the timelock of a given distribution.
     /// @param newTimelock The new timelock.
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
@@ -151,11 +156,12 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         _setTimelock(newTimelock);
     }
 
-    /// @notice Updates the root updater of a given distribution.
-    /// @param updater The new root updater.
+    /// @notice Sets the root updater of a given distribution.
+    /// @param updater The address of the root updater.
     /// @param active Whether the root updater should be active or not.
     function setRootUpdater(address updater, bool active) external onlyOwner {
         isUpdater[updater] = active;
+
         emit EventsLib.RootUpdaterSet(updater, active);
     }
 
@@ -165,26 +171,36 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
         delete pendingRoot;
+
         emit EventsLib.RootRevoked();
     }
 
+    /// @notice Sets the `owner` of the distribution to `newOwner`.
     function setOwner(address newOwner) external onlyOwner {
         _setOwner(newOwner);
     }
 
+    /* INTERNAL */
+
+    /// @dev Sets the `root` and `ipfsHash` to `newRoot` and `newIpfsHash`.
+    /// @dev Deletes the pending root.
     function _setRoot(bytes32 newRoot, bytes32 newIpfsHash) internal {
         root = newRoot;
         ipfsHash = newIpfsHash;
+
         delete pendingRoot;
+
         emit EventsLib.RootSet(newRoot, newIpfsHash);
     }
 
+    /// @dev Sets the `owner` of the distribution to `newOwner`.
     function _setOwner(address newOwner) internal {
         owner = newOwner;
 
         emit EventsLib.OwnerSet(newOwner);
     }
 
+    /// @dev Sets the `timelock` to `newTimelock`.
     function _setTimelock(uint256 newTimelock) internal {
         timelock = newTimelock;
 
