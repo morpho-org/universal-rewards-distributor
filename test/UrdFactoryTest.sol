@@ -5,10 +5,11 @@ import {IUniversalRewardsDistributor} from "src/interfaces/IUniversalRewardsDist
 import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
 import {EventsLib} from "src/libraries/EventsLib.sol";
 
-import {BaseTest} from "test/BaseTest.sol";
 import {UrdFactory} from "src/UrdFactory.sol";
 
-contract UrdFactoryTest is BaseTest {
+import "forge-std/Test.sol";
+
+contract UrdFactoryTest is Test {
     UrdFactory factory = new UrdFactory();
 
     function testCreateURD(
@@ -19,8 +20,11 @@ contract UrdFactoryTest is BaseTest {
         bytes32 randomIpfsHash,
         bytes32 randomSalt
     ) public {
-        bytes memory encodedParams = abi.encode(randomOwner, randomTimelock, randomRoot, randomIpfsHash);
-        address urdAddress = _precomputeAddress(address(factory), encodedParams, randomSalt);
+        bytes32 initCodeHash = hashInitCode(
+            type(UniversalRewardsDistributor).creationCode,
+            abi.encode(randomOwner, randomTimelock, randomRoot, randomIpfsHash)
+        );
+        address urdAddress = computeCreate2Address(randomSalt, initCodeHash, address(factory));
 
         vm.prank(randomCaller);
         vm.expectEmit(address(factory));

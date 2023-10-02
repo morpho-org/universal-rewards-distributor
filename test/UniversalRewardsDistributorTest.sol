@@ -13,9 +13,9 @@ import {EventsLib} from "src/libraries/EventsLib.sol";
 
 import {Merkle} from "@murky/src/Merkle.sol";
 
-import {BaseTest} from "./BaseTest.sol";
+import "forge-std/Test.sol";
 
-contract UniversalRewardsDistributorTest is BaseTest {
+contract UniversalRewardsDistributorTest is Test {
     uint256 internal constant MAX_RECEIVERS = 20;
 
     Merkle merkle = new Merkle();
@@ -73,8 +73,11 @@ contract UniversalRewardsDistributorTest is BaseTest {
 
     function testDistributionConstructorEmitsOwnerSet(address randomCreator) public {
         bytes32 salt = bytes32(0);
-        bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
-        address urdAddress = _precomputeAddress(randomCreator, encodedParams, salt);
+        bytes32 initCodeHash = hashInitCode(
+            type(UniversalRewardsDistributor).creationCode,
+            abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH)
+        );
+        address urdAddress = computeCreate2Address(salt, initCodeHash, address(randomCreator));
 
         vm.prank(randomCreator);
         vm.expectEmit(address(urdAddress));
@@ -86,8 +89,11 @@ contract UniversalRewardsDistributorTest is BaseTest {
 
     function testDistributionConstructorEmitsTimelockSet(address randomCreator) public {
         bytes32 salt = bytes32(0);
-        bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
-        address urdAddress = _precomputeAddress(randomCreator, encodedParams, salt);
+        bytes32 initCodeHash = hashInitCode(
+            type(UniversalRewardsDistributor).creationCode,
+            abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH)
+        );
+        address urdAddress = computeCreate2Address(salt, initCodeHash, address(randomCreator));
 
         vm.prank(randomCreator);
         vm.expectEmit(address(urdAddress));
@@ -99,8 +105,11 @@ contract UniversalRewardsDistributorTest is BaseTest {
 
     function testDistributionConstructorEmitsRootSet(address randomCreator) public {
         bytes32 salt = bytes32(0);
-        bytes memory encodedParams = abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
-        address urdAddress = _precomputeAddress(randomCreator, encodedParams, salt);
+        bytes32 initCodeHash = hashInitCode(
+            type(UniversalRewardsDistributor).creationCode,
+            abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH)
+        );
+        address urdAddress = computeCreate2Address(salt, initCodeHash, address(randomCreator));
 
         vm.prank(randomCreator);
         vm.expectEmit(address(urdAddress));
