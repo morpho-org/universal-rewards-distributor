@@ -92,14 +92,13 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
     function acceptRoot() external {
-        PendingRoot memory pendingRootMem = pendingRoot;
-        require(pendingRootMem.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
-        require(block.timestamp >= pendingRootMem.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
+        require(pendingRoot.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
+        require(block.timestamp >= pendingRoot.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
-        root = pendingRootMem.root;
-        ipfsHash = pendingRootMem.ipfsHash;
+        root = pendingRoot.root;
+        ipfsHash = pendingRoot.ipfsHash;
 
-        emit EventsLib.RootSet(pendingRootMem.root, pendingRootMem.ipfsHash);
+        emit EventsLib.RootSet(pendingRoot.root, pendingRoot.ipfsHash);
 
         delete pendingRoot;
     }
@@ -149,9 +148,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
     function setTimelock(uint256 newTimelock) external onlyOwner {
         if (newTimelock < timelock) {
-            PendingRoot memory pendingRootMem = pendingRoot;
             require(
-                pendingRootMem.submittedAt == 0 || pendingRootMem.submittedAt + timelock <= block.timestamp,
+                pendingRoot.submittedAt == 0 || pendingRoot.submittedAt + timelock <= block.timestamp,
                 ErrorsLib.TIMELOCK_NOT_EXPIRED
             );
         }
