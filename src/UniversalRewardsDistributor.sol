@@ -64,6 +64,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param initialTimelock The initial timelock of the contract.
     /// @param initialRoot The initial merkle tree's root.
     /// @param initialIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    /// @dev Warning: The `initialIpfsHash` might not correspond to the `initialRoot`.
     constructor(address initialOwner, uint256 initialTimelock, bytes32 initialRoot, bytes32 initialIpfsHash) {
         _setOwner(initialOwner);
 
@@ -77,6 +78,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Proposes a new merkle tree root.
     /// @param newRoot The new merkle tree's root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
     function proposeRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwnerOrUpdater {
         if (timelock == 0) {
             _setRoot(newRoot, newIpfsHash);
@@ -90,13 +92,14 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
     function acceptRoot() external {
-        require(pendingRoot.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
-        require(block.timestamp >= pendingRoot.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
+        PendingRoot memory pendingRootMem = pendingRoot;
+        require(pendingRootMem.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
+        require(block.timestamp >= pendingRootMem.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
-        root = pendingRoot.root;
-        ipfsHash = pendingRoot.ipfsHash;
+        root = pendingRootMem.root;
+        ipfsHash = pendingRootMem.ipfsHash;
 
-        emit EventsLib.RootSet(pendingRoot.root, pendingRoot.ipfsHash);
+        emit EventsLib.RootSet(pendingRootMem.root, pendingRootMem.ipfsHash);
 
         delete pendingRoot;
     }
@@ -184,6 +187,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @dev Sets the `root` and `ipfsHash` to `newRoot` and `newIpfsHash`.
     /// @dev Deletes the pending root.
+    /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
     function _setRoot(bytes32 newRoot, bytes32 newIpfsHash) internal {
         root = newRoot;
         ipfsHash = newIpfsHash;
