@@ -13,8 +13,8 @@ import {EventsLib} from "./libraries/EventsLib.sol";
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org
 /// @notice This contract enables the distribution of various reward tokens to multiple accounts using different permissionless Merkle trees.
-///         It is largely inspired by Morpho's current rewards distributor:
-///         https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
+/// It is largely inspired by Morpho's current rewards distributor:
+/// https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
 contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     using SafeTransferLib for ERC20;
 

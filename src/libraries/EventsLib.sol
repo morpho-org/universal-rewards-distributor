@@ -38,13 +38,13 @@ library EventsLib {
     /// @param newOwner The new owner of the contract.
     event OwnerSet(address indexed newOwner);
 
-    /// @notice Emitted when a new Urd is created.
-    /// @param urd The address of the newly created Urd.
+    /// @notice Emitted when a new URD is created.
+    /// @param urd The address of the newly created URD.
     /// @param caller The address of the caller.
-    /// @param owner The address of the Urd owner.
-    /// @param timelock The Urd timelock.
-    /// @param root The Urd merkle tree's root.
-    /// @param ipfsHash The Urd merkle tree's ipfs hash.
+    /// @param owner The address of the URD owner.
+    /// @param timelock The URD timelock.
+    /// @param root The URD merkle tree's root.
+    /// @param ipfsHash The URD merkle tree's ipfs hash.
     /// @param salt The salt used for CREATE2 opcode.
     event UrdCreated(
         address indexed urd,
