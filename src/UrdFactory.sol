@@ -10,6 +10,12 @@ import {UniversalRewardsDistributor} from "./UniversalRewardsDistributor.sol";
 /// @custom:contact security@morpho.org
 /// @notice This contract allows to create UniversalRewardsDistributor (URD) contracts, and to index them easily.
 contract UrdFactory {
+    /* STORAGE */
+
+    mapping(address => bool) public isUrd;
+
+    /* EXTERNAL */
+
     /// @notice Creates a new URD contract using CREATE2 opcode.
     /// @param initialOwner The initial owner of the URD.
     /// @param initialTimelock The initial timelock of the URD.
@@ -30,6 +36,8 @@ contract UrdFactory {
             initialRoot,
             initialIpfsHash
         );
+
+        isUrd[address(urd)] = true;
 
         emit EventsLib.UrdCreated(
             address(urd), msg.sender, initialOwner, initialTimelock, initialRoot, initialIpfsHash, salt
