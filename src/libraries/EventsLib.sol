@@ -6,18 +6,18 @@ pragma solidity ^0.8.0;
 /// @custom:contact security@morpho.org
 /// @notice Library exposing events.
 library EventsLib {
-    /// @notice Emitted when the merkle tree's root is set.
-    /// @param newRoot The new merkle tree's root.
+    /// @notice Emitted when the merkle root is set.
+    /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     event RootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
-    /// @notice Emitted when a new merkle tree's root is proposed.
-    /// @param newRoot The new merkle tree's root.
+    /// @notice Emitted when a new merkle root is proposed.
+    /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     event RootProposed(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
     /// @notice Emitted when a merkle tree distribution timelock is set.
-    /// @param timelock The new merkle tree's timelock.
+    /// @param timelock The new merkle timelock.
     event TimelockSet(uint256 timelock);
 
     /// @notice Emitted when a merkle tree updater is added or removed.
@@ -25,7 +25,7 @@ library EventsLib {
     /// @param active The merkle tree updater's active state.
     event RootUpdaterSet(address indexed rootUpdater, bool active);
 
-    /// @notice Emitted when a merkle tree's pending root is revoked.
+    /// @notice Emitted when a merkle pending root is revoked.
     event RootRevoked();
 
     /// @notice Emitted when rewards are claimed.
@@ -43,8 +43,8 @@ library EventsLib {
     /// @param caller The address of the caller.
     /// @param owner The address of the URD owner.
     /// @param timelock The URD timelock.
-    /// @param root The URD merkle tree's root.
-    /// @param ipfsHash The URD merkle tree's ipfs hash.
+    /// @param root The URD's initial merkle root.
+    /// @param ipfsHash The URD's initial ipfs hash.
     /// @param salt The salt used for CREATE2 opcode.
     event UrdCreated(
         address indexed urd,

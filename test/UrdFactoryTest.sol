@@ -12,7 +12,7 @@ import "forge-std/Test.sol";
 contract UrdFactoryTest is Test {
     UrdFactory factory = new UrdFactory();
 
-    function testCreateURD(
+    function testCreateUrd(
         address randomCaller,
         address randomOwner,
         uint256 randomTimelock,
@@ -26,6 +26,8 @@ contract UrdFactoryTest is Test {
         );
         address urdAddress = computeCreate2Address(randomSalt, initCodeHash, address(factory));
 
+        assertFalse(factory.isUrd(urdAddress), "!isUrd");
+
         vm.prank(randomCaller);
         vm.expectEmit(address(factory));
         emit EventsLib.UrdCreated(
@@ -35,6 +37,7 @@ contract UrdFactoryTest is Test {
             factory.createUrd(randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt);
 
         assertEq(address(urd), urdAddress);
+        assertTrue(factory.isUrd(address(urd)), "isUrd");
         assertEq(urd.ipfsHash(), randomIpfsHash);
         assertEq(urd.root(), randomRoot);
         assertEq(urd.owner(), randomOwner);
