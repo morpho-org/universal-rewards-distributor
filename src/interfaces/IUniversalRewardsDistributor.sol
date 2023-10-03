@@ -16,8 +16,6 @@ struct PendingRoot {
 /// @custom:contact security@morpho.org
 /// @notice UniversalRewardsDistributor's interface.
 interface IUniversalRewardsDistributor {
-    /* EXTERNAL */
-
     function root() external view returns (bytes32);
     function owner() external view returns (address);
     function timelock() external view returns (uint256);

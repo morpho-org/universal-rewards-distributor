@@ -6,17 +6,17 @@ pragma solidity ^0.8.0;
 /// @custom:contact security@morpho.org
 /// @notice Library exposing events.
 library EventsLib {
-    /// @notice Emitted when the merkle tree's root is updated.
+    /// @notice Emitted when the merkle tree's root is set.
     /// @param newRoot The new merkle tree's root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     event RootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
-    /// @notice Emitted when a new merkle tree's root is submitted.
+    /// @notice Emitted when a new merkle tree's root is proposed.
     /// @param newRoot The new merkle tree's root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     event RootProposed(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
-    /// @notice Emitted when a merkle tree distribution timelock is modified.
+    /// @notice Emitted when a merkle tree distribution timelock is set.
     /// @param timelock The new merkle tree's timelock.
     event TimelockSet(uint256 timelock);
 
@@ -38,13 +38,13 @@ library EventsLib {
     /// @param newOwner The new owner of the contract.
     event OwnerSet(address indexed newOwner);
 
-    /// @notice Emitted when a new Urd is created.
-    /// @param urd The address of the newly created Urd.
+    /// @notice Emitted when a new URD is created.
+    /// @param urd The address of the newly created URD.
     /// @param caller The address of the caller.
-    /// @param owner The address of the Urd owner.
-    /// @param timelock The Urd timelock.
-    /// @param root The Urd merkle tree's root.
-    /// @param ipfsHash The Urd merkle tree's ipfs hash.
+    /// @param owner The address of the URD owner.
+    /// @param timelock The URD timelock.
+    /// @param root The URD merkle tree's root.
+    /// @param ipfsHash The URD merkle tree's ipfs hash.
     /// @param salt The salt used for CREATE2 opcode.
     event UrdCreated(
         address indexed urd,
