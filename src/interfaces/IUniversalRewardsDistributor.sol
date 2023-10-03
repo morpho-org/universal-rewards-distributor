@@ -3,7 +3,7 @@ pragma solidity >=0.7.4;
 
 /// @notice The pending root struct for a merkle tree distribution during the timelock.
 struct PendingRoot {
-    /// @dev The block timestamp of the pending root submission.
+    /// @dev The timestamp of the block in which the pending root was submitted.
     uint256 submittedAt;
     /// @dev The submitted pending root.
     bytes32 root;
@@ -31,7 +31,7 @@ interface IUniversalRewardsDistributor {
     function revokeRoot() external;
     function setOwner(address newOwner) external;
 
-    function proposeRoot(bytes32 newRoot, bytes32 ipfsHash) external;
+    function submitRoot(bytes32 newRoot, bytes32 ipfsHash) external;
 
     function claim(address account, address reward, uint256 claimable, bytes32[] memory proof)
         external
