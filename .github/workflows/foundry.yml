@@ -1,0 +1,52 @@
+name: Foundry
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compilation (via IR)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Build contracts via IR & check sizes
+        run: forge build --force --sizes # don't use compilation cache
+        env:
+          FOUNDRY_PROFILE: build
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        type: ["test-slow", "test-fast"]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run forge tests in ${{ matrix.type }} mode
+        run: forge test -vvv
+        env:
+          FOUNDRY_PROFILE: ${{ matrix.type }}
