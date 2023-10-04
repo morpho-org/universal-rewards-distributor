@@ -7,11 +7,11 @@ import {
 
 import {ErrorsLib} from "src/libraries/ErrorsLib.sol";
 
-import {MockERC20} from "@solmate/test/utils/mocks/MockERC20.sol";
+import {MockERC20} from "@urd/solmate/src/test/utils/mocks/MockERC20.sol";
 import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
 import {EventsLib} from "src/libraries/EventsLib.sol";
 
-import {Merkle} from "@murky/src/Merkle.sol";
+import {Merkle} from "@urd/murky/src/Merkle.sol";
 
 import "forge-std/Test.sol";
 

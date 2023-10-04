@@ -5,9 +5,9 @@ import {PendingRoot, IUniversalRewardsDistributor} from "./interfaces/IUniversal
 
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 import {EventsLib} from "./libraries/EventsLib.sol";
-import {SafeTransferLib, ERC20} from "@solmate/utils/SafeTransferLib.sol";
+import {SafeTransferLib, ERC20} from "@urd/solmate/src/utils/SafeTransferLib.sol";
 
-import {MerkleProof} from "@openzeppelin/utils/cryptography/MerkleProof.sol";
+import {MerkleProof} from "@urd/openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs

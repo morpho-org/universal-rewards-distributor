@@ -1,17 +1,19 @@
 [profile.default]
-names = true
-sizes = true
-via-ir = true
+src = "src"
+test = "test"
+libs = ["lib"]
 
 [profile.default.fmt]
 wrap_comments = true
 
+
 [profile.build]
+via-ir = true
 test = "/dev/null"
 script = "/dev/null"
 
 
-[profile.test]
+[profile.test-slow]
 via-ir = false
 
 [profile.test-slow.fuzz]
@@ -21,6 +23,10 @@ max_test_rejects = 500000
 [profile.test-slow.invariant]
 runs = 64
 depth = 2048
+
+
+[profile.test-fast]
+via-ir = false
 
 [profile.test-fast.fuzz]
 runs = 256
