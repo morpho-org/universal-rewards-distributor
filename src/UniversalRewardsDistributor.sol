@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.21;
 
-import {PendingRoot, IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
+import {PendingRoot, IUniversalRewardsDistributor} from "@urd/src/interfaces/IUniversalRewardsDistributor.sol";
 
-import {ErrorsLib} from "./libraries/ErrorsLib.sol";
-import {EventsLib} from "./libraries/EventsLib.sol";
-import {SafeTransferLib, ERC20} from "@urd/solmate/src/utils/SafeTransferLib.sol";
+import {ErrorsLib} from "@urd/src/libraries/ErrorsLib.sol";
+import {EventsLib} from "@urd/src/libraries/EventsLib.sol";
+import {SafeTransferLib, ERC20} from "@urd/lib/solmate/src/utils/SafeTransferLib.sol";
 
-import {MerkleProof} from "@urd/openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
+import {MerkleProof} from "@urd/lib/openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs

@@ -1,1 +1,3 @@
-@urd/=lib/
+@urd/src/=src/
+@urd/test/=test/
+@urd/lib/=lib/

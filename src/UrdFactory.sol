@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.21;
 
-import {EventsLib} from "./libraries/EventsLib.sol";
+import {EventsLib} from "@urd/src/libraries/EventsLib.sol";
 
-import {UniversalRewardsDistributor} from "./UniversalRewardsDistributor.sol";
+import {UniversalRewardsDistributor} from "@urd/src/UniversalRewardsDistributor.sol";
 
 /// @title Universal Rewards Distributor Factory
 /// @author Morpho Labs
