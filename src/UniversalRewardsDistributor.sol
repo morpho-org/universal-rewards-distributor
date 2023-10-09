@@ -35,7 +35,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice The addresses that can update the merkle root.
     mapping(address => bool) public isUpdater;
 
-    /// @notice The timelock before a root update.
+    /// @notice The timelock related to root updates.
     uint256 public timelock;
 
     /// @notice The pending root of the distribution.
@@ -88,7 +88,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         }
     }
 
-    /// @notice Accepts the current pending merkle root.
+    /// @notice Accepts and sets the current pending merkle root.
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
     function acceptRoot() external {
@@ -133,7 +133,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit EventsLib.Claimed(account, reward, amount);
     }
 
-    /// @notice Forces update the root of a given distribution.
+    /// @notice Forces update the root of a given distribution (bypassing the timelock).
     /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev This function can only be called by the owner of the distribution.
