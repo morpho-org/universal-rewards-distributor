@@ -52,7 +52,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     }
 
     /// @notice Reverts if the caller is not the owner nor an updater.
-    modifier onlyOwnerOrUpdater() {
+    modifier onlyUpdater() {
         require(isUpdater[msg.sender] || msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER);
         _;
     }
@@ -79,7 +79,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
-    function submitRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwnerOrUpdater {
+    function submitRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdater {
         if (timelock == 0) {
             _setRoot(newRoot, newIpfsHash);
         } else {
