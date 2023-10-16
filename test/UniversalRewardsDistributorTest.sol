@@ -3,17 +3,17 @@ pragma solidity ^0.8.0;
 
 import {
     PendingRoot, IUniversalRewardsDistributor, IPendingRoot
-} from "src/interfaces/IUniversalRewardsDistributor.sol";
+} from "../src/interfaces/IUniversalRewardsDistributor.sol";
 
-import {ErrorsLib} from "src/libraries/ErrorsLib.sol";
+import {ErrorsLib} from "../src/libraries/ErrorsLib.sol";
 
-import {MockERC20} from "@urd/solmate/src/test/utils/mocks/MockERC20.sol";
-import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
-import {EventsLib} from "src/libraries/EventsLib.sol";
+import {MockERC20} from "../lib/solmate/src/test/utils/mocks/MockERC20.sol";
+import {UniversalRewardsDistributor} from "../src/UniversalRewardsDistributor.sol";
+import {EventsLib} from "../src/libraries/EventsLib.sol";
 
-import {Merkle} from "@urd/murky/src/Merkle.sol";
+import {Merkle} from "../lib/murky/src/Merkle.sol";
 
-import "forge-std/Test.sol";
+import "../lib/forge-std/src/Test.sol";
 
 contract UniversalRewardsDistributorTest is Test {
     uint256 internal constant MAX_RECEIVERS = 20;

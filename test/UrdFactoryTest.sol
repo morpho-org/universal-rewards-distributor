@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
-import {IUniversalRewardsDistributor} from "src/interfaces/IUniversalRewardsDistributor.sol";
-import {UniversalRewardsDistributor} from "src/UniversalRewardsDistributor.sol";
-import {EventsLib} from "src/libraries/EventsLib.sol";
+import {IUniversalRewardsDistributor} from "../src/interfaces/IUniversalRewardsDistributor.sol";
+import {UniversalRewardsDistributor} from "../src/UniversalRewardsDistributor.sol";
+import {EventsLib} from "../src/libraries/EventsLib.sol";
 
-import {UrdFactory} from "src/UrdFactory.sol";
+import {UrdFactory} from "../src/UrdFactory.sol";
 
-import "forge-std/Test.sol";
+import "../lib/forge-std/src/Test.sol";
 
 contract UrdFactoryTest is Test {
     UrdFactory factory = new UrdFactory();
