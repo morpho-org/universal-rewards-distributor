@@ -88,7 +88,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         }
     }
 
-    /// @notice Accepts and sets the current pending Merkle root.
+    /// @notice Accepts and sets the pending Merkle root.
     /// @dev This function can only be called after the timelock has elapsed.
     /// @dev Anyone can call this function.
     function acceptRoot() external {
@@ -168,8 +168,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice Revokes the pending root of a given distribution.
     /// @dev This function can only be called by the owner of the distribution at any time.
-    /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has passed. This if the
-    /// `owner` responsibility to trigger this function before the end of the timelock.
+    /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has elapsed.
+     /// It is the responsibility of the owner to trigger this function before the end of the timelock.
     function revokeRoot() external onlyOwner {
         require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
