@@ -82,7 +82,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             _setRoot(newRoot, newIpfsHash);
         } else {
             pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
-            emit EventsLib.RootProposed(newRoot, newIpfsHash);
+
+            emit EventsLib.PendingRootSet(newRoot, newIpfsHash);
         }
     }
 
@@ -167,7 +168,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         delete pendingRoot;
 
-        emit EventsLib.RootRevoked();
+        emit EventsLib.PendingRootSet(bytes32(0), bytes32(0));
     }
 
     /// @notice Sets the `owner` of the distribution to `newOwner`.
@@ -184,9 +185,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         root = newRoot;
         ipfsHash = newIpfsHash;
 
+        emit EventsLib.RootSet(newRoot, newIpfsHash);
+
         delete pendingRoot;
 
-        emit EventsLib.RootSet(newRoot, newIpfsHash);
+        emit EventsLib.PendingRootSet(bytes32(0), bytes32(0));
     }
 
     /// @dev Sets the `owner` of the distribution to `newOwner`.

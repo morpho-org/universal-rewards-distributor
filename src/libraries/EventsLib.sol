@@ -14,7 +14,7 @@ library EventsLib {
     /// @notice Emitted when a new Merkle root is proposed.
     /// @param newRoot The new Merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the Merkle tree itself).
-    event RootProposed(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
+    event PendingRootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
     /// @notice Emitted when a Merkle tree distribution timelock is set.
     /// @param timelock The new Merkle timelock.
@@ -24,9 +24,6 @@ library EventsLib {
     /// @param rootUpdater The Merkle tree updater.
     /// @param active The Merkle tree updater's active state.
     event RootUpdaterSet(address indexed rootUpdater, bool active);
-
-    /// @notice Emitted when a Merkle pending root is revoked.
-    event RootRevoked();
 
     /// @notice Emitted when rewards are claimed.
     /// @param account The address for which rewards are claimd rewards for.
