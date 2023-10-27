@@ -101,31 +101,31 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Claims rewards.
     /// @param account The address to claim rewards for.
     /// @param reward The address of the reward token.
-    /// @param claimable The overall claimable amount of token rewards.
+    /// @param totalEarned The total amount of token rewards earned.
     /// @param proof The Merkle proof that validates this claim.
-    /// @return amount The amount of reward token claimed.
+    /// @return claimedAmount The amount of reward token claimed.
     /// @dev Anyone can claim rewards on behalf of an account.
-    function claim(address account, address reward, uint256 claimable, bytes32[] calldata proof)
+    function claim(address account, address reward, uint256 totalEarned, bytes32[] calldata proof)
         external
-        returns (uint256 amount)
+        returns (uint256 claimedAmount)
     {
         require(root != bytes32(0), ErrorsLib.ROOT_NOT_SET);
         require(
             MerkleProof.verifyCalldata(
-                proof, root, keccak256(abi.encode(keccak256(abi.encode(account, reward, claimable))))
+                proof, root, keccak256(abi.encode(keccak256(abi.encode(account, reward, totalEarned))))
             ),
             ErrorsLib.INVALID_PROOF
         );
 
-        amount = claimable - claimed[account][reward];
+        claimedAmount = totalEarned - claimed[account][reward];
 
-        require(amount > 0, ErrorsLib.ALREADY_CLAIMED);
+        require(claimedAmount > 0, ErrorsLib.ALREADY_CLAIMED);
 
-        claimed[account][reward] = claimable;
+        claimed[account][reward] += claimedAmount;
 
-        ERC20(reward).safeTransfer(account, amount);
+        ERC20(reward).safeTransfer(account, claimedAmount);
 
-        emit EventsLib.Claimed(account, reward, amount);
+        emit EventsLib.Claimed(account, reward, claimedAmount);
     }
 
     /// @notice Forces update the root of a given distribution (bypassing the timelock).
