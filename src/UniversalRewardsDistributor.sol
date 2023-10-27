@@ -112,7 +112,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         require(root != bytes32(0), ErrorsLib.ROOT_NOT_SET);
         require(
             MerkleProof.verifyCalldata(
-                proof, root, keccak256(bytes.concat(keccak256(abi.encode(account, reward, claimable))))
+                proof, root, keccak256(abi.encode(keccak256(abi.encode(account, reward, claimable))))
             ),
             ErrorsLib.INVALID_PROOF_OR_EXPIRED
         );
