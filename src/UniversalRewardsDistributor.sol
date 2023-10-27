@@ -39,7 +39,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     uint256 public timelock;
 
     /// @notice The pending root of the distribution.
-    /// @dev If the pending root is set, the root can be updated after the timelock has expired.
+    /// @dev If the pending root is set, the root can be updated after the timelock has elapsed.
     /// @dev The pending root is skipped if the timelock is set to 0.
     PendingRoot public pendingRoot;
 
@@ -89,11 +89,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     }
 
     /// @notice Accepts and sets the current pending merkle root.
-    /// @dev This function can only be called after the timelock has expired.
+    /// @dev This function can only be called after the timelock has elapsed.
     /// @dev Anyone can call this function.
     function acceptRoot() external {
         require(pendingRoot.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
-        require(block.timestamp >= pendingRoot.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
+        require(block.timestamp >= pendingRoot.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_ELAPSED);
 
         root = pendingRoot.root;
         ipfsHash = pendingRoot.ipfsHash;
@@ -145,12 +145,12 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Sets the timelock of a given distribution.
     /// @param newTimelock The new timelock.
     /// @dev This function can only be called by the owner of the distribution.
-    /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
+    /// @dev If the timelock is reduced, it can only be updated after the timelock has elapsed.
     function setTimelock(uint256 newTimelock) external onlyOwner {
         if (newTimelock < timelock) {
             require(
                 pendingRoot.submittedAt == 0 || pendingRoot.submittedAt + timelock <= block.timestamp,
-                ErrorsLib.TIMELOCK_NOT_EXPIRED
+                ErrorsLib.TIMELOCK_NOT_ELAPSED
             );
         }
 

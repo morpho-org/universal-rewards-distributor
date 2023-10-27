@@ -220,7 +220,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.warp(block.timestamp + timeElapsed);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
+        vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_ELAPSED));
         distributionWithTimeLock.acceptRoot();
     }
 
@@ -301,7 +301,7 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(distributionWithTimeLock.timelock(), newTimelock);
 
         vm.warp(block.timestamp + beforeEndOfTimelock);
-        vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
+        vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_ELAPSED));
         distributionWithTimeLock.acceptRoot();
 
         vm.warp(block.timestamp + afterEndOfTimelock);
@@ -319,7 +319,7 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.setTimelock(newTimelock);
     }
 
-    function testSetTimelockShouldRevertIfNewTimelockShorterThanCurrentTimelockAndTimelockNotExpired(
+    function testSetTimelockShouldRevertIfNewTimelockShorterThanCurrentTimelockAndTimelockNotElapsed(
         bytes32 pendingRoot,
         uint256 newTimelock,
         uint256 timeElapsed
@@ -333,7 +333,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.warp(block.timestamp + timeElapsed);
 
         vm.prank(owner);
-        vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
+        vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_ELAPSED));
         distributionWithTimeLock.setTimelock(newTimelock);
     }
 

@@ -15,8 +15,8 @@ library ErrorsLib {
     /// @notice Thrown when there is not pending root.
     string internal constant NO_PENDING_ROOT = "no pending root";
 
-    /// @notice Thrown when the timelock is not expired.
-    string internal constant TIMELOCK_NOT_EXPIRED = "timelock is not expired";
+    /// @notice Thrown when the timelock is not elapsed.
+    string internal constant TIMELOCK_NOT_ELAPSED = "timelock is not elapsed";
 
     /// @notice Thrown when the root is not set.
     string internal constant ROOT_NOT_SET = "root is not set";
