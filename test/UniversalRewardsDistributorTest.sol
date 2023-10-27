@@ -227,7 +227,7 @@ contract UniversalRewardsDistributorTest is Test {
     function testAcceptRootShouldRevertIfNoPendingRoot(address randomCaller) public {
         vm.prank(randomCaller);
         vm.expectRevert(bytes(ErrorsLib.NO_PENDING_ROOT));
-        distributionWithTimeLock.acceptRoot();
+        distributionWithoutTimeLock.acceptRoot();
     }
 
     function testSetRootShouldRevertIfNotOwner(bytes32 newRoot, address randomCaller) public {
