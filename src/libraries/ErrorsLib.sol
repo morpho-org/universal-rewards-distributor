@@ -18,9 +18,6 @@ library ErrorsLib {
     /// @notice Thrown when the timelock is not elapsed.
     string internal constant TIMELOCK_NOT_ELAPSED = "timelock is not elapsed";
 
-    /// @notice Thrown when the root is not set.
-    string internal constant ROOT_NOT_SET = "root is not set";
-
     /// @notice Thrown when the proof is invalid when claiming rewards.
     string internal constant INVALID_PROOF = "invalid proof";
 

@@ -488,7 +488,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         bytes32[] memory proof1 = merkle.getProof(data, 0);
 
-        vm.expectRevert(bytes(ErrorsLib.ROOT_NOT_SET));
+        vm.expectRevert(bytes(ErrorsLib.INVALID_PROOF));
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
     }
 

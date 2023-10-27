@@ -107,7 +107,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         external
         returns (uint256 claimedAmount)
     {
-        require(root != bytes32(0), ErrorsLib.ROOT_NOT_SET);
         require(
             MerkleProof.verifyCalldata(
                 proof, root, keccak256(abi.encode(keccak256(abi.encode(account, reward, totalEarned))))
@@ -162,7 +161,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Revokes the pending root of a given distribution.
     /// @dev This function can only be called by the owner of the distribution at any time.
     /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has elapsed.
-     /// It is the responsibility of the owner to trigger this function before the end of the timelock.
+    /// It is the responsibility of the owner to trigger this function before the end of the timelock.
     function revokeRoot() external onlyOwner {
         require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
