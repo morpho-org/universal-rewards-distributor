@@ -15,12 +15,7 @@ Tests are using [Murky](https://github.com/dmfxyz/murky), to generate Merkle tre
 
 ## Usage
 
-Install dependencies:
-```bash
-git submodule update --init --recursive
-```
-
-Running tests requires [Foundry](https://book.getfoundry.sh/getting-started/installation).
+Running tests requires `forge` from [Foundry](https://book.getfoundry.sh/getting-started/installation).
 ```bash
 forge test
 ```
