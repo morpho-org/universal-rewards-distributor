@@ -114,7 +114,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             MerkleProof.verifyCalldata(
                 proof, root, keccak256(abi.encode(keccak256(abi.encode(account, reward, claimable))))
             ),
-            ErrorsLib.INVALID_PROOF_OR_EXPIRED
+            ErrorsLib.INVALID_PROOF
         );
 
         amount = claimable - claimed[account][reward];

@@ -21,8 +21,8 @@ library ErrorsLib {
     /// @notice Thrown when the root is not set.
     string internal constant ROOT_NOT_SET = "root is not set";
 
-    /// @notice Thrown when the proof is invalid or expired when claiming rewards.
-    string internal constant INVALID_PROOF_OR_EXPIRED = "invalid proof or expired";
+    /// @notice Thrown when the proof is invalid when claiming rewards.
+    string internal constant INVALID_PROOF = "invalid proof";
 
     /// @notice Thrown when rewards have already been claimed.
     string internal constant ALREADY_CLAIMED = "already claimed";
