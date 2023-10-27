@@ -19,8 +19,8 @@ contract UrdFactory {
     /// @notice Creates a new URD contract using CREATE2 opcode.
     /// @param initialOwner The initial owner of the URD.
     /// @param initialTimelock The initial timelock of the URD.
-    /// @param initialRoot The initial merkle root of the URD.
-    /// @param initialIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    /// @param initialRoot The initial Merkle root of the URD.
+    /// @param initialIpfsHash The optional ipfs hash containing metadata about the root (e.g. the Merkle tree itself).
     /// @param salt The salt used for CREATE2 opcode.
     /// @return urd The address of the newly created URD.
     function createUrd(

@@ -20,10 +20,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /* STORAGE */
 
-    /// @notice The merkle root of this distribution.
+    /// @notice The Merkle root of this distribution.
     bytes32 public root;
 
-    /// @notice The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    /// @notice The optional ipfs hash containing metadata about the root (e.g. the Merkle tree itself).
     bytes32 public ipfsHash;
 
     /// @notice The `amount` of `reward` token already claimed by `account`.
@@ -32,7 +32,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice The address that can update the distribution parameters, and freeze a root.
     address public owner;
 
-    /// @notice The addresses that can update the merkle root.
+    /// @notice The addresses that can update the Merkle root.
     mapping(address => bool) public isUpdater;
 
     /// @notice The timelock related to root updates.
@@ -62,8 +62,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param initialTimelock The initial timelock of the contract.
-    /// @param initialRoot The initial merkle root.
-    /// @param initialIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    /// @param initialRoot The initial Merkle root.
+    /// @param initialIpfsHash The optional ipfs hash containing metadata about the root (e.g. the Merkle tree itself).
     /// @dev Warning: The `initialIpfsHash` might not correspond to the `initialRoot`.
     constructor(address initialOwner, uint256 initialTimelock, bytes32 initialRoot, bytes32 initialIpfsHash) {
         _setOwner(initialOwner);
@@ -75,9 +75,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /* EXTERNAL */
 
-    /// @notice Submits a new merkle root.
-    /// @param newRoot The new merkle root.
-    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    /// @notice Submits a new Merkle root.
+    /// @param newRoot The new Merkle root.
+    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the Merkle tree itself).
     /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
     function submitRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdater {
         if (timelock == 0) {
@@ -88,7 +88,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         }
     }
 
-    /// @notice Accepts and sets the current pending merkle root.
+    /// @notice Accepts and sets the current pending Merkle root.
     /// @dev This function can only be called after the timelock has elapsed.
     /// @dev Anyone can call this function.
     function acceptRoot() external {
@@ -107,7 +107,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param account The address to claim rewards for.
     /// @param reward The address of the reward token.
     /// @param claimable The overall claimable amount of token rewards.
-    /// @param proof The merkle proof that validates this claim.
+    /// @param proof The Merkle proof that validates this claim.
     /// @return amount The amount of reward token claimed.
     /// @dev Anyone can claim rewards on behalf of an account.
     function claim(address account, address reward, uint256 claimable, bytes32[] calldata proof)
@@ -134,8 +134,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     }
 
     /// @notice Forces update the root of a given distribution (bypassing the timelock).
-    /// @param newRoot The new merkle root.
-    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    /// @param newRoot The new Merkle root.
+    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the Merkle tree itself).
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev Set to bytes32(0) to remove the root.
     function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner {

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.7.4;
 
-/// @notice The pending root struct for a merkle tree distribution during the timelock.
+/// @notice The pending root struct for a Merkle tree distribution during the timelock.
 struct PendingRoot {
     /// @dev The timestamp of the block in which the pending root was submitted.
     uint256 submittedAt;
     /// @dev The submitted pending root.
     bytes32 root;
-    /// @dev The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    /// @dev The optional ipfs hash containing metadata about the root (e.g. the Merkle tree itself).
     bytes32 ipfsHash;
 }
 

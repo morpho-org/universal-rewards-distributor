@@ -6,26 +6,26 @@ pragma solidity ^0.8.0;
 /// @custom:contact security@morpho.org
 /// @notice Library exposing events.
 library EventsLib {
-    /// @notice Emitted when the merkle root is set.
-    /// @param newRoot The new merkle root.
-    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    /// @notice Emitted when the Merkle root is set.
+    /// @param newRoot The new Merkle root.
+    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the Merkle tree itself).
     event RootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
-    /// @notice Emitted when a new merkle root is proposed.
-    /// @param newRoot The new merkle root.
-    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
+    /// @notice Emitted when a new Merkle root is proposed.
+    /// @param newRoot The new Merkle root.
+    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the Merkle tree itself).
     event RootProposed(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
-    /// @notice Emitted when a merkle tree distribution timelock is set.
-    /// @param timelock The new merkle timelock.
+    /// @notice Emitted when a Merkle tree distribution timelock is set.
+    /// @param timelock The new Merkle timelock.
     event TimelockSet(uint256 timelock);
 
-    /// @notice Emitted when a merkle tree updater is added or removed.
-    /// @param rootUpdater The merkle tree updater.
-    /// @param active The merkle tree updater's active state.
+    /// @notice Emitted when a Merkle tree updater is added or removed.
+    /// @param rootUpdater The Merkle tree updater.
+    /// @param active The Merkle tree updater's active state.
     event RootUpdaterSet(address indexed rootUpdater, bool active);
 
-    /// @notice Emitted when a merkle pending root is revoked.
+    /// @notice Emitted when a Merkle pending root is revoked.
     event RootRevoked();
 
     /// @notice Emitted when rewards are claimed.
@@ -34,7 +34,7 @@ library EventsLib {
     /// @param amount The amount of reward token claimed.
     event Claimed(address indexed account, address indexed reward, uint256 amount);
 
-    /// @notice Emitted when the ownership of a merkle tree distribution is transferred.
+    /// @notice Emitted when the ownership of a Merkle tree distribution is transferred.
     /// @param newOwner The new owner of the contract.
     event OwnerSet(address indexed newOwner);
 
@@ -43,7 +43,7 @@ library EventsLib {
     /// @param caller The address of the caller.
     /// @param owner The address of the URD owner.
     /// @param timelock The URD timelock.
-    /// @param root The URD's initial merkle root.
+    /// @param root The URD's initial Merkle root.
     /// @param ipfsHash The URD's initial ipfs hash.
     /// @param salt The salt used for CREATE2 opcode.
     event UrdCreated(
