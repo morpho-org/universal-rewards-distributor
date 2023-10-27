@@ -95,12 +95,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         require(pendingRoot.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
         require(block.timestamp >= pendingRoot.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_ELAPSED);
 
-        root = pendingRoot.root;
-        ipfsHash = pendingRoot.ipfsHash;
-
-        emit EventsLib.RootSet(pendingRoot.root, pendingRoot.ipfsHash);
-
-        delete pendingRoot;
+        _setRoot(pendingRoot.root, pendingRoot.ipfsHash);
     }
 
     /// @notice Claims rewards.
