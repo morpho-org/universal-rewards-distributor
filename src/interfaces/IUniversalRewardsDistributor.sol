@@ -24,18 +24,18 @@ interface IUniversalRewardsDistributor {
     function pendingRoot() external view returns (uint256 submittedAt, bytes32 root, bytes32 ipfsHash);
     function claimed(address, address) external view returns (uint256);
 
+    function submitRoot(bytes32 newRoot, bytes32 ipfsHash) external;
+
     function acceptRoot() external;
+    function claim(address account, address reward, uint256 claimable, bytes32[] memory proof)
+        external
+        returns (uint256 amount);
+
     function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external;
     function setTimelock(uint256 newTimelock) external;
     function setRootUpdater(address updater, bool active) external;
     function revokeRoot() external;
     function setOwner(address newOwner) external;
-
-    function submitRoot(bytes32 newRoot, bytes32 ipfsHash) external;
-
-    function claim(address account, address reward, uint256 claimable, bytes32[] memory proof)
-        external
-        returns (uint256 amount);
 }
 
 interface IPendingRoot {
