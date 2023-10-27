@@ -12,8 +12,8 @@ import {MerkleProof} from "../lib/openzeppelin-contracts/contracts/utils/cryptog
 /// @title UniversalRewardsDistributor
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org
-/// @notice This contract enables the distribution of various reward tokens to multiple accounts using different
-/// permissionless Merkle trees. It is largely inspired by Morpho's current rewards distributor:
+/// @notice This contract makes use of a Merkle tree to distribute various reward tokens to multiple accounts.
+/// It is largely inspired by Morpho's current rewards distributor:
 /// https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
 contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     using SafeTransferLib for ERC20;
