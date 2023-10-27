@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 /// @notice Library exposing error messages.
 library ErrorsLib {
     /// @notice Thrown when the caller is not the owner nor an updater.
-    string internal constant CALLER_NOT_OWNER_OR_UPDATER = "caller is not the owner or updater";
+    string internal constant CALLER_NOT_OWNER_NOR_UPDATER = "caller is not the owner nor an updater";
 
     /// @notice Thrown when the caller is not the owner.
     string internal constant CALLER_NOT_OWNER = "caller is not the owner";

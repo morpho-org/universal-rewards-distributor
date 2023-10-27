@@ -149,7 +149,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(!distributionWithoutTimeLock.isUpdater(randomCaller) && randomCaller != owner);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER));
+        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER_NOR_UPDATER));
         distributionWithoutTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
     }
 
@@ -185,7 +185,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(!distributionWithTimeLock.isUpdater(randomCaller) && randomCaller != owner);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER));
+        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER_NOR_UPDATER));
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
     }
 
