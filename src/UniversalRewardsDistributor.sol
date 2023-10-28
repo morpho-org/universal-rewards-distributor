@@ -67,10 +67,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev Warning: The `initialIpfsHash` might not correspond to the `initialRoot`.
     constructor(address initialOwner, uint256 initialTimelock, bytes32 initialRoot, bytes32 initialIpfsHash) {
         _setOwner(initialOwner);
-
-        if (initialTimelock > 0) _setTimelock(initialTimelock);
-
-        if (initialRoot != bytes32(0)) _setRoot(initialRoot, initialIpfsHash);
+        _setTimelock(initialTimelock);
+        _setRoot(initialRoot, initialIpfsHash);
     }
 
     /* EXTERNAL */
