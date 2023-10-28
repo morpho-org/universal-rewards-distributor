@@ -368,21 +368,21 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.setRootUpdater(_addrFromHashedString("RANDOM_UPDATER"), active);
     }
 
-    function testRevokeRootShouldRevokeWhenCalledWithOwner() public {
+    function testRevokePendingRootShouldRevokeWhenCalledWithOwner() public {
         vm.prank(owner);
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.RootRevoked();
-        distributionWithTimeLock.revokeRoot();
+        emit EventsLib.PendingRootRevoked();
+        distributionWithTimeLock.revokePendingRoot();
 
         PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.submittedAt, 0);
     }
 
-    function testRevokeRootShouldRevertIfNotOwner(bytes32 proposedRoot, address caller) public {
+    function testRevokePendingRootShouldRevertIfNotOwner(bytes32 proposedRoot, address caller) public {
         vm.assume(proposedRoot != bytes32(0) && caller != owner);
 
         vm.prank(owner);
@@ -390,13 +390,13 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(caller);
         vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
-        distributionWithTimeLock.revokeRoot();
+        distributionWithTimeLock.revokePendingRoot();
     }
 
-    function testRevokeRootShouldRevertWhenNoPendingRoot() public {
+    function testRevokePendingRootShouldRevertWhenNoPendingRoot() public {
         vm.prank(owner);
         vm.expectRevert(bytes(ErrorsLib.NO_PENDING_ROOT));
-        distributionWithTimeLock.revokeRoot();
+        distributionWithTimeLock.revokePendingRoot();
     }
 
     function testSetOwner(address newOwner) public {

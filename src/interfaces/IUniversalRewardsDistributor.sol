@@ -28,7 +28,7 @@ interface IUniversalRewardsDistributor {
     function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external;
     function setTimelock(uint256 newTimelock) external;
     function setRootUpdater(address updater, bool active) external;
-    function revokeRoot() external;
+    function revokePendingRoot() external;
     function setOwner(address newOwner) external;
 
     function submitRoot(bytes32 newRoot, bytes32 ipfsHash) external;

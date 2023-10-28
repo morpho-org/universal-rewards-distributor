@@ -170,12 +170,12 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called by the owner of the distribution at any time.
     /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has passed. This if the
     /// `owner` responsibility to trigger this function before the end of the timelock.
-    function revokeRoot() external onlyOwner {
+    function revokePendingRoot() external onlyOwner {
         require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
         delete pendingRoot;
 
-        emit EventsLib.RootRevoked();
+        emit EventsLib.PendingRootRevoked();
     }
 
     /// @notice Sets the `owner` of the distribution to `newOwner`.

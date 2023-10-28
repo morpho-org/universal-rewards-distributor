@@ -26,7 +26,7 @@ library EventsLib {
     event RootUpdaterSet(address indexed rootUpdater, bool active);
 
     /// @notice Emitted when a merkle pending root is revoked.
-    event RootRevoked();
+    event PendingRootRevoked();
 
     /// @notice Emitted when rewards are claimed.
     /// @param account The address for which rewards are claimd rewards for.
