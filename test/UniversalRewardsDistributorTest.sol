@@ -451,6 +451,45 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
     }
 
+
+    function testClaimShouldRevertIfNotEnoughFunds(uint256 claimable) public {
+        claimable = bound(claimable, 1 ether, 1000 ether);
+
+        (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
+
+        UniversalRewardsDistributor distributor = new UniversalRewardsDistributor(
+            owner, 0, root, bytes32(0)
+        );
+
+        assertEq(distributor.root(), root);
+        bytes32[] memory proof1 = merkle.getProof(data, 0);
+
+        vm.expectRevert(bytes(ErrorsLib.NOT_ENOUGH_FUNDS_IN_URD));
+        distributor.claim(vm.addr(1), address(token1), claimable, proof1);
+    }
+
+    function testClaimShouldRevertIfRootMissconfigured(uint256 claimable) public {
+        claimable = bound(claimable, 1 ether, 1000 ether);
+
+        // We first define a correct root
+        (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
+
+        vm.prank(owner);
+        distributionWithoutTimeLock.submitRoot(root, DEFAULT_IPFS_HASH);
+        bytes32[] memory proof1 = merkle.getProof(data, 0);
+        distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
+
+        // Now we define a missconfigured root with 2x less rewards
+        (bytes32[] memory missconfiguredData, bytes32 missconfiguredRoot) = _setupRewards(claimable / 2, 2);
+
+        vm.prank(owner);
+        distributionWithoutTimeLock.submitRoot(missconfiguredRoot, DEFAULT_IPFS_HASH);
+        bytes32[] memory missconfiguredProof1 = merkle.getProof(missconfiguredData, 0);
+
+        vm.expectRevert(bytes(ErrorsLib.ROOT_MISSCONFIGURED));
+        distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable / 2, missconfiguredProof1);
+    }
+
     function testClaimShouldReturnsTheAmountClaimed(uint256 claimable) public {
         claimable = bound(claimable, 1 ether, 1000 ether);
 
