@@ -451,7 +451,6 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
     }
 
-
     function testClaimShouldRevertIfNotEnoughFunds(uint256 claimable) public {
         claimable = bound(claimable, 1 ether, 1000 ether);
 
