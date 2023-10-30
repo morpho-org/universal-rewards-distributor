@@ -57,6 +57,7 @@ Having multiple updaters can lead to situations where the pending values are sub
 - TODO: Define the list of invariants for a new root.
 - We recommend merging all the {reward, user} pairs into a single leaf. If you wish to have two different leaves for one {reward, user} pair, the user will be able to claim the larger amount from the two leaves, not the sum of the two.
 - Merkle trees can be generated with [Openzeppelin library](https://github.com/OpenZeppelin/merkle-tree).
+- The URD support empty root. This means that, at any time, updaters or owner can submit a 0 hash root. It can be used to deprecate the URD.
 
 ## Claim Rewards
 
