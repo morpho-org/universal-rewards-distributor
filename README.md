@@ -1,16 +1,18 @@
 # Universal Rewards Distributor
 The Universal Rewards Distributor (URD), is a smart contract that allows for the distribution of multiple ERC20 tokens from a single offchain computed Merkle tree.
 
-Each URD contract has an owner and a group of updaters. These updaters can submit a new root to a pending value, which is subject to a timelock (that can be set to 0). Once the timelock period ends, anyone can accept this pending value. However, during the timelock period, the owner has veto power and can remove the pending value.
+Each URD contract has an owner and a group of updaters. Values of updaters are timelocked and can be revoked by 
+the owner or overrided by another updater. However, this timelock can be set to 0 if the URD owner do not need it.
+The updaters can submit a new root to a pending value. Once the timelock period ends, anyone can accept this pending value. However, during the timelock period, the owner has veto power and can remove the pending value.
 
 ## Use Case Example
 
-- Assume I am a DAO with a periodic rewards mechanism. Each month, a [Gelato](https://www.gelato.network/) bot runs a script creating a Merkle tree that distributes TokenA and TokenB.
+- Assume the Owner is a DAO with a periodic rewards mechanism. Each month, a [Gelato](https://www.gelato.network/) bot runs a script creating a Merkle tree that distributes TokenA and TokenB.
 
   When setting up the URD as a DAO, I configure the timelock based on the risk of updater corruption (let's say 3 days), and add a Gelato bot as an updater. If I already have a distribution, I can define an initial root, or use an empty root if I don't.
 
-- Each month, the Gelato bot proposes a new root. For 3 days, I have the opportunity to run checks on this root. After these 3 days, anyone can accept this value.
-- The DAO must transfer the correct amount of tokens to the URD to allow all claimants to claim their rewards. If the DAO does not provide enough funds, the claim function will fail with the message "not enough funds in URD."
+- Each month, the Gelato bot proposes a new root. For 3 days, I have the opportunity to run checks on this root. After these 3 days and if the DAO did not revoke the root, anyone can accept this value.
+- The DAO **must** transfer the correct amount of tokens to the URD to allow all claimants to claim their rewards. If the DAO does not provide enough funds, the claim function will fail with the message "not enough funds".
 
 ## Attaching an IPFS Hash
 
