@@ -20,16 +20,16 @@ Each URD contract has an owner and a group of updaters. These updaters can submi
 {
   "id": "A string id of the merkle tree, can be random",
   "metadata": {
-  "info": "a key value mapping allowing you to add information"
+    "info": "a key value mapping allowing you to add information"
   },
   "root": "The merkle root of the tree",
   "tree": [
-       {
-              "account": "The address of the claimer",
-              "reward": "The address of the reward token",
-              "claimable": "The claimable amount as a big number",
-              "proof": ["0x1...", "0x2...", "...", "0xN..."]
-      }
+    {
+      "account": "The address of the claimer",
+      "reward": "The address of the reward token",
+      "claimable": "The claimable amount as a big number",
+      "proof": ["0x1...", "0x2...", "...", "0xN..."]
+    }
   ]
 }
 ```
