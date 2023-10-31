@@ -3,7 +3,6 @@ The Universal Rewards Distributor (URD), is a smart contract that allows for the
 
 Each URD contract has an owner and a group of updaters (chosen by the owner). Values submitted by updaters are timelocked and can be revoked by 
 the owner or overriden by another updater. However, this timelock can be set to 0 if the URD owner does not need it.
-The updaters can submit a new root to a pending value. Once the timelock period ends, anyone can accept this pending value. However, during the timelock period, the owner has veto power and can remove the pending value.
 
 ## Use Case Example
 
