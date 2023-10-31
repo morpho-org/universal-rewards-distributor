@@ -210,9 +210,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         emit EventsLib.TimelockSet(newTimelock);
     }
 
-    function _setPendingRoot(PendingRoot memory _pendingRoot) internal {
-        pendingRoot = _pendingRoot;
+    /// @dev Sets the `pendingRoot` to `newPendingRoot`.
+    function _setPendingRoot(PendingRoot memory newPendingRoot) internal {
+        pendingRoot = newPendingRoot;
 
-        emit EventsLib.PendingRootSet(_pendingRoot.root, _pendingRoot.ipfsHash, _pendingRoot.submittedAt);
+        emit EventsLib.PendingRootSet(newPendingRoot);
     }
 }

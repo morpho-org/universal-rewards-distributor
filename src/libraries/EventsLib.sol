@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.0;
 
+import {PendingRoot} from "../interfaces/IUniversalRewardsDistributor.sol";
+
 /// @title EventsLib
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org
@@ -11,14 +13,13 @@ library EventsLib {
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     event RootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
-    /// @notice Emitted when a new merkle root is proposed.
-    /// @param newRoot The new merkle root.
-    /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    event PendingRootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash, uint256 timestamp);
+    /// @notice Emitted when a merkle root is proposed.
+    /// @param newPendingRoot The new pending root.
+    event PendingRootSet(PendingRoot newPendingRoot);
 
     /// @notice Emitted when a merkle tree distribution timelock is set.
-    /// @param timelock The new merkle timelock.
-    event TimelockSet(uint256 timelock);
+    /// @param newTimelock The new merkle timelock.
+    event TimelockSet(uint256 newTimelock);
 
     /// @notice Emitted when a merkle tree updater is added or removed.
     /// @param rootUpdater The merkle tree updater.
@@ -38,18 +39,18 @@ library EventsLib {
     /// @notice Emitted when a new URD is created.
     /// @param urd The address of the newly created URD.
     /// @param caller The address of the caller.
-    /// @param owner The address of the URD owner.
-    /// @param timelock The URD timelock.
-    /// @param root The URD's initial merkle root.
-    /// @param ipfsHash The URD's initial ipfs hash.
+    /// @param initialOwner The address of the URD owner.
+    /// @param initialTimelock The URD timelock.
+    /// @param initialRoot The URD's initial merkle root.
+    /// @param initialIpsfHash The URD's initial ipfs hash.
     /// @param salt The salt used for CREATE2 opcode.
     event UrdCreated(
         address indexed urd,
         address indexed caller,
-        address indexed owner,
-        uint256 timelock,
-        bytes32 root,
-        bytes32 ipfsHash,
+        address indexed initialOwner,
+        uint256 initialTimelock,
+        bytes32 initialRoot,
+        bytes32 initialIpsfHash,
         bytes32 salt
     );
 }
