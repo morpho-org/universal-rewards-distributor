@@ -1,5 +1,5 @@
 # Universal Rewards Distributor
-The Universal Rewards Distributor (URD), is a smart contract that allows for the distribution of multiple ERC20 tokens from a single off-chain computed Merkle tree.
+The Universal Rewards Distributor (URD), is a smart contract that allows for the distribution of multiple ERC20 tokens from a single offchain computed Merkle tree.
 
 Each URD contract has an owner and a group of updaters. These updaters can submit a new root to a pending value, which is subject to a timelock (that can be set to 0). Once the timelock period ends, anyone can accept this pending value. However, during the timelock period, the owner has veto power and can remove the pending value.
 
@@ -14,11 +14,11 @@ Each URD contract has an owner and a group of updaters. These updaters can submi
 
 ## Attaching an IPFS Hash
 
-- Using a Merkle tree delegates all root computation off-chain, leaving no information about the tree on-chain (except for the root). This makes it challenging for an integrator (or a claimer) to understand the Merkle tree or to know which proof to use. To address this, each root can be linked to an IPFS hash, which can link to any data. We recommend that all users follow the same format for the IPFS hash to facilitate integration. The suggested format is as follows:
+- Using a Merkle tree delegates all root computation offchain, leaving no information about the tree onchain (except for the root). This makes it challenging for an integrator (or a claimer) to understand the Merkle tree or to know which proof to use. To address this, each root can be linked to an IPFS hash, which can link to any data. We recommend that all users follow the same format for the IPFS hash to facilitate integration. The suggested format is as follows:
 
 ```json
 {
-  "id": "A string id of the merkle tree, can be random",
+  "id": "A string id of the Merkle tree, can be random",
   "metadata": {
     "info": "a key value mapping allowing you to add information"
   },
@@ -38,8 +38,8 @@ Each URD contract has an owner and a group of updaters. These updaters can submi
 
 ## Owner Specifications
 
-- The URD is an owner-managed contract, meaning the owner has full control over its distribution. Specifically, the owner can bypass all time-locked functions, modify the time-lock, add or remove updaters, and revoke the pending value at their discretion.
-- If the owner is set to a zero address, the contract becomes ownerless. In this scenario, only updaters can submit a root. Furthermore, the time-lock value becomes unchangeable, and pending values cannot be removed.
+- The URD is an owner-managed contract, meaning the owner has full control over its distribution. Specifically, the owner can bypass all timelocked functions, modify the timelock, add or remove updaters, and revoke the pending value at their discretion.
+- If the owner is set to the zero address, the contract becomes ownerless. In this scenario, only updaters can submit a root. Furthermore, the time-lock value becomes unchangeable, and pending values cannot be removed.
 - If there are neither owner nor updaters, the URD becomes immutable. This is useful for creating a one-time distribution that must remain unchanged. This can be accomplished at the contract's creation by providing only a Merkle root and an optional IPFS hash. After this, the contract's sole functionality is to claim rewards.
 - It is possible to create a URD with no root, owner, or updaters. While this might seem pointless, it is the URD creator's responsibility to configure the URD correctly.
 
@@ -49,7 +49,7 @@ Each URD contract has an owner and a group of updaters. These updaters can submi
 - All updaters share a single pending value. This means they can override the pending value (if any) at any time.
 - If a pending value is not used as the main root, any submissions by updaters will override the pending value.
 
-Having multiple updaters can lead to situations where the pending values are subject to multiple concurrent propositions. The owner must manage this scenario to maintain the URD's functionality. We recommend not having different reward distribution strategies in a single URD. All updaters should agree on a distribution mechanism and a root.The use case for having multiple updaters is to enhance resilience and security.
+Having multiple updaters can lead to situations where the pending values are subject to multiple concurrent propositions. The owner must manage this scenario to maintain the URD's functionality. We recommend not having different reward distribution strategies in a single URD. All updaters should agree on a distribution mechanism and a root. The use case for having multiple updaters is to enhance resilience and security.
 
 ## Considerations for Merkle Tree
 
