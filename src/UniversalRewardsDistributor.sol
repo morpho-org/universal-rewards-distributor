@@ -83,8 +83,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         if (timelock == 0) {
             _setRoot(newRoot, newIpfsHash);
         } else {
-            pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
-            emit EventsLib.RootProposed(newRoot, newIpfsHash);
+            _setPendingRoot(PendingRoot(block.timestamp, newRoot, newIpfsHash));
         }
     }
 
@@ -100,7 +99,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         emit EventsLib.RootSet(pendingRoot.root, pendingRoot.ipfsHash);
 
-        delete pendingRoot;
+        _setPendingRoot(PendingRoot(0, 0, 0));
     }
 
     /// @notice Claims rewards.
@@ -173,9 +172,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     function revokePendingRoot() external onlyOwner {
         require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
-        delete pendingRoot;
-
-        emit EventsLib.PendingRootRevoked();
+        _setPendingRoot(PendingRoot(0, 0, 0));
     }
 
     /// @notice Sets the `owner` of the distribution to `newOwner`.
@@ -192,7 +189,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         root = newRoot;
         ipfsHash = newIpfsHash;
 
-        delete pendingRoot;
+        if (pendingRoot.submittedAt != 0) {
+            _setPendingRoot(PendingRoot(0, 0, 0));
+        }
 
         emit EventsLib.RootSet(newRoot, newIpfsHash);
     }
@@ -209,5 +208,10 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         timelock = newTimelock;
 
         emit EventsLib.TimelockSet(newTimelock);
+    }
+
+    function _setPendingRoot(PendingRoot memory _pendingRoot) internal {
+        pendingRoot = _pendingRoot;
+        emit EventsLib.RootProposed(_pendingRoot.root, _pendingRoot.ipfsHash, _pendingRoot.submittedAt);
     }
 }
