@@ -463,7 +463,7 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(distributor.root(), root);
         bytes32[] memory proof1 = merkle.getProof(data, 0);
 
-        vm.expectRevert(bytes(ErrorsLib.NOT_ENOUGH_FUNDS_IN_URD));
+        vm.expectRevert(bytes(ErrorsLib.NOT_ENOUGH_FUNDS));
         distributor.claim(vm.addr(1), address(token1), claimable, proof1);
     }
 
@@ -485,7 +485,7 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.submitRoot(missconfiguredRoot, DEFAULT_IPFS_HASH);
         bytes32[] memory missconfiguredProof1 = merkle.getProof(missconfiguredData, 0);
 
-        vm.expectRevert(bytes(ErrorsLib.ROOT_MISSCONFIGURED));
+        vm.expectRevert(bytes(ErrorsLib.ROOT_MISCONFIGURED));
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable / 2, missconfiguredProof1);
     }
 

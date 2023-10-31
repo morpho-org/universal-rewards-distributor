@@ -122,7 +122,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             ErrorsLib.INVALID_PROOF_OR_EXPIRED
         );
 
-        require(claimable >= claimed[account][reward], ErrorsLib.ROOT_MISSCONFIGURED);
+        require(claimable >= claimed[account][reward], ErrorsLib.ROOT_MISCONFIGURED);
 
         amount = claimable - claimed[account][reward];
 
@@ -130,7 +130,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         claimed[account][reward] = claimable;
 
-        require(ERC20(reward).balanceOf(address(this)) >= amount, ErrorsLib.NOT_ENOUGH_FUNDS_IN_URD);
+        require(ERC20(reward).balanceOf(address(this)) >= amount, ErrorsLib.NOT_ENOUGH_FUNDS);
 
         ERC20(reward).safeTransfer(account, amount);
 
