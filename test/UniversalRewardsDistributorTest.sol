@@ -198,6 +198,8 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(randomCaller);
         vm.expectEmit(address(distributionWithTimeLock));
+        emit EventsLib.RootProposed(0, 0, 0);
+        vm.expectEmit(address(distributionWithTimeLock));
         emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.acceptRoot();
 
@@ -254,18 +256,20 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(pendingRoot.submittedAt, 0);
     }
 
-    function testSetRootShouldRemovePendingRoot(bytes32 newRoot, address randomCaller) public {
-        vm.assume(newRoot != DEFAULT_ROOT && randomCaller != owner);
-
-        vm.startPrank(owner);
+    function testSetRootShouldUpdateTheCurrentPendingRoot(bytes32 newRoot, bytes32 newIpfsHash) public {
+        vm.prank(updater);
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
-        assertEq(_getPendingRoot(distributionWithTimeLock).root, DEFAULT_ROOT);
+        vm.prank(owner);
+        vm.expectEmit(address(distributionWithTimeLock));
+        emit EventsLib.RootProposed(0, 0, 0);
+        distributionWithTimeLock.setRoot(newRoot, newIpfsHash);
 
-        distributionWithTimeLock.setRoot(newRoot, DEFAULT_IPFS_HASH);
-        vm.stopPrank();
+        PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
 
-        assertEq(_getPendingRoot(distributionWithTimeLock).root, bytes32(0));
+        assertEq(pendingRoot.submittedAt, 0);
+        assertEq(pendingRoot.root, 0);
+        assertEq(pendingRoot.ipfsHash, 0);
     }
 
     function testSetTimelockShouldChangeTheDistributionTimelock(uint256 newTimelock) public {
@@ -305,6 +309,8 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.acceptRoot();
 
         vm.warp(block.timestamp + afterEndOfTimelock);
+        vm.expectEmit(address(distributionWithTimeLock));
+        emit EventsLib.RootProposed(0, 0, 0);
         vm.expectEmit(address(distributionWithTimeLock));
         emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.acceptRoot();
