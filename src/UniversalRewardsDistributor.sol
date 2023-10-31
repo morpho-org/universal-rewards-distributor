@@ -97,9 +97,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         root = pendingRoot.root;
         ipfsHash = pendingRoot.ipfsHash;
 
-        emit EventsLib.RootSet(pendingRoot.root, pendingRoot.ipfsHash);
-
         _setPendingRoot(PendingRoot(0, 0, 0));
+
+        emit EventsLib.RootSet(pendingRoot.root, pendingRoot.ipfsHash);
     }
 
     /// @notice Claims rewards.
