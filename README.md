@@ -1,15 +1,15 @@
 # Universal Rewards Distributor
 The Universal Rewards Distributor (URD), is a smart contract that allows for the distribution of multiple ERC20 tokens from a single offchain computed Merkle tree.
 
-Each URD contract has an owner and a group of updaters. Values of updaters are timelocked and can be revoked by 
-the owner or overrided by another updater. However, this timelock can be set to 0 if the URD owner do not need it.
+Each URD contract has an owner and a group of updaters (chosen by the owner). Values submitted by updaters are timelocked and can be revoked by 
+the owner or overriden by another updater. However, this timelock can be set to 0 if the URD owner does not need it.
 The updaters can submit a new root to a pending value. Once the timelock period ends, anyone can accept this pending value. However, during the timelock period, the owner has veto power and can remove the pending value.
 
 ## Use Case Example
 
 - Assume the Owner is a DAO with a periodic rewards mechanism. Each month, a [Gelato](https://www.gelato.network/) bot runs a script creating a Merkle tree that distributes TokenA and TokenB.
 
-  When setting up the URD as a DAO, I configure the timelock based on the risk of updater corruption (let's say 3 days), and add a Gelato bot as an updater. If I already have a distribution, I can define an initial root, or use an empty root if I don't.
+  When setting up the URD as a DAO, I configure the timelock based on the risk of updater corruption (let's say 3 days), and add a Gelato bot as an updater. If I already have a distribution at the time of the URD deployment, I can define an initial root, or use an empty root if I don't.
 
 - Each month, the Gelato bot proposes a new root. For 3 days, I have the opportunity to run checks on this root. After these 3 days and if the DAO did not revoke the root, anyone can accept this value.
 - The DAO **must** transfer the correct amount of tokens to the URD to allow all claimants to claim their rewards. If the DAO does not provide enough funds, the claim function will fail with the message "not enough funds".
@@ -55,7 +55,7 @@ Having multiple updaters can lead to situations where the pending values are sub
 
 ## Considerations for Merkle Tree
 
-- The claimable amount for a given user must always exceed the amount provided in the previous Merkle tree. If a claimer has claimed an amount higher than the amount in the Merkle tree (if claimed from a previous root), the claim will revert with a "root misconfigured" error.
+- The claimable amount for a given user must always exceed the amount provided in the previous Merkle tree. If a claimer has claimed an amount higher than the `claimable` amount in the Merkle tree (if claimed from a previous root), the claim will revert with a "root misconfigured" error.
 - TODO: Define the list of invariants for a new root.
 - We recommend merging all the {reward, user} pairs into a single leaf. If you wish to have two different leaves for one {reward, user} pair, the user will be able to claim the larger amount from the two leaves, not the sum of the two.
 - Merkle trees can be generated with [Openzeppelin library](https://github.com/OpenZeppelin/merkle-tree).
