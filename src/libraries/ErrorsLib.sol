@@ -27,9 +27,9 @@ library ErrorsLib {
     /// @notice Thrown when rewards have already been claimed.
     string internal constant ALREADY_CLAIMED = "already claimed";
 
-    /// @notice Thrown when the merkle tree is badly configured.
-    string internal constant ROOT_MISSCONFIGURED = "root missconfigured";
+    /// @notice Thrown when the Merkle tree contains a node with fewer rewards than what it has previously claimed.
+    string internal constant ROOT_MISCONFIGURED = "root misconfigured";
 
-    /// @notice Thrown when rewards
-    string internal constant NOT_ENOUGH_FUNDS_IN_URD = "not enough funds in URD";
+    /// @notice Thrown when rewards the rewards distributor doesn't have enough reward tokens.
+    string internal constant NOT_ENOUGH_FUNDS = "not enough funds";
 }
