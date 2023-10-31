@@ -213,6 +213,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     function _setPendingRoot(PendingRoot memory _pendingRoot) internal {
         pendingRoot = _pendingRoot;
 
-        emit EventsLib.RootProposed(_pendingRoot.root, _pendingRoot.ipfsHash, _pendingRoot.submittedAt);
+        emit EventsLib.PendingRootSet(_pendingRoot.root, _pendingRoot.ipfsHash, _pendingRoot.submittedAt);
     }
 }
