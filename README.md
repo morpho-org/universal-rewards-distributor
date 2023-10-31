@@ -72,6 +72,12 @@ Having multiple updaters can lead to situations where the pending values are sub
 
 You can create a URD using a factory. This factory simplifies the indexing of the URD offchain and validates any URDs created through it. While its use is optional, it offers a convenient alternative to directly deploying a URD by submitting the bytecode.
 
+## Skim non claimed rewards
+A rewards program can have a deadline for users to claim tokens. 
+After this deadline, the owner can skim the rewards that were not claimed. 
+To do so, the owner has to create a Merkle tree that is sending the rewards to the owner. 
+Then, the owner can submit this Merkle tree to the URD. The URD will then allow the owner to claim the rewards that were not claimed by the users.
+
 ## Limitations
 
 ### The pending root is not a queue
