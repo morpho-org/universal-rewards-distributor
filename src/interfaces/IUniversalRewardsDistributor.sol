@@ -15,13 +15,12 @@ struct PendingRoot {
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org
 /// @notice UniversalRewardsDistributor's interface.
-interface IUniversalRewardsDistributor {
+interface IUniversalRewardsDistributorBase {
     function root() external view returns (bytes32);
     function owner() external view returns (address);
     function timelock() external view returns (uint256);
     function ipfsHash() external view returns (bytes32);
     function isUpdater(address) external view returns (bool);
-    function pendingRoot() external view returns (uint256 submittedAt, bytes32 root, bytes32 ipfsHash);
     function claimed(address, address) external view returns (uint256);
 
     function acceptRoot() external;
@@ -38,6 +37,10 @@ interface IUniversalRewardsDistributor {
         returns (uint256 amount);
 }
 
-interface IPendingRoot {
+interface IUniversalRewardsDistributorStaticTyping is IUniversalRewardsDistributorBase {
+    function pendingRoot() external view returns (uint256 submittedAt, bytes32 root, bytes32 ipfsHash);
+}
+
+interface IUniversalRewardsDistributor is IUniversalRewardsDistributorBase {
     function pendingRoot() external view returns (PendingRoot memory);
 }
