@@ -80,9 +80,13 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
     function submitRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdater {
+        require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ROOT_ALREADY_SET);
+
         if (timelock == 0) {
             _setRoot(newRoot, newIpfsHash);
         } else {
+            require(newRoot != pendingRoot.root || newIpfsHash != pendingRoot.ipfsHash, ErrorsLib.ALREADY_SET);
+
             pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
             emit EventsLib.RootProposed(newRoot, newIpfsHash);
         }
@@ -139,6 +143,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev Set to bytes32(0) to remove the root.
     function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner {
+        require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ROOT_ALREADY_SET);
         _setRoot(newRoot, newIpfsHash);
     }
 
@@ -147,6 +152,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
     function setTimelock(uint256 newTimelock) external onlyOwner {
+        require(newTimelock != timelock, ErrorsLib.ALREADY_SET);
+
         if (newTimelock < timelock) {
             require(
                 pendingRoot.submittedAt == 0 || pendingRoot.submittedAt + timelock <= block.timestamp,
@@ -161,6 +168,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param updater The address of the root updater.
     /// @param active Whether the root updater should be active or not.
     function setRootUpdater(address updater, bool active) external onlyOwner {
+        require(isUpdater[updater] != active, ErrorsLib.ALREADY_SET);
+
         isUpdater[updater] = active;
 
         emit EventsLib.RootUpdaterSet(updater, active);
@@ -180,6 +189,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice Sets the `owner` of the distribution to `newOwner`.
     function setOwner(address newOwner) external onlyOwner {
+        require(newOwner != owner, ErrorsLib.ALREADY_SET);
+
         _setOwner(newOwner);
     }
 

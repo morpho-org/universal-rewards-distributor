@@ -26,4 +26,10 @@ library ErrorsLib {
 
     /// @notice Thrown when rewards have already been claimed.
     string internal constant ALREADY_CLAIMED = "already claimed";
+
+    /// @notice Thrown when the value is already set.
+    string internal constant ALREADY_SET = "already set";
+
+    /// @notice Thrown when the submitted pending root is the same as the current one.
+    string internal constant ROOT_ALREADY_SET = "root already set";
 }
