@@ -12,7 +12,6 @@ import {UniversalRewardsDistributor} from "../src/UniversalRewardsDistributor.so
 import {EventsLib} from "../src/libraries/EventsLib.sol";
 
 import {Merkle} from "../lib/murky/src/Merkle.sol";
-
 import "../lib/forge-std/src/Test.sol";
 
 contract UniversalRewardsDistributorTest is Test {
@@ -153,6 +152,62 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
     }
 
+    function testSubmitRootWithPreviousPendingRootShouldRevert(bytes32 newRoot, bytes32 newIpfsHash) public {
+        vm.assume(newRoot != distributionWithTimeLock.root() && newIpfsHash != distributionWithTimeLock.ipfsHash());
+
+        vm.startPrank(owner);
+        distributionWithTimeLock.submitRoot(newRoot, newIpfsHash);
+
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributionWithTimeLock.submitRoot(newRoot, newIpfsHash);
+
+        vm.stopPrank();
+    }
+
+    function testSubmitRootWithCurrentRootAndNoTimelockShouldRevert(bytes32 newRoot, bytes32 newIpfsHash) public {
+        vm.assume(newRoot != distributionWithTimeLock.root() && newIpfsHash != distributionWithTimeLock.ipfsHash());
+
+        vm.startPrank(owner);
+        distributionWithoutTimeLock.submitRoot(newRoot, newIpfsHash);
+
+        vm.expectRevert(bytes(ErrorsLib.ROOT_ALREADY_SET));
+        distributionWithoutTimeLock.submitRoot(newRoot, newIpfsHash);
+
+        vm.stopPrank();
+    }
+
+    function testSubmitRootWithCurrentRootShouldRevert(bytes32 newRoot, bytes32 newIpfsHash) public {
+        vm.assume(newRoot != distributionWithTimeLock.root() && newIpfsHash != distributionWithTimeLock.ipfsHash());
+
+        vm.startPrank(owner);
+        distributionWithTimeLock.setRoot(newRoot, newIpfsHash);
+
+        vm.expectRevert(bytes(ErrorsLib.ROOT_ALREADY_SET));
+        distributionWithTimeLock.submitRoot(newRoot, newIpfsHash);
+        vm.stopPrank();
+    }
+
+    function testSubmitRootTwiceShouldWorkWhenModifyingIpfsHash(
+        bytes32 newRoot,
+        bytes32 newIpfsHash,
+        bytes32 secondIpfsHash
+    ) public {
+        vm.assume(
+            newRoot != distributionWithTimeLock.root() && newIpfsHash != distributionWithTimeLock.ipfsHash()
+                && secondIpfsHash != newIpfsHash
+        );
+
+        vm.startPrank(owner);
+        distributionWithTimeLock.setRoot(newRoot, newIpfsHash);
+
+        vm.expectEmit(address(distributionWithTimeLock));
+        emit EventsLib.RootProposed(newRoot, secondIpfsHash);
+        distributionWithTimeLock.submitRoot(newRoot, secondIpfsHash);
+        vm.stopPrank();
+
+        assertEq(_getPendingRoot(distributionWithTimeLock).ipfsHash, secondIpfsHash);
+    }
+
     function testSubmitRootWithTimelockAsOwner() public {
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
@@ -271,12 +326,27 @@ contract UniversalRewardsDistributorTest is Test {
     function testSetTimelockShouldChangeTheDistributionTimelock(uint256 newTimelock) public {
         newTimelock = bound(newTimelock, 0, type(uint256).max);
 
+        vm.assume(newTimelock != distributionWithoutTimeLock.timelock());
+
         vm.prank(owner);
         vm.expectEmit(address(distributionWithoutTimeLock));
         emit EventsLib.TimelockSet(newTimelock);
         distributionWithoutTimeLock.setTimelock(newTimelock);
 
         assertEq(distributionWithoutTimeLock.timelock(), newTimelock);
+    }
+
+    function testSetTimelockShouldRevertOnSameValue(uint256 newTimelock) public {
+        newTimelock = bound(newTimelock, 0, type(uint256).max);
+
+        vm.assume(newTimelock != distributionWithoutTimeLock.timelock());
+
+        vm.prank(owner);
+        distributionWithoutTimeLock.setTimelock(newTimelock);
+
+        vm.prank(owner);
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributionWithoutTimeLock.setTimelock(newTimelock);
     }
 
     function testSetTimelockShouldIncreaseTheQueueTimestamp(
@@ -352,12 +422,25 @@ contract UniversalRewardsDistributorTest is Test {
     }
 
     function testSetRootUpdaterShouldAddOrRemoveRootUpdater(address newUpdater, bool active) public {
+        vm.assume(distributionWithoutTimeLock.isUpdater(newUpdater) != active);
+
         vm.prank(owner);
         vm.expectEmit(address(distributionWithoutTimeLock));
         emit EventsLib.RootUpdaterSet(newUpdater, active);
         distributionWithoutTimeLock.setRootUpdater(newUpdater, active);
 
         assertEq(distributionWithoutTimeLock.isUpdater(newUpdater), active);
+    }
+
+    function testSetRootUpdaterShouldRevertIfAlreadySet(address newUpdater, bool active) public {
+        vm.assume(distributionWithoutTimeLock.isUpdater(newUpdater) != active);
+
+        vm.prank(owner);
+        distributionWithoutTimeLock.setRootUpdater(newUpdater, active);
+
+        vm.prank(owner);
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributionWithoutTimeLock.setRootUpdater(newUpdater, active);
     }
 
     function testSetRootUpdaterShouldRevertIfNotOwner(address caller, bool active) public {
@@ -418,6 +501,17 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.setOwner(newOwner);
     }
 
+    function testSetOwnerShouldRevertIfAlreadySet(address newOwner) public {
+        vm.assume(newOwner != owner);
+
+        vm.prank(owner);
+        distributionWithTimeLock.setOwner(newOwner);
+
+        vm.prank(newOwner);
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributionWithTimeLock.setOwner(newOwner);
+    }
+
     function testClaimShouldFollowTheMerkleDistribution(uint256 claimable, uint8 size) public {
         claimable = bound(claimable, 1 ether, 1000 ether);
         uint256 boundedSize = bound(size, 2, MAX_RECEIVERS);
@@ -452,6 +546,7 @@ contract UniversalRewardsDistributorTest is Test {
     }
 
     function testClaimShouldReturnsTheAmountClaimed(uint256 claimable) public {
+        vm.assume(claimable > 0);
         claimable = bound(claimable, 1 ether, 1000 ether);
 
         (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
