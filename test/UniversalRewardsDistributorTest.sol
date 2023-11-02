@@ -451,7 +451,7 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
     }
 
-    function testClaimShouldRevertIfRootMissconfigured(uint256 claimable) public {
+    function testClaimShouldRevertIfRootMisconfigured(uint256 claimable) public {
         claimable = bound(claimable, 1 ether, 1000 ether);
 
         // We first define a correct root
@@ -462,7 +462,7 @@ contract UniversalRewardsDistributorTest is Test {
         bytes32[] memory proof1 = merkle.getProof(data, 0);
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
 
-        // Now we define a missconfigured root with 2x less rewards
+        // Now we define a misconfigured root with 2x less rewards
         (bytes32[] memory missconfiguredData, bytes32 missconfiguredRoot) = _setupRewards(claimable / 2, 2);
 
         vm.prank(owner);
