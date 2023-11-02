@@ -100,11 +100,12 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     }
 
     /// @notice Revokes the pending root.
-    /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has passed.
+    /// @dev Can be frontrunned with `acceptRoot` in case the timelock has passed.
     function revokePendingRoot() external onlyUpdater {
         require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
         delete pendingRoot;
+
         emit EventsLib.PendingRootRevoked();
     }
 
