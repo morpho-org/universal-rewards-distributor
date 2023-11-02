@@ -92,7 +92,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
     function acceptRoot() external {
-        require(pendingRoot.validAt > 0, ErrorsLib.NO_PENDING_ROOT);
+        require(pendingRoot.validAt != 0, ErrorsLib.NO_PENDING_ROOT);
         require(block.timestamp >= pendingRoot.validAt, ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
         root = pendingRoot.root;

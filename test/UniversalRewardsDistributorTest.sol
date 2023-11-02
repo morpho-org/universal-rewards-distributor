@@ -289,10 +289,9 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(distributionWithoutTimeLock.timelock(), newTimelock);
     }
 
-    function testSetTimelockShouldNotImpactPendingValuesIfTimelockIncreased(
-        uint256 timeElapsed,
-        uint256 newTimelock
-    ) public {
+    function testSetTimelockShouldNotImpactPendingValuesIfTimelockIncreased(uint256 timeElapsed, uint256 newTimelock)
+        public
+    {
         newTimelock = bound(newTimelock, DEFAULT_TIMELOCK + 1, type(uint256).max - block.timestamp);
         vm.assume(timeElapsed > DEFAULT_TIMELOCK && timeElapsed <= newTimelock);
 
@@ -311,11 +310,9 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.acceptRoot();
     }
 
-
-    function testSetTimelockShouldNotImpactPendingValuesIfTimelockReduced(
-        uint256 timeElapsed,
-        uint256 newTimelock
-    ) public {
+    function testSetTimelockShouldNotImpactPendingValuesIfTimelockReduced(uint256 timeElapsed, uint256 newTimelock)
+        public
+    {
         vm.assume(newTimelock > 0);
         timeElapsed = bound(timeElapsed, 1, DEFAULT_TIMELOCK - 1);
         newTimelock = bound(newTimelock, 0, timeElapsed - 1);
