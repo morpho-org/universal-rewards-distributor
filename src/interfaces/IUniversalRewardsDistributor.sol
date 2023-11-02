@@ -11,8 +11,8 @@ struct PendingRoot {
     bytes32 ipfsHash;
 }
 
-
-/// @dev This interface is used for factorizing IUniversalRewardsDistributorStaticTyping and IUniversalRewardsDistributor.
+/// @dev This interface is used for factorizing IUniversalRewardsDistributorStaticTyping and
+/// IUniversalRewardsDistributor.
 /// @dev Consider using the IUniversalRewardsDistributor interface instead of this one.
 interface IUniversalRewardsDistributorBase {
     function root() external view returns (bytes32);
@@ -36,7 +36,8 @@ interface IUniversalRewardsDistributorBase {
         returns (uint256 amount);
 }
 
-/// @dev This interface is inherited by the UniversalRewardsDistributor so that function signatures are checked by the compiler.
+/// @dev This interface is inherited by the UniversalRewardsDistributor so that function signatures are checked by the
+/// compiler.
 /// @dev Consider using the IUniversalRewardsDistributor interface instead of this one.
 interface IUniversalRewardsDistributorStaticTyping is IUniversalRewardsDistributorBase {
     function pendingRoot() external view returns (uint256 submittedAt, bytes32 root, bytes32 ipfsHash);
@@ -45,7 +46,8 @@ interface IUniversalRewardsDistributorStaticTyping is IUniversalRewardsDistribut
 /// @title IUniversalRewardsDistributor
 /// @author Morpho Labs
 /// @custom:contact security@morpho.org
-/// @dev Use this interface for UniversalRewardsDistributor to have access to all the functions with the appropriate function signatures.
+/// @dev Use this interface for UniversalRewardsDistributor to have access to all the functions with the appropriate
+/// function signatures.
 interface IUniversalRewardsDistributor is IUniversalRewardsDistributorBase {
     function pendingRoot() external view returns (PendingRoot memory);
 }
