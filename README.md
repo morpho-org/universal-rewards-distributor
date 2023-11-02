@@ -1,6 +1,6 @@
 # Universal Rewards Distributor
 
-The Universal Rewards Distributor (URD), is a smart contract that allows for the distribution of multiple ERC20 tokens from a single offchain computed Merkle tree.
+The Universal Rewards Distributor (URD), is a smart contract allowing the distribution of multiple ERC20 tokens from a single offchain computed Merkle tree.
 
 Each URD contract has an owner and a group of updaters (chosen by the owner). Values submitted by updaters are timelocked and can be revoked by the owner or overriden by another updater. However, this timelock can be set to 0 if the URD owner does not need it.
 
@@ -36,7 +36,8 @@ The DAO must transfer the correct amount of tokens to the URD to allow all claim
 }
 ```
 
-- We recommend not including spaces or new lines when uploading to IPFS, to ensure a consistent method of uploading your JSON file.
+- We recommend not including spaces or new lines when uploading to IPFS, to ensure a consistent method of uploading your JSON file. 
+- We also recommend sorting the tree by the account address to ensure a consistent order.
 
 ## Owner Specifications
 
@@ -59,7 +60,8 @@ Having multiple updaters can lead to situations where the pending values are sub
 - TODO: Define the list of invariants for a new root.
 - We recommend merging all the {reward, user} pairs into a single leaf. If you wish to have two different leaves for one {reward, user} pair, the user will be able to claim the larger amount from the two leaves, not the sum of the two.
 - Merkle trees can be generated with [Openzeppelin library](https://github.com/OpenZeppelin/merkle-tree).
-- The URD support empty root. This means that, at any time, updaters or owner can submit a 0 hash root. It can be used to deprecate the URD.
+- The leaves of the merkle tree have to be hashed twice. It is natively supported by the Openzeppelin library.
+- The URD supports empty root. This means that, at any time, updaters or owner can submit a 0 hash root. It can be used to deprecate the URD.
 
 ## Claim Rewards
 
