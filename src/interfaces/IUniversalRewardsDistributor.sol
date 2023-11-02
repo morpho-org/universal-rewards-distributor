@@ -3,8 +3,8 @@ pragma solidity >=0.7.4;
 
 /// @notice The pending root struct for a merkle tree distribution during the timelock.
 struct PendingRoot {
-    /// @dev The timestamp of the block in which the pending root was submitted.
-    uint256 submittedAt;
+    /// @dev The timestamp at which the pending root can be accepted.
+    uint256 validAt;
     /// @dev The submitted pending root.
     bytes32 root;
     /// @dev The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).

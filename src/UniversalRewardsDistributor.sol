@@ -83,7 +83,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
         if (timelock == 0) {
             _setRoot(newRoot, newIpfsHash);
         } else {
-            pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
+            pendingRoot = PendingRoot(block.timestamp + timelock, newRoot, newIpfsHash);
             emit EventsLib.RootProposed(newRoot, newIpfsHash);
         }
     }
@@ -92,8 +92,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
     function acceptRoot() external {
-        require(pendingRoot.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
-        require(block.timestamp >= pendingRoot.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
+        require(pendingRoot.validAt > 0, ErrorsLib.NO_PENDING_ROOT);
+        require(block.timestamp >= pendingRoot.validAt, ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
         root = pendingRoot.root;
         ipfsHash = pendingRoot.ipfsHash;
@@ -145,15 +145,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @notice Sets the timelock of a given distribution.
     /// @param newTimelock The new timelock.
     /// @dev This function can only be called by the owner of the distribution.
-    /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
+    /// @dev The timelock modification are not applicable to the pending values.
     function setTimelock(uint256 newTimelock) external onlyOwner {
-        if (newTimelock < timelock) {
-            require(
-                pendingRoot.submittedAt == 0 || pendingRoot.submittedAt + timelock <= block.timestamp,
-                ErrorsLib.TIMELOCK_NOT_EXPIRED
-            );
-        }
-
         _setTimelock(newTimelock);
     }
 
@@ -171,7 +164,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has passed. This if the
     /// `owner` responsibility to trigger this function before the end of the timelock.
     function revokeRoot() external onlyOwner {
-        require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
+        require(pendingRoot.validAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
         delete pendingRoot;
 
