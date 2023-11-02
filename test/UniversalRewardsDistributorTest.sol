@@ -336,7 +336,7 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(distributionWithoutTimeLock.timelock(), newTimelock);
     }
 
-    function testSetTimelockShouldRevertOnSameValue(uint256 newTimelock) public {
+    function testSetTimelockShouldRevertIfSameValue(uint256 newTimelock) public {
         newTimelock = bound(newTimelock, 0, type(uint256).max);
 
         vm.assume(newTimelock != distributionWithoutTimeLock.timelock());
