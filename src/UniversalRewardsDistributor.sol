@@ -80,12 +80,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
     function submitRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdater {
-        require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ROOT_ALREADY_SET);
-
         if (timelock == 0) {
             _setRoot(newRoot, newIpfsHash);
         } else {
             require(newRoot != pendingRoot.root || newIpfsHash != pendingRoot.ipfsHash, ErrorsLib.ALREADY_SET);
+            require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ROOT_ALREADY_SET);
 
             pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
             emit EventsLib.RootProposed(newRoot, newIpfsHash);
@@ -143,7 +142,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev Set to bytes32(0) to remove the root.
     function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner {
-        require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ROOT_ALREADY_SET);
         _setRoot(newRoot, newIpfsHash);
     }
 
@@ -200,6 +198,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev Deletes the pending root.
     /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
     function _setRoot(bytes32 newRoot, bytes32 newIpfsHash) internal {
+        require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ROOT_ALREADY_SET);
+
         root = newRoot;
         ipfsHash = newIpfsHash;
 
