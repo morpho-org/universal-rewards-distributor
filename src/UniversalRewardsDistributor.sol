@@ -83,7 +83,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         if (timelock == 0) {
             _setRoot(newRoot, newIpfsHash);
         } else {
-            pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
+            pendingRoot = PendingRoot({root: newRoot, ipfsHash: newIpfsHash, submittedAt: block.timestamp});
 
             emit EventsLib.PendingRootSet(newRoot, newIpfsHash);
         }

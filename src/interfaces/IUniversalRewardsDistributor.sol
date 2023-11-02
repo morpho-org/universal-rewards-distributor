@@ -3,12 +3,12 @@ pragma solidity >=0.7.4;
 
 /// @notice The pending root struct for a merkle tree distribution during the timelock.
 struct PendingRoot {
-    /// @dev The timestamp of the block in which the pending root was submitted.
-    uint256 submittedAt;
     /// @dev The submitted pending root.
     bytes32 root;
     /// @dev The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     bytes32 ipfsHash;
+    /// @dev The timestamp of the block in which the pending root was submitted.
+    uint256 submittedAt;
 }
 
 /// @title IUniversalRewardsDistributor
@@ -21,7 +21,7 @@ interface IUniversalRewardsDistributor {
     function timelock() external view returns (uint256);
     function ipfsHash() external view returns (bytes32);
     function isUpdater(address) external view returns (bool);
-    function pendingRoot() external view returns (uint256 submittedAt, bytes32 root, bytes32 ipfsHash);
+    function pendingRoot() external view returns (bytes32 root, bytes32 ipfsHash, uint256 submittedAt);
     function claimed(address, address) external view returns (uint256);
 
     function acceptRoot() external;
