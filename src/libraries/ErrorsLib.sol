@@ -27,7 +27,4 @@ library ErrorsLib {
     /// @notice Thrown when the Merkle tree contains a node with fewer rewards than what it has previously claimed. Also
     /// thrown if user claims twice with the same root.
     string internal constant CLAIMABLE_TOO_LOW = "claimable too low";
-
-    /// @notice Thrown when rewards the rewards distributor doesn't have enough reward tokens.
-    string internal constant NOT_ENOUGH_FUNDS = "not enough funds";
 }

@@ -128,8 +128,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
         claimed[account][reward] = claimable;
 
-        require(ERC20(reward).balanceOf(address(this)) >= amount, ErrorsLib.NOT_ENOUGH_FUNDS);
-
         ERC20(reward).safeTransfer(account, amount);
 
         emit EventsLib.Claimed(account, reward, amount);
