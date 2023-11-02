@@ -447,7 +447,7 @@ contract UniversalRewardsDistributorTest is Test {
         emit EventsLib.Claimed(vm.addr(1), address(token1), claimable);
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
 
-        vm.expectRevert(bytes(ErrorsLib.ALREADY_CLAIMED));
+        vm.expectRevert(bytes(ErrorsLib.CLAIMABLE_TOO_LOW));
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
     }
 
@@ -485,7 +485,7 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.submitRoot(missconfiguredRoot, DEFAULT_IPFS_HASH);
         bytes32[] memory missconfiguredProof1 = merkle.getProof(missconfiguredData, 0);
 
-        vm.expectRevert(bytes(ErrorsLib.ROOT_MISCONFIGURED));
+        vm.expectRevert(bytes(ErrorsLib.CLAIMABLE_TOO_LOW));
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable / 2, missconfiguredProof1);
     }
 
