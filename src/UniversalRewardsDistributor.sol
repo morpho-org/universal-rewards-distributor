@@ -97,7 +97,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         root = pendingRoot.root;
         ipfsHash = pendingRoot.ipfsHash;
 
-        _setPendingRoot(PendingRoot(0, 0, 0));
+        delete pendingRoot;
 
         emit EventsLib.RootSet(root, ipfsHash);
     }
@@ -189,9 +189,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         root = newRoot;
         ipfsHash = newIpfsHash;
 
-        if (pendingRoot.submittedAt != 0) {
-            _setPendingRoot(PendingRoot(0, 0, 0));
-        }
+        delete pendingRoot;
 
         emit EventsLib.RootSet(newRoot, newIpfsHash);
     }

@@ -198,8 +198,6 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.prank(randomCaller);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.PendingRootSet(0, 0, 0);
-        vm.expectEmit(address(distributionWithTimeLock));
         emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.acceptRoot();
 
@@ -261,8 +259,6 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
         vm.prank(owner);
-        vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.PendingRootSet(0, 0, 0);
         distributionWithTimeLock.setRoot(newRoot, newIpfsHash);
 
         PendingRoot memory pendingRoot = _getPendingRoot(distributionWithTimeLock);
@@ -309,8 +305,6 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.acceptRoot();
 
         vm.warp(block.timestamp + afterEndOfTimelock);
-        vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.PendingRootSet(0, 0, 0);
         vm.expectEmit(address(distributionWithTimeLock));
         emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.acceptRoot();
