@@ -47,13 +47,13 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice Reverts if the caller is not the owner.
     modifier onlyOwner() {
-        require(msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER);
+        require(msg.sender == owner, ErrorsLib.NOT_OWNER);
         _;
     }
 
-    /// @notice Reverts if the caller is not the owner nor an updater.
+    /// @notice Reverts if the caller has not the updater role.
     modifier onlyUpdaterRole() {
-        require(isUpdater[msg.sender] || msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER);
+        require(isUpdater[msg.sender] || msg.sender == owner, ErrorsLib.NOT_UPDATER_ROLE);
         _;
     }
 

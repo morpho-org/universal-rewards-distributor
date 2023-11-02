@@ -6,11 +6,11 @@ pragma solidity ^0.8.0;
 /// @custom:contact security@morpho.org
 /// @notice Library exposing error messages.
 library ErrorsLib {
-    /// @notice Thrown when the caller is not the owner nor an updater.
-    string internal constant CALLER_NOT_OWNER_OR_UPDATER = "caller is not the owner or updater";
+    /// @notice Thrown when the caller has not the updater role.
+    string internal constant NOT_UPDATER_ROLE = "caller has not the updater role";
 
     /// @notice Thrown when the caller is not the owner.
-    string internal constant CALLER_NOT_OWNER = "caller is not the owner";
+    string internal constant NOT_OWNER = "caller is not the owner";
 
     /// @notice Thrown when there is not pending root.
     string internal constant NO_PENDING_ROOT = "no pending root";
