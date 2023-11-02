@@ -83,7 +83,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         if (timelock == 0) {
             _setRoot(newRoot, newIpfsHash);
         } else {
-            _setPendingRoot(PendingRoot(block.timestamp, newRoot, newIpfsHash));
+            pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
+
+            emit EventsLib.PendingRootSet(newRoot, newIpfsHash);
         }
     }
 
@@ -94,12 +96,16 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         require(pendingRoot.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
         require(block.timestamp >= pendingRoot.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
-        root = pendingRoot.root;
-        ipfsHash = pendingRoot.ipfsHash;
+        _setRoot(pendingRoot.root, pendingRoot.ipfsHash);
+    }
+
+    /// @notice Revokes the pending root.
+    /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has passed.
+    function revokePendingRoot() external onlyUpdater {
+        require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
         delete pendingRoot;
-
-        emit EventsLib.RootSet(root, ipfsHash);
+        emit EventsLib.PendingRootRevoked();
     }
 
     /// @notice Claims rewards.
@@ -152,7 +158,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
                 ErrorsLib.TIMELOCK_NOT_EXPIRED
             );
         }
-
         _setTimelock(newTimelock);
     }
 
@@ -163,16 +168,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         isUpdater[updater] = active;
 
         emit EventsLib.RootUpdaterSet(updater, active);
-    }
-
-    /// @notice Revokes the pending root of a given distribution.
-    /// @dev This function can only be called by the owner of the distribution at any time.
-    /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has passed. This if the
-    /// `owner` responsibility to trigger this function before the end of the timelock.
-    function revokePendingRoot() external onlyOwner {
-        require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
-
-        _setPendingRoot(PendingRoot(0, 0, 0));
     }
 
     /// @notice Sets the `owner` of the distribution to `newOwner`.
@@ -206,11 +201,5 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
         timelock = newTimelock;
 
         emit EventsLib.TimelockSet(newTimelock);
-    }
-
-    function _setPendingRoot(PendingRoot memory _pendingRoot) internal {
-        pendingRoot = _pendingRoot;
-
-        emit EventsLib.PendingRootSet(_pendingRoot.root, _pendingRoot.ipfsHash, _pendingRoot.submittedAt);
     }
 }
