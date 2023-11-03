@@ -149,7 +149,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(!distributionWithoutTimeLock.isUpdater(randomCaller) && randomCaller != owner);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER));
+        vm.expectRevert(bytes(ErrorsLib.NOT_UPDATER_ROLE));
         distributionWithoutTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
     }
 
@@ -185,7 +185,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(!distributionWithTimeLock.isUpdater(randomCaller) && randomCaller != owner);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER));
+        vm.expectRevert(bytes(ErrorsLib.NOT_UPDATER_ROLE));
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
     }
 
@@ -234,7 +234,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(randomCaller != owner);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
+        vm.expectRevert(bytes(ErrorsLib.NOT_OWNER));
         distributionWithoutTimeLock.setRoot(newRoot, DEFAULT_IPFS_HASH);
     }
 
@@ -315,7 +315,7 @@ contract UniversalRewardsDistributorTest is Test {
         newTimelock = bound(newTimelock, 0, type(uint256).max);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
+        vm.expectRevert(bytes(ErrorsLib.NOT_OWNER));
         distributionWithoutTimeLock.setTimelock(newTimelock);
     }
 
@@ -364,7 +364,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(caller != owner);
 
         vm.prank(caller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
+        vm.expectRevert(bytes(ErrorsLib.NOT_OWNER));
         distributionWithoutTimeLock.setRootUpdater(_addrFromHashedString("RANDOM_UPDATER"), active);
     }
 
@@ -389,7 +389,7 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.submitRoot(proposedRoot, DEFAULT_IPFS_HASH);
 
         vm.prank(caller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
+        vm.expectRevert(bytes(ErrorsLib.NOT_OWNER));
         distributionWithTimeLock.revokeRoot();
     }
 
@@ -414,7 +414,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.assume(caller != owner);
 
         vm.prank(caller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER));
+        vm.expectRevert(bytes(ErrorsLib.NOT_OWNER));
         distributionWithTimeLock.setOwner(newOwner);
     }
 
