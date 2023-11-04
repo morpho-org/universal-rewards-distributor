@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity >=0.7.4;
+pragma solidity >=0.5.0;
 
 /// @notice The pending root struct for a merkle tree distribution during the timelock.
 struct PendingRoot {
