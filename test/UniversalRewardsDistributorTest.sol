@@ -97,33 +97,32 @@ contract UniversalRewardsDistributorTest is Test {
         );
     }
 
-    function testDistributionConstructorEmitsTimelockSet(address randomCreator) public {
+    function testDistributionConstructorEmitsRootSet(bytes32 randomRoot, bytes32 randomIpfsHash) public {
         bytes32 initCodeHash = hashInitCode(
             type(UniversalRewardsDistributor).creationCode,
-            abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH)
+            abi.encode(owner, DEFAULT_TIMELOCK, randomRoot, randomIpfsHash)
         );
-        address urdAddress = computeCreate2Address(SALT, initCodeHash, address(randomCreator));
+        address urdAddress = computeCreate2Address(SALT, initCodeHash, owner);
 
-        vm.prank(randomCreator);
+        vm.prank(owner);
         vm.expectEmit(address(urdAddress));
-        emit EventsLib.TimelockSet(DEFAULT_TIMELOCK);
+        emit EventsLib.RootSet(randomRoot, randomIpfsHash);
         new UniversalRewardsDistributor{salt: SALT}(
-            randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH
+            owner, DEFAULT_TIMELOCK, randomRoot, randomIpfsHash
         );
     }
 
-    function testDistributionConstructorEmitsRootSet(address randomCreator) public {
+    function testDistributionConstructorEmitsTimelockSet(uint256 timelock) public {
         bytes32 initCodeHash = hashInitCode(
-            type(UniversalRewardsDistributor).creationCode,
-            abi.encode(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH)
+            type(UniversalRewardsDistributor).creationCode, abi.encode(owner, timelock, DEFAULT_ROOT, DEFAULT_IPFS_HASH)
         );
-        address urdAddress = computeCreate2Address(SALT, initCodeHash, address(randomCreator));
+        address urdAddress = computeCreate2Address(SALT, initCodeHash, owner);
 
-        vm.prank(randomCreator);
+        vm.prank(owner);
         vm.expectEmit(address(urdAddress));
-        emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        emit EventsLib.TimelockSet(timelock);
         new UniversalRewardsDistributor{salt: SALT}(
-            randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH
+            owner, timelock, DEFAULT_ROOT, DEFAULT_IPFS_HASH
         );
     }
 
