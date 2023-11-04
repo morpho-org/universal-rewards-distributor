@@ -33,8 +33,9 @@ contract UrdFactoryTest is Test {
         emit EventsLib.UrdCreated(
             urdAddress, randomCaller, randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt
         );
-        IUniversalRewardsDistributor urd =
-            factory.createUrd(randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt);
+        IUniversalRewardsDistributor urd = IUniversalRewardsDistributor(
+            address(factory.createUrd(randomOwner, randomTimelock, randomRoot, randomIpfsHash, randomSalt))
+        );
 
         assertEq(address(urd), urdAddress);
         assertTrue(factory.isUrd(address(urd)), "isUrd");
