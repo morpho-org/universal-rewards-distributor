@@ -75,7 +75,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         PendingRoot memory pendingRoot = distributor.pendingRoot();
         assertEq(pendingRoot.root, bytes32(0));
-        assertEq(pendingRoot.submittedAt, 0);
+        assertEq(pendingRoot.validAt, 0);
         assertEq(distributor.owner(), randomCreator);
         assertEq(distributor.timelock(), DEFAULT_TIMELOCK);
         assertEq(distributor.root(), DEFAULT_ROOT);
@@ -137,7 +137,7 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(distributionWithoutTimeLock.ipfsHash(), DEFAULT_IPFS_HASH);
         PendingRoot memory pendingRoot = distributionWithoutTimeLock.pendingRoot();
         assertEq(pendingRoot.root, bytes32(0));
-        assertEq(pendingRoot.submittedAt, 0);
+        assertEq(pendingRoot.validAt, 0);
         assertEq(pendingRoot.ipfsHash, bytes32(0));
     }
 
@@ -151,7 +151,7 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(distributionWithoutTimeLock.ipfsHash(), DEFAULT_IPFS_HASH);
         PendingRoot memory pendingRoot = distributionWithoutTimeLock.pendingRoot();
         assertEq(pendingRoot.root, bytes32(0));
-        assertEq(pendingRoot.submittedAt, 0);
+        assertEq(pendingRoot.validAt, 0);
         assertEq(pendingRoot.ipfsHash, bytes32(0));
     }
 
@@ -174,7 +174,7 @@ contract UniversalRewardsDistributorTest is Test {
         PendingRoot memory pendingRoot = distributionWithTimeLock.pendingRoot();
         assertEq(pendingRoot.root, DEFAULT_ROOT);
         assertEq(pendingRoot.ipfsHash, DEFAULT_IPFS_HASH);
-        assertEq(pendingRoot.submittedAt, block.timestamp);
+        assertEq(pendingRoot.validAt, block.timestamp + DEFAULT_TIMELOCK);
     }
 
     function testSubmitRootWithTimelockAsUpdater() public {
@@ -188,7 +188,7 @@ contract UniversalRewardsDistributorTest is Test {
         PendingRoot memory pendingRoot = distributionWithTimeLock.pendingRoot();
         assertEq(pendingRoot.root, DEFAULT_ROOT);
         assertEq(pendingRoot.ipfsHash, DEFAULT_IPFS_HASH);
-        assertEq(pendingRoot.submittedAt, block.timestamp);
+        assertEq(pendingRoot.validAt, block.timestamp + DEFAULT_TIMELOCK);
     }
 
     function testSubmitRootWithTimelockAsRandomCallerShouldRevert(address randomCaller) public {
@@ -216,7 +216,7 @@ contract UniversalRewardsDistributorTest is Test {
         PendingRoot memory pendingRoot = distributionWithTimeLock.pendingRoot();
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.ipfsHash, bytes32(0));
-        assertEq(pendingRoot.submittedAt, 0);
+        assertEq(pendingRoot.validAt, 0);
     }
 
     function testAcceptRootShouldRevertIfTimelockNotFinished(address randomCaller, uint256 timeElapsed) public {
@@ -261,7 +261,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.ipfsHash, bytes32(0));
-        assertEq(pendingRoot.submittedAt, 0);
+        assertEq(pendingRoot.validAt, 0);
     }
 
     function testSetRootShouldRemovePendingRoot(bytes32 newRoot, address randomCaller) public {
@@ -289,17 +289,34 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(distributionWithoutTimeLock.timelock(), newTimelock);
     }
 
-    function testSetTimelockShouldIncreaseTheQueueTimestamp(
-        uint256 timeElapsed,
-        uint256 newTimelock,
-        uint256 beforeEndOfTimelock,
-        uint256 afterEndOfTimelock
-    ) public {
+    function testSetTimelockShouldNotImpactPendingValuesIfTimelockIncreased(uint256 timeElapsed, uint256 newTimelock)
+        public
+    {
+        newTimelock = bound(newTimelock, DEFAULT_TIMELOCK + 1, type(uint256).max - block.timestamp);
+        vm.assume(timeElapsed > DEFAULT_TIMELOCK && timeElapsed <= newTimelock);
+
+        vm.prank(updater);
+        distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+
+        vm.prank(owner);
+        distributionWithTimeLock.setTimelock(newTimelock);
+
+        assertEq(distributionWithTimeLock.timelock(), newTimelock);
+
+        vm.warp(block.timestamp + timeElapsed);
+
+        vm.expectEmit(address(distributionWithTimeLock));
+        emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        distributionWithTimeLock.acceptRoot();
+    }
+
+    function testSetTimelockShouldNotImpactPendingValuesIfTimelockReduced(uint256 timeElapsed, uint256 newTimelock)
+        public
+    {
         vm.assume(newTimelock > 0);
-        timeElapsed = bound(timeElapsed, 0, DEFAULT_TIMELOCK - 1);
-        newTimelock = bound(newTimelock, DEFAULT_TIMELOCK + 1, type(uint128).max - 1);
-        beforeEndOfTimelock = bound(beforeEndOfTimelock, 0, newTimelock - timeElapsed - 1);
-        afterEndOfTimelock = bound(afterEndOfTimelock, newTimelock - beforeEndOfTimelock + 1, type(uint128).max);
+        timeElapsed = bound(timeElapsed, 1, DEFAULT_TIMELOCK - 1);
+        newTimelock = bound(newTimelock, 0, timeElapsed - 1);
+
         vm.prank(owner);
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
@@ -308,13 +325,11 @@ contract UniversalRewardsDistributorTest is Test {
         vm.prank(owner);
         distributionWithTimeLock.setTimelock(newTimelock);
 
-        assertEq(distributionWithTimeLock.timelock(), newTimelock);
-
-        vm.warp(block.timestamp + beforeEndOfTimelock);
+        // Here, we are between the old and the new timelock.
         vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
         distributionWithTimeLock.acceptRoot();
 
-        vm.warp(block.timestamp + afterEndOfTimelock);
+        vm.warp(block.timestamp + DEFAULT_TIMELOCK - timeElapsed);
         vm.expectEmit(address(distributionWithTimeLock));
         emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.acceptRoot();
@@ -327,24 +342,6 @@ contract UniversalRewardsDistributorTest is Test {
         vm.prank(randomCaller);
         vm.expectRevert(bytes(ErrorsLib.NOT_OWNER));
         distributionWithoutTimeLock.setTimelock(newTimelock);
-    }
-
-    function testSetTimelockShouldRevertIfNewTimelockShorterThanCurrentTimelockAndTimelockNotExpired(
-        bytes32 pendingRoot,
-        uint256 newTimelock,
-        uint256 timeElapsed
-    ) public {
-        newTimelock = bound(newTimelock, 0, DEFAULT_TIMELOCK - 1);
-        timeElapsed = bound(timeElapsed, 0, DEFAULT_TIMELOCK - 1);
-
-        vm.prank(owner);
-        distributionWithTimeLock.submitRoot(pendingRoot, DEFAULT_IPFS_HASH);
-
-        vm.warp(block.timestamp + timeElapsed);
-
-        vm.prank(owner);
-        vm.expectRevert(bytes(ErrorsLib.TIMELOCK_NOT_EXPIRED));
-        distributionWithTimeLock.setTimelock(newTimelock);
     }
 
     function testSetTimelockShouldWorkIfPendingRootIsUpdatableButNotYetUpdated() public {
@@ -389,7 +386,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         PendingRoot memory pendingRoot = distributionWithTimeLock.pendingRoot();
         assertEq(pendingRoot.root, bytes32(0));
-        assertEq(pendingRoot.submittedAt, 0);
+        assertEq(pendingRoot.validAt, 0);
     }
 
     function testRevokeRootShouldRevertIfNotOwner(bytes32 proposedRoot, address caller) public {
