@@ -40,19 +40,19 @@ library EventsLib {
 
     /// @notice Emitted when a new URD is created.
     /// @param urd The address of the newly created URD.
-    /// @param caller The address of the caller.
-    /// @param owner The address of the URD owner.
-    /// @param timelock The URD timelock.
-    /// @param root The URD's initial merkle root.
-    /// @param ipfsHash The URD's initial ipfs hash.
+    /// @param initialCaller The address of the caller.
+    /// @param initialOwner The address of the URD owner.
+    /// @param initialTimelock The URD timelock.
+    /// @param initialRoot The URD's initial merkle root.
+    /// @param initialIpfsHash The URD's initial ipfs hash.
     /// @param salt The salt used for CREATE2 opcode.
     event UrdCreated(
         address indexed urd,
-        address indexed caller,
-        address indexed owner,
-        uint256 timelock,
-        bytes32 root,
-        bytes32 ipfsHash,
+        address indexed initialCaller,
+        address indexed initialOwner,
+        uint256 initialTimelock,
+        bytes32 initialRoot,
+        bytes32 initialIpfsHash,
         bytes32 salt
     );
 }
