@@ -30,6 +30,6 @@ library ErrorsLib {
     /// @notice Thrown when the value is already set.
     string internal constant ALREADY_SET = "already set";
 
-    /// @notice Thrown when the submitted root (pending or not) is the same as the current one.
+    /// @notice Thrown when the submitted value is already pending.
     string internal constant ALREADY_PENDING = "already pending";
 }

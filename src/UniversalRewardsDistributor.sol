@@ -187,7 +187,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @dev Deletes the pending root.
     /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
     function _setRoot(bytes32 newRoot, bytes32 newIpfsHash) internal {
-
         root = newRoot;
         ipfsHash = newIpfsHash;
 
