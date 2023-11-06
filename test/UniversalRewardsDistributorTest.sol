@@ -167,7 +167,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.startPrank(owner);
         distributionWithTimeLock.submitRoot(newRoot, newIpfsHash);
 
-        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_PENDING));
         distributionWithTimeLock.submitRoot(newRoot, newIpfsHash);
 
         vm.stopPrank();
@@ -179,7 +179,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.startPrank(owner);
         distributionWithoutTimeLock.submitRoot(newRoot, newIpfsHash);
 
-        vm.expectRevert(bytes(ErrorsLib.ROOT_ALREADY_SET));
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
         distributionWithoutTimeLock.submitRoot(newRoot, newIpfsHash);
 
         vm.stopPrank();
@@ -191,7 +191,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.startPrank(owner);
         distributionWithTimeLock.setRoot(newRoot, newIpfsHash);
 
-        vm.expectRevert(bytes(ErrorsLib.ROOT_ALREADY_SET));
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
         distributionWithTimeLock.submitRoot(newRoot, newIpfsHash);
         vm.stopPrank();
     }
