@@ -385,7 +385,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         PendingRoot memory pendingRoot = distributionWithTimeLock.pendingRoot();
         assertEq(pendingRoot.root, bytes32(0));
-        assertEq(pendingRoot.submittedAt, 0);
+        assertEq(pendingRoot.validAt, 0);
     }
 
     function testRevokePendingRootShouldRevokeWhenCalledWithUpdater() public {
@@ -409,7 +409,7 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.submitRoot(proposedRoot, DEFAULT_IPFS_HASH);
 
         vm.prank(caller);
-        vm.expectRevert(bytes(ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER));
+        vm.expectRevert(bytes(ErrorsLib.NOT_UPDATER_ROLE));
         distributionWithTimeLock.revokePendingRoot();
     }
 

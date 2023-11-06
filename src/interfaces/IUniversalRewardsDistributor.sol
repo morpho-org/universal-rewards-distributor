@@ -40,7 +40,7 @@ interface IUniversalRewardsDistributorBase {
 /// compiler.
 /// @dev Consider using the IUniversalRewardsDistributor interface instead of this one.
 interface IUniversalRewardsDistributorStaticTyping is IUniversalRewardsDistributorBase {
-    function pendingRoot() external view returns (uint256 submittedAt, bytes32 root, bytes32 ipfsHash);
+    function pendingRoot() external view returns (bytes32 root, bytes32 ipfsHash, uint256 validAt);
 }
 
 /// @title IUniversalRewardsDistributor

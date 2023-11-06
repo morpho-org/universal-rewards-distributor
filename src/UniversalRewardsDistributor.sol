@@ -99,7 +99,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
 
     /// @notice Revokes the pending root.
     /// @dev Can be frontrunned with `acceptRoot` in case the timelock has passed.
-    function revokePendingRoot() external onlyUpdater {
+    function revokePendingRoot() external onlyUpdaterRole {
         require(pendingRoot.validAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
         delete pendingRoot;
