@@ -214,7 +214,7 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.submitRoot(newRoot, secondIpfsHash);
         vm.stopPrank();
 
-        assertEq(_getPendingRoot(distributionWithTimeLock).ipfsHash, secondIpfsHash);
+        assertEq(distributionWithTimeLock.pendingRoot().ipfsHash, secondIpfsHash);
     }
 
     function testSubmitRootWithTimelockAsOwner() public {
