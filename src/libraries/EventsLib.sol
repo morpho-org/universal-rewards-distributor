@@ -16,7 +16,7 @@ library EventsLib {
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     event PendingRootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
-    /// @notice Emitted when the pending root is revoked by an updater.
+    /// @notice Emitted when the pending root is revoked by the owner or an updater.
     event PendingRootRevoked();
 
     /// @notice Emitted when a merkle tree distribution timelock is set.
