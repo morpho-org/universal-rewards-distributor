@@ -14,10 +14,10 @@ library EventsLib {
     /// @notice Emitted when a new merkle root is proposed.
     /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    event PendingRootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
+    event PendingRootSet(address indexed caller, bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
     /// @notice Emitted when the pending root is revoked by the owner or an updater.
-    event PendingRootRevoked();
+    event PendingRootRevoked(address indexed caller);
 
     /// @notice Emitted when a merkle tree distribution timelock is set.
     /// @param timelock The new merkle timelock.

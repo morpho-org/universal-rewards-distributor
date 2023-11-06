@@ -83,7 +83,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
         } else {
             pendingRoot = PendingRoot({root: newRoot, ipfsHash: newIpfsHash, validAt: block.timestamp + timelock});
 
-            emit EventsLib.PendingRootSet(newRoot, newIpfsHash);
+            emit EventsLib.PendingRootSet(msg.sender, newRoot, newIpfsHash);
         }
     }
 
@@ -104,7 +104,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
 
         delete pendingRoot;
 
-        emit EventsLib.PendingRootRevoked();
+        emit EventsLib.PendingRootRevoked(msg.sender);
     }
 
     /// @notice Claims rewards.
