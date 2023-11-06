@@ -301,7 +301,6 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(pendingRoot.ipfsHash, bytes32(0));
     }
 
-
     function testSetRootShouldRemovePendingRoot(bytes32 newRoot, address randomCaller) public {
         vm.assume(newRoot != DEFAULT_ROOT && randomCaller != owner);
 
