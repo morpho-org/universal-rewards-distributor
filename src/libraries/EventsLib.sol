@@ -12,6 +12,7 @@ library EventsLib {
     event RootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
     /// @notice Emitted when a new merkle root is proposed.
+    /// @param caller The address of the caller.
     /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     event PendingRootSet(address indexed caller, bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
