@@ -403,7 +403,7 @@ contract UniversalRewardsDistributorTest is Test {
     }
 
     function testRevokePendingRootShouldRevertIfNotUpdater(bytes32 proposedRoot, address caller) public {
-        vm.assume(!distributionWithTimeLock.isUpdater(caller));
+        vm.assume(!distributionWithTimeLock.isUpdater(caller) && caller != owner);
 
         vm.prank(owner);
         distributionWithTimeLock.submitRoot(proposedRoot, DEFAULT_IPFS_HASH);
