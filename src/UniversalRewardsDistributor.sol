@@ -115,9 +115,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
             ErrorsLib.INVALID_PROOF_OR_EXPIRED
         );
 
-        amount = claimable - claimed[account][reward];
+        require(claimable > claimed[account][reward], ErrorsLib.CLAIMABLE_TOO_LOW);
 
-        require(amount > 0, ErrorsLib.ALREADY_CLAIMED);
+        amount = claimable - claimed[account][reward];
 
         claimed[account][reward] = claimable;
 
