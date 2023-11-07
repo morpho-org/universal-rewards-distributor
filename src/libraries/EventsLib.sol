@@ -30,7 +30,7 @@ library EventsLib {
     event RootUpdaterSet(address indexed rootUpdater, bool active);
 
     /// @notice Emitted when rewards are claimed.
-    /// @param account The address for which rewards are claimd rewards for.
+    /// @param account The address for which rewards are claimed.
     /// @param reward The address of the reward token.
     /// @param amount The amount of reward token claimed.
     event Claimed(address indexed account, address indexed reward, uint256 amount);
