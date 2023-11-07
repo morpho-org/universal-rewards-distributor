@@ -3,12 +3,12 @@ pragma solidity >=0.5.0;
 
 /// @notice The pending root struct for a merkle tree distribution during the timelock.
 struct PendingRoot {
-    /// @dev The timestamp at which the pending root can be accepted.
-    uint256 validAt;
     /// @dev The submitted pending root.
     bytes32 root;
     /// @dev The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     bytes32 ipfsHash;
+    /// @dev The timestamp at which the pending root can be accepted.
+    uint256 validAt;
 }
 
 /// @dev This interface is used for factorizing IUniversalRewardsDistributorStaticTyping and
@@ -26,7 +26,7 @@ interface IUniversalRewardsDistributorBase {
     function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external;
     function setTimelock(uint256 newTimelock) external;
     function setRootUpdater(address updater, bool active) external;
-    function revokeRoot() external;
+    function revokePendingRoot() external;
     function setOwner(address newOwner) external;
 
     function submitRoot(bytes32 newRoot, bytes32 ipfsHash) external;
@@ -40,7 +40,7 @@ interface IUniversalRewardsDistributorBase {
 /// compiler.
 /// @dev Consider using the IUniversalRewardsDistributor interface instead of this one.
 interface IUniversalRewardsDistributorStaticTyping is IUniversalRewardsDistributorBase {
-    function pendingRoot() external view returns (uint256 submittedAt, bytes32 root, bytes32 ipfsHash);
+    function pendingRoot() external view returns (bytes32 root, bytes32 ipfsHash, uint256 validAt);
 }
 
 /// @title IUniversalRewardsDistributor
