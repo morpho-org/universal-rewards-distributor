@@ -12,6 +12,9 @@ library ErrorsLib {
     /// @notice Thrown when the caller is not the owner.
     string internal constant NOT_OWNER = "caller is not the owner";
 
+    /// @notice Thrown when the caller trying to change the root under timelock is not the owner.
+    string internal constant UNAUTHORIZED_ROOT_CHANGE = "unauthorized to change the root";
+
     /// @notice Thrown when there is not pending root.
     string internal constant NO_PENDING_ROOT = "no pending root";
 

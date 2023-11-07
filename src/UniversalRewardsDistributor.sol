@@ -78,16 +78,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
     function submitRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdaterRole {
-        require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ALREADY_SET);
+        require(newRoot != pendingRoot.root || newIpfsHash != pendingRoot.ipfsHash, ErrorsLib.ALREADY_PENDING);
 
-        if (timelock == 0) {
-            _setRoot(newRoot, newIpfsHash);
-        } else {
-            require(newRoot != pendingRoot.root || newIpfsHash != pendingRoot.ipfsHash, ErrorsLib.ALREADY_PENDING);
+        pendingRoot = PendingRoot(block.timestamp + timelock, newRoot, newIpfsHash);
 
-            pendingRoot = PendingRoot(block.timestamp + timelock, newRoot, newIpfsHash);
-            emit EventsLib.RootProposed(newRoot, newIpfsHash);
-        }
+        emit EventsLib.RootProposed(newRoot, newIpfsHash);
     }
 
     /// @notice Accepts and sets the current pending merkle root.
@@ -133,10 +128,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @notice Forces update the root of a given distribution (bypassing the timelock).
     /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    /// @dev This function can only be called by the owner of the distribution.
+    /// @dev This function can only be called by the owner of the distribution or by updaters if there is no timelock.
     /// @dev Set to bytes32(0) to remove the root.
-    function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner {
+    function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdaterRole {
         require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ALREADY_SET);
+        require(timelock == 0 || msg.sender == owner, ErrorsLib.UNAUTHORIZED_ROOT_CHANGE);
 
         _setRoot(newRoot, newIpfsHash);
     }
