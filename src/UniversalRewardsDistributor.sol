@@ -81,8 +81,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
         if (timelock == 0) {
             _setRoot(newRoot, newIpfsHash);
         } else {
-            pendingRoot = PendingRoot(block.timestamp + timelock, newRoot, newIpfsHash);
-            emit EventsLib.RootProposed(newRoot, newIpfsHash);
+            pendingRoot = PendingRoot({root: newRoot, ipfsHash: newIpfsHash, validAt: block.timestamp + timelock});
+
+            emit EventsLib.PendingRootSet(msg.sender, newRoot, newIpfsHash);
         }
     }
 
@@ -94,6 +95,16 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
         require(block.timestamp >= pendingRoot.validAt, ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
         _setRoot(pendingRoot.root, pendingRoot.ipfsHash);
+    }
+
+    /// @notice Revokes the pending root.
+    /// @dev Can be frontrunned with `acceptRoot` in case the timelock has passed.
+    function revokePendingRoot() external onlyUpdaterRole {
+        require(pendingRoot.validAt != 0, ErrorsLib.NO_PENDING_ROOT);
+
+        delete pendingRoot;
+
+        emit EventsLib.PendingRootRevoked(msg.sender);
     }
 
     /// @notice Claims rewards.
@@ -150,18 +161,6 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
         isUpdater[updater] = active;
 
         emit EventsLib.RootUpdaterSet(updater, active);
-    }
-
-    /// @notice Revokes the pending root of a given distribution.
-    /// @dev This function can only be called by the owner of the distribution at any time.
-    /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has passed. This if the
-    /// `owner` responsibility to trigger this function before the end of the timelock.
-    function revokeRoot() external onlyOwner {
-        require(pendingRoot.validAt != 0, ErrorsLib.NO_PENDING_ROOT);
-
-        delete pendingRoot;
-
-        emit EventsLib.RootRevoked();
     }
 
     /// @notice Sets the `owner` of the distribution to `newOwner`.

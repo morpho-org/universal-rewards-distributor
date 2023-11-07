@@ -165,7 +165,7 @@ contract UniversalRewardsDistributorTest is Test {
     function testSubmitRootWithTimelockAsOwner() public {
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.RootProposed(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        emit EventsLib.PendingRootSet(owner, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
         assert(distributionWithTimeLock.root() != DEFAULT_ROOT);
@@ -179,7 +179,7 @@ contract UniversalRewardsDistributorTest is Test {
     function testSubmitRootWithTimelockAsUpdater() public {
         vm.prank(updater);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.RootProposed(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        emit EventsLib.PendingRootSet(updater, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
         assert(distributionWithTimeLock.root() != DEFAULT_ROOT);
@@ -263,18 +263,18 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(pendingRoot.validAt, 0);
     }
 
-    function testSetRootShouldRemovePendingRoot(bytes32 newRoot, address randomCaller) public {
-        vm.assume(newRoot != DEFAULT_ROOT && randomCaller != owner);
-
-        vm.startPrank(owner);
+    function testSetRootShouldUpdateTheCurrentPendingRoot(bytes32 newRoot, bytes32 newIpfsHash) public {
+        vm.prank(updater);
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
-        assertEq(distributionWithTimeLock.pendingRoot().root, DEFAULT_ROOT);
+        vm.prank(owner);
+        distributionWithTimeLock.setRoot(newRoot, newIpfsHash);
 
-        distributionWithTimeLock.setRoot(newRoot, DEFAULT_IPFS_HASH);
-        vm.stopPrank();
+        PendingRoot memory pendingRoot = distributionWithTimeLock.pendingRoot();
 
-        assertEq(distributionWithTimeLock.pendingRoot().root, bytes32(0));
+        assertEq(pendingRoot.validAt, 0);
+        assertEq(pendingRoot.root, 0);
+        assertEq(pendingRoot.ipfsHash, 0);
     }
 
     function testSetTimelockShouldChangeTheDistributionTimelock(uint256 newTimelock) public {
@@ -374,35 +374,49 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.setRootUpdater(_addrFromHashedString("RANDOM_UPDATER"), active);
     }
 
-    function testRevokeRootShouldRevokeWhenCalledWithOwner() public {
+    function testRevokePendingRootShouldRevokeWhenCalledWithOwner() public {
         vm.prank(owner);
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
 
         vm.prank(owner);
         vm.expectEmit(address(distributionWithTimeLock));
-        emit EventsLib.RootRevoked();
-        distributionWithTimeLock.revokeRoot();
+        emit EventsLib.PendingRootRevoked(owner);
+        distributionWithTimeLock.revokePendingRoot();
 
         PendingRoot memory pendingRoot = distributionWithTimeLock.pendingRoot();
         assertEq(pendingRoot.root, bytes32(0));
         assertEq(pendingRoot.validAt, 0);
     }
 
-    function testRevokeRootShouldRevertIfNotOwner(bytes32 proposedRoot, address caller) public {
-        vm.assume(proposedRoot != bytes32(0) && caller != owner);
+    function testRevokePendingRootShouldRevokeWhenCalledWithUpdater() public {
+        vm.prank(owner);
+        distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+
+        vm.prank(updater);
+        vm.expectEmit(address(distributionWithTimeLock));
+        emit EventsLib.PendingRootRevoked(updater);
+        distributionWithTimeLock.revokePendingRoot();
+
+        PendingRoot memory pendingRoot = distributionWithTimeLock.pendingRoot();
+        assertEq(pendingRoot.root, bytes32(0));
+        assertEq(pendingRoot.validAt, 0);
+    }
+
+    function testRevokePendingRootShouldRevertIfNotUpdater(bytes32 proposedRoot, address caller) public {
+        vm.assume(!distributionWithTimeLock.isUpdater(caller) && caller != owner);
 
         vm.prank(owner);
         distributionWithTimeLock.submitRoot(proposedRoot, DEFAULT_IPFS_HASH);
 
         vm.prank(caller);
-        vm.expectRevert(bytes(ErrorsLib.NOT_OWNER));
-        distributionWithTimeLock.revokeRoot();
+        vm.expectRevert(bytes(ErrorsLib.NOT_UPDATER_ROLE));
+        distributionWithTimeLock.revokePendingRoot();
     }
 
-    function testRevokeRootShouldRevertWhenNoPendingRoot() public {
+    function testRevokePendingRootShouldRevertWhenNoPendingRoot() public {
         vm.prank(owner);
         vm.expectRevert(bytes(ErrorsLib.NO_PENDING_ROOT));
-        distributionWithTimeLock.revokeRoot();
+        distributionWithTimeLock.revokePendingRoot();
     }
 
     function testSetOwner(address newOwner) public {
