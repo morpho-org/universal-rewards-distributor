@@ -128,7 +128,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @notice Forces update the root of a given distribution (bypassing the timelock).
     /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    /// @dev This function can only be called by the owner of the distribution or by updaters if there are no timelock.
+    /// @dev This function can only be called by the owner of the distribution or by updaters if there is no timelock.
     /// @dev Set to bytes32(0) to remove the root.
     function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdaterRole {
         require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ALREADY_SET);
