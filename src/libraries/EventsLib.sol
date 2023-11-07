@@ -17,8 +17,8 @@ library EventsLib {
     event RootProposed(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
     /// @notice Emitted when a merkle tree distribution timelock is set.
-    /// @param timelock The new merkle timelock.
-    event TimelockSet(uint256 timelock);
+    /// @param newTimelock The new merkle timelock.
+    event TimelockSet(uint256 newTimelock);
 
     /// @notice Emitted when a merkle tree updater is added or removed.
     /// @param rootUpdater The merkle tree updater.
@@ -41,18 +41,18 @@ library EventsLib {
     /// @notice Emitted when a new URD is created.
     /// @param urd The address of the newly created URD.
     /// @param caller The address of the caller.
-    /// @param owner The address of the URD owner.
-    /// @param timelock The URD timelock.
-    /// @param root The URD's initial merkle root.
-    /// @param ipfsHash The URD's initial ipfs hash.
+    /// @param initialOwner The address of the URD owner.
+    /// @param initialTimelock The URD timelock.
+    /// @param initialRoot The URD's initial merkle root.
+    /// @param initialIpfsHash The URD's initial ipfs hash.
     /// @param salt The salt used for CREATE2 opcode.
     event UrdCreated(
         address indexed urd,
         address indexed caller,
-        address indexed owner,
-        uint256 timelock,
-        bytes32 root,
-        bytes32 ipfsHash,
+        address indexed initialOwner,
+        uint256 initialTimelock,
+        bytes32 initialRoot,
+        bytes32 initialIpfsHash,
         bytes32 salt
     );
 }
