@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity 0.8.21;
+pragma solidity 0.8.19;
 
-import {PendingRoot, IUniversalRewardsDistributor} from "./interfaces/IUniversalRewardsDistributor.sol";
+import {PendingRoot, IUniversalRewardsDistributorStaticTyping} from "./interfaces/IUniversalRewardsDistributor.sol";
 
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 import {EventsLib} from "./libraries/EventsLib.sol";
@@ -15,7 +15,7 @@ import {MerkleProof} from "../lib/openzeppelin-contracts/contracts/utils/cryptog
 /// @notice This contract enables the distribution of various reward tokens to multiple accounts using different
 /// permissionless Merkle trees. It is largely inspired by Morpho's current rewards distributor:
 /// https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
-contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
+contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping {
     using SafeTransferLib for ERC20;
 
     /* STORAGE */
@@ -47,13 +47,13 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
 
     /// @notice Reverts if the caller is not the owner.
     modifier onlyOwner() {
-        require(msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER);
+        require(msg.sender == owner, ErrorsLib.NOT_OWNER);
         _;
     }
 
-    /// @notice Reverts if the caller is not the owner nor an updater.
-    modifier onlyUpdater() {
-        require(isUpdater[msg.sender] || msg.sender == owner, ErrorsLib.CALLER_NOT_OWNER_OR_UPDATER);
+    /// @notice Reverts if the caller has not the updater role.
+    modifier onlyUpdaterRole() {
+        require(isUpdater[msg.sender] || msg.sender == owner, ErrorsLib.NOT_UPDATER_ROLE);
         _;
     }
 
@@ -67,10 +67,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @dev Warning: The `initialIpfsHash` might not correspond to the `initialRoot`.
     constructor(address initialOwner, uint256 initialTimelock, bytes32 initialRoot, bytes32 initialIpfsHash) {
         _setOwner(initialOwner);
-
-        if (initialTimelock > 0) _setTimelock(initialTimelock);
-
-        if (initialRoot != bytes32(0)) _setRoot(initialRoot, initialIpfsHash);
+        _setTimelock(initialTimelock);
+        _setRoot(initialRoot, initialIpfsHash);
     }
 
     /* EXTERNAL */
@@ -79,28 +77,32 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
-    function submitRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdater {
-        if (timelock == 0) {
-            _setRoot(newRoot, newIpfsHash);
-        } else {
-            pendingRoot = PendingRoot(block.timestamp, newRoot, newIpfsHash);
-            emit EventsLib.RootProposed(newRoot, newIpfsHash);
-        }
+    function submitRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdaterRole {
+        require(newRoot != pendingRoot.root || newIpfsHash != pendingRoot.ipfsHash, ErrorsLib.ALREADY_PENDING);
+
+        pendingRoot = PendingRoot({root: newRoot, ipfsHash: newIpfsHash, validAt: block.timestamp + timelock});
+
+        emit EventsLib.PendingRootSet(msg.sender, newRoot, newIpfsHash);
     }
 
     /// @notice Accepts and sets the current pending merkle root.
     /// @dev This function can only be called after the timelock has expired.
     /// @dev Anyone can call this function.
     function acceptRoot() external {
-        require(pendingRoot.submittedAt > 0, ErrorsLib.NO_PENDING_ROOT);
-        require(block.timestamp >= pendingRoot.submittedAt + timelock, ErrorsLib.TIMELOCK_NOT_EXPIRED);
+        require(pendingRoot.validAt != 0, ErrorsLib.NO_PENDING_ROOT);
+        require(block.timestamp >= pendingRoot.validAt, ErrorsLib.TIMELOCK_NOT_EXPIRED);
 
-        root = pendingRoot.root;
-        ipfsHash = pendingRoot.ipfsHash;
+        _setRoot(pendingRoot.root, pendingRoot.ipfsHash);
+    }
 
-        emit EventsLib.RootSet(pendingRoot.root, pendingRoot.ipfsHash);
+    /// @notice Revokes the pending root.
+    /// @dev Can be frontrunned with `acceptRoot` in case the timelock has passed.
+    function revokePendingRoot() external onlyUpdaterRole {
+        require(pendingRoot.validAt != 0, ErrorsLib.NO_PENDING_ROOT);
 
         delete pendingRoot;
+
+        emit EventsLib.PendingRootRevoked(msg.sender);
     }
 
     /// @notice Claims rewards.
@@ -122,9 +124,9 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
             ErrorsLib.INVALID_PROOF_OR_EXPIRED
         );
 
-        amount = claimable - claimed[account][reward];
+        require(claimable > claimed[account][reward], ErrorsLib.CLAIMABLE_TOO_LOW);
 
-        require(amount > 0, ErrorsLib.ALREADY_CLAIMED);
+        amount = claimable - claimed[account][reward];
 
         claimed[account][reward] = claimable;
 
@@ -136,23 +138,21 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @notice Forces update the root of a given distribution (bypassing the timelock).
     /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    /// @dev This function can only be called by the owner of the distribution.
+    /// @dev This function can only be called by the owner of the distribution or by updaters if there is no timelock.
     /// @dev Set to bytes32(0) to remove the root.
-    function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner {
+    function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdaterRole {
+        require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ALREADY_SET);
+        require(timelock == 0 || msg.sender == owner, ErrorsLib.UNAUTHORIZED_ROOT_CHANGE);
+
         _setRoot(newRoot, newIpfsHash);
     }
 
     /// @notice Sets the timelock of a given distribution.
     /// @param newTimelock The new timelock.
     /// @dev This function can only be called by the owner of the distribution.
-    /// @dev If the timelock is reduced, it can only be updated after the timelock has expired.
+    /// @dev The timelock modification are not applicable to the pending values.
     function setTimelock(uint256 newTimelock) external onlyOwner {
-        if (newTimelock < timelock) {
-            require(
-                pendingRoot.submittedAt == 0 || pendingRoot.submittedAt + timelock <= block.timestamp,
-                ErrorsLib.TIMELOCK_NOT_EXPIRED
-            );
-        }
+        require(newTimelock != timelock, ErrorsLib.ALREADY_SET);
 
         _setTimelock(newTimelock);
     }
@@ -161,25 +161,17 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributor {
     /// @param updater The address of the root updater.
     /// @param active Whether the root updater should be active or not.
     function setRootUpdater(address updater, bool active) external onlyOwner {
+        require(isUpdater[updater] != active, ErrorsLib.ALREADY_SET);
+
         isUpdater[updater] = active;
 
         emit EventsLib.RootUpdaterSet(updater, active);
     }
 
-    /// @notice Revokes the pending root of a given distribution.
-    /// @dev This function can only be called by the owner of the distribution at any time.
-    /// @dev Can be frontrunned by triggering the `acceptRoot` function in case the timelock has passed. This if the
-    /// `owner` responsibility to trigger this function before the end of the timelock.
-    function revokeRoot() external onlyOwner {
-        require(pendingRoot.submittedAt != 0, ErrorsLib.NO_PENDING_ROOT);
-
-        delete pendingRoot;
-
-        emit EventsLib.RootRevoked();
-    }
-
     /// @notice Sets the `owner` of the distribution to `newOwner`.
     function setOwner(address newOwner) external onlyOwner {
+        require(newOwner != owner, ErrorsLib.ALREADY_SET);
+
         _setOwner(newOwner);
     }
 

@@ -12,24 +12,25 @@ library EventsLib {
     event RootSet(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
 
     /// @notice Emitted when a new merkle root is proposed.
+    /// @param caller The address of the caller.
     /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    event RootProposed(bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
+    event PendingRootSet(address indexed caller, bytes32 indexed newRoot, bytes32 indexed newIpfsHash);
+
+    /// @notice Emitted when the pending root is revoked by the owner or an updater.
+    event PendingRootRevoked(address indexed caller);
 
     /// @notice Emitted when a merkle tree distribution timelock is set.
-    /// @param timelock The new merkle timelock.
-    event TimelockSet(uint256 timelock);
+    /// @param newTimelock The new merkle timelock.
+    event TimelockSet(uint256 newTimelock);
 
     /// @notice Emitted when a merkle tree updater is added or removed.
     /// @param rootUpdater The merkle tree updater.
     /// @param active The merkle tree updater's active state.
     event RootUpdaterSet(address indexed rootUpdater, bool active);
 
-    /// @notice Emitted when a merkle pending root is revoked.
-    event RootRevoked();
-
     /// @notice Emitted when rewards are claimed.
-    /// @param account The address for which rewards are claimd rewards for.
+    /// @param account The address for which rewards are claimed.
     /// @param reward The address of the reward token.
     /// @param amount The amount of reward token claimed.
     event Claimed(address indexed account, address indexed reward, uint256 amount);
@@ -41,18 +42,18 @@ library EventsLib {
     /// @notice Emitted when a new URD is created.
     /// @param urd The address of the newly created URD.
     /// @param caller The address of the caller.
-    /// @param owner The address of the URD owner.
-    /// @param timelock The URD timelock.
-    /// @param root The URD's initial merkle root.
-    /// @param ipfsHash The URD's initial ipfs hash.
+    /// @param initialOwner The address of the URD owner.
+    /// @param initialTimelock The URD timelock.
+    /// @param initialRoot The URD's initial merkle root.
+    /// @param initialIpfsHash The URD's initial ipfs hash.
     /// @param salt The salt used for CREATE2 opcode.
     event UrdCreated(
         address indexed urd,
         address indexed caller,
-        address indexed owner,
-        uint256 timelock,
-        bytes32 root,
-        bytes32 ipfsHash,
+        address indexed initialOwner,
+        uint256 initialTimelock,
+        bytes32 initialRoot,
+        bytes32 initialIpfsHash,
         bytes32 salt
     );
 }
