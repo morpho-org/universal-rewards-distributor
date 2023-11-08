@@ -10,7 +10,6 @@ import {UniversalRewardsDistributor} from "../src/UniversalRewardsDistributor.so
 import {EventsLib} from "../src/libraries/EventsLib.sol";
 
 import {Merkle} from "../lib/murky/src/Merkle.sol";
-
 import "../lib/forge-std/src/Test.sol";
 
 contract UniversalRewardsDistributorTest is Test {
@@ -126,40 +125,45 @@ contract UniversalRewardsDistributorTest is Test {
         );
     }
 
-    function testSubmitRootWithoutTimelockAsOwner() public {
-        vm.prank(owner);
-        vm.expectEmit(address(distributionWithoutTimeLock));
-        emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
-        distributionWithoutTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
-
-        assertEq(distributionWithoutTimeLock.root(), DEFAULT_ROOT);
-        assertEq(distributionWithoutTimeLock.ipfsHash(), DEFAULT_IPFS_HASH);
-        PendingRoot memory pendingRoot = distributionWithoutTimeLock.pendingRoot();
-        assertEq(pendingRoot.root, bytes32(0));
-        assertEq(pendingRoot.validAt, 0);
-        assertEq(pendingRoot.ipfsHash, bytes32(0));
-    }
-
-    function testSubmitRootWithoutTimelockAsUpdater() public {
-        vm.prank(updater);
-        vm.expectEmit(address(distributionWithoutTimeLock));
-        emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
-        distributionWithoutTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
-
-        assertEq(distributionWithoutTimeLock.root(), DEFAULT_ROOT);
-        assertEq(distributionWithoutTimeLock.ipfsHash(), DEFAULT_IPFS_HASH);
-        PendingRoot memory pendingRoot = distributionWithoutTimeLock.pendingRoot();
-        assertEq(pendingRoot.root, bytes32(0));
-        assertEq(pendingRoot.validAt, 0);
-        assertEq(pendingRoot.ipfsHash, bytes32(0));
-    }
-
     function testSubmitRootWithoutTimelockAsRandomCallerShouldRevert(address randomCaller) public {
         vm.assume(!distributionWithoutTimeLock.isUpdater(randomCaller) && randomCaller != owner);
 
         vm.prank(randomCaller);
         vm.expectRevert(bytes(ErrorsLib.NOT_UPDATER_ROLE));
         distributionWithoutTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+    }
+
+    function testSubmitRootWithPreviousPendingRootShouldRevert(bytes32 newRoot, bytes32 newIpfsHash) public {
+        vm.assume(newRoot != distributionWithTimeLock.root() && newIpfsHash != distributionWithTimeLock.ipfsHash());
+
+        vm.startPrank(owner);
+        distributionWithTimeLock.submitRoot(newRoot, newIpfsHash);
+
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_PENDING));
+        distributionWithTimeLock.submitRoot(newRoot, newIpfsHash);
+
+        vm.stopPrank();
+    }
+
+    function testSubmitRootTwiceShouldWorkWhenModifyingIpfsHash(
+        bytes32 newRoot,
+        bytes32 newIpfsHash,
+        bytes32 secondIpfsHash
+    ) public {
+        vm.assume(
+            newRoot != distributionWithTimeLock.root() && newIpfsHash != distributionWithTimeLock.ipfsHash()
+                && secondIpfsHash != newIpfsHash
+        );
+
+        vm.startPrank(owner);
+        distributionWithTimeLock.setRoot(newRoot, newIpfsHash);
+
+        vm.expectEmit(address(distributionWithTimeLock));
+        emit EventsLib.PendingRootSet(owner, newRoot, secondIpfsHash);
+        distributionWithTimeLock.submitRoot(newRoot, secondIpfsHash);
+        vm.stopPrank();
+
+        assertEq(distributionWithTimeLock.pendingRoot().ipfsHash, secondIpfsHash);
     }
 
     function testSubmitRootWithTimelockAsOwner() public {
@@ -239,12 +243,32 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.acceptRoot();
     }
 
-    function testSetRootShouldRevertIfNotOwner(bytes32 newRoot, address randomCaller) public {
+    function testSetRootWithoutTimelockAsRandomCallerShouldRevert(address randomCaller) public {
+        vm.assume(!distributionWithoutTimeLock.isUpdater(randomCaller) && randomCaller != owner);
+
+        vm.prank(randomCaller);
+        vm.expectRevert(bytes(ErrorsLib.NOT_UPDATER_ROLE));
+        distributionWithoutTimeLock.setRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+    }
+
+    function testSetRootWithTimelockShouldRevertIfNotOwner(bytes32 newRoot, address randomCaller) public {
         vm.assume(randomCaller != owner);
 
         vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.NOT_OWNER));
-        distributionWithoutTimeLock.setRoot(newRoot, DEFAULT_IPFS_HASH);
+        vm.expectRevert();
+        distributionWithTimeLock.setRoot(newRoot, DEFAULT_IPFS_HASH);
+    }
+
+    function testSetRootWithPreviousRootShouldRevert(bytes32 newRoot, bytes32 newIpfsHash) public {
+        vm.assume(newRoot != distributionWithTimeLock.root() && newIpfsHash != distributionWithTimeLock.ipfsHash());
+
+        vm.startPrank(owner);
+        distributionWithTimeLock.setRoot(newRoot, newIpfsHash);
+
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributionWithTimeLock.setRoot(newRoot, newIpfsHash);
+
+        vm.stopPrank();
     }
 
     function testSetRootShouldUpdateTheCurrentRoot(bytes32 newRoot, bytes32 newIpfsHash) public {
@@ -263,6 +287,20 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(pendingRoot.validAt, 0);
     }
 
+    function testSetRootWithoutTimelockAsUpdater() public {
+        vm.prank(updater);
+        vm.expectEmit(address(distributionWithoutTimeLock));
+        emit EventsLib.RootSet(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+        distributionWithoutTimeLock.setRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
+
+        assertEq(distributionWithoutTimeLock.root(), DEFAULT_ROOT);
+        assertEq(distributionWithoutTimeLock.ipfsHash(), DEFAULT_IPFS_HASH);
+        PendingRoot memory pendingRoot = distributionWithoutTimeLock.pendingRoot();
+        assertEq(pendingRoot.root, bytes32(0));
+        assertEq(pendingRoot.validAt, 0);
+        assertEq(pendingRoot.ipfsHash, bytes32(0));
+    }
+
     function testSetRootShouldUpdateTheCurrentPendingRoot(bytes32 newRoot, bytes32 newIpfsHash) public {
         vm.prank(updater);
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
@@ -277,8 +315,10 @@ contract UniversalRewardsDistributorTest is Test {
         assertEq(pendingRoot.ipfsHash, 0);
     }
 
-    function testSetTimelockShouldChangeTheDistributionTimelock(uint256 newTimelock) public {
+    function testSetTimelockShouldChangeTheTimelock(uint256 newTimelock) public {
         newTimelock = bound(newTimelock, 0, type(uint256).max);
+
+        vm.assume(newTimelock != distributionWithoutTimeLock.timelock());
 
         vm.prank(owner);
         vm.expectEmit(address(distributionWithoutTimeLock));
@@ -286,6 +326,28 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithoutTimeLock.setTimelock(newTimelock);
 
         assertEq(distributionWithoutTimeLock.timelock(), newTimelock);
+    }
+
+    function testSetTimelockShouldRevertIfSameValue(uint256 newTimelock) public {
+        newTimelock = bound(newTimelock, 0, type(uint256).max);
+
+        vm.assume(newTimelock != distributionWithoutTimeLock.timelock());
+
+        vm.prank(owner);
+        distributionWithoutTimeLock.setTimelock(newTimelock);
+
+        vm.prank(owner);
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributionWithoutTimeLock.setTimelock(newTimelock);
+    }
+
+    function testSetTimelockShouldRevertIfNotOwner(uint256 newTimelock, address randomCaller) public {
+        vm.assume(randomCaller != owner);
+        newTimelock = bound(newTimelock, 0, type(uint256).max);
+
+        vm.prank(randomCaller);
+        vm.expectRevert(bytes(ErrorsLib.NOT_OWNER));
+        distributionWithoutTimeLock.setTimelock(newTimelock);
     }
 
     function testSetTimelockShouldNotImpactPendingValuesIfTimelockIncreased(uint256 timeElapsed, uint256 newTimelock)
@@ -334,15 +396,6 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.acceptRoot();
     }
 
-    function testSetTimelockShouldRevertIfNotOwner(uint256 newTimelock, address randomCaller) public {
-        vm.assume(randomCaller != owner);
-        newTimelock = bound(newTimelock, 0, type(uint256).max);
-
-        vm.prank(randomCaller);
-        vm.expectRevert(bytes(ErrorsLib.NOT_OWNER));
-        distributionWithoutTimeLock.setTimelock(newTimelock);
-    }
-
     function testSetTimelockShouldWorkIfPendingRootIsUpdatableButNotYetUpdated() public {
         vm.prank(owner);
         distributionWithTimeLock.submitRoot(DEFAULT_ROOT, DEFAULT_IPFS_HASH);
@@ -358,12 +411,25 @@ contract UniversalRewardsDistributorTest is Test {
     }
 
     function testSetRootUpdaterShouldAddOrRemoveRootUpdater(address newUpdater, bool active) public {
+        vm.assume(distributionWithoutTimeLock.isUpdater(newUpdater) != active);
+
         vm.prank(owner);
         vm.expectEmit(address(distributionWithoutTimeLock));
         emit EventsLib.RootUpdaterSet(newUpdater, active);
         distributionWithoutTimeLock.setRootUpdater(newUpdater, active);
 
         assertEq(distributionWithoutTimeLock.isUpdater(newUpdater), active);
+    }
+
+    function testSetRootUpdaterShouldRevertIfAlreadySet(address newUpdater, bool active) public {
+        vm.assume(distributionWithoutTimeLock.isUpdater(newUpdater) != active);
+
+        vm.prank(owner);
+        distributionWithoutTimeLock.setRootUpdater(newUpdater, active);
+
+        vm.prank(owner);
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributionWithoutTimeLock.setRootUpdater(newUpdater, active);
     }
 
     function testSetRootUpdaterShouldRevertIfNotOwner(address caller, bool active) public {
@@ -438,6 +504,17 @@ contract UniversalRewardsDistributorTest is Test {
         distributionWithTimeLock.setOwner(newOwner);
     }
 
+    function testSetOwnerShouldRevertIfAlreadySet(address newOwner) public {
+        vm.assume(newOwner != owner);
+
+        vm.prank(owner);
+        distributionWithTimeLock.setOwner(newOwner);
+
+        vm.prank(newOwner);
+        vm.expectRevert(bytes(ErrorsLib.ALREADY_SET));
+        distributionWithTimeLock.setOwner(newOwner);
+    }
+
     function testClaimShouldFollowTheMerkleDistribution(uint256 claimable, uint8 size) public {
         claimable = bound(claimable, 1 ether, 1000 ether);
         uint256 boundedSize = bound(size, 2, MAX_RECEIVERS);
@@ -445,7 +522,7 @@ contract UniversalRewardsDistributorTest is Test {
         (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, boundedSize);
 
         vm.prank(owner);
-        distributionWithoutTimeLock.submitRoot(root, DEFAULT_IPFS_HASH);
+        distributionWithoutTimeLock.setRoot(root, DEFAULT_IPFS_HASH);
 
         assertEq(distributionWithoutTimeLock.root(), root);
 
@@ -458,7 +535,7 @@ contract UniversalRewardsDistributorTest is Test {
         (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
 
         vm.prank(owner);
-        distributionWithoutTimeLock.submitRoot(root, DEFAULT_IPFS_HASH);
+        distributionWithoutTimeLock.setRoot(root, DEFAULT_IPFS_HASH);
 
         assertEq(distributionWithoutTimeLock.root(), root);
         bytes32[] memory proof1 = merkle.getProof(data, 0);
@@ -478,7 +555,7 @@ contract UniversalRewardsDistributorTest is Test {
         (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
 
         vm.prank(owner);
-        distributionWithoutTimeLock.submitRoot(root, DEFAULT_IPFS_HASH);
+        distributionWithoutTimeLock.setRoot(root, DEFAULT_IPFS_HASH);
         bytes32[] memory proof1 = merkle.getProof(data, 0);
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable, proof1);
 
@@ -486,20 +563,20 @@ contract UniversalRewardsDistributorTest is Test {
         (bytes32[] memory missconfiguredData, bytes32 missconfiguredRoot) = _setupRewards(claimable / 2, 2);
 
         vm.prank(owner);
-        distributionWithoutTimeLock.submitRoot(missconfiguredRoot, DEFAULT_IPFS_HASH);
+        distributionWithoutTimeLock.setRoot(missconfiguredRoot, DEFAULT_IPFS_HASH);
         bytes32[] memory missconfiguredProof1 = merkle.getProof(missconfiguredData, 0);
 
         vm.expectRevert(bytes(ErrorsLib.CLAIMABLE_TOO_LOW));
         distributionWithoutTimeLock.claim(vm.addr(1), address(token1), claimable / 2, missconfiguredProof1);
     }
 
-    function testClaimShouldReturnsTheAmountClaimed(uint256 claimable) public {
+    function testClaimShouldReturnTheAmountClaimed(uint256 claimable) public {
         claimable = bound(claimable, 1 ether, 1000 ether);
 
         (bytes32[] memory data, bytes32 root) = _setupRewards(claimable, 2);
 
         vm.prank(owner);
-        distributionWithoutTimeLock.submitRoot(root, DEFAULT_IPFS_HASH);
+        distributionWithoutTimeLock.setRoot(root, DEFAULT_IPFS_HASH);
 
         assertEq(distributionWithoutTimeLock.root(), root);
         bytes32[] memory proof1 = merkle.getProof(data, 0);
@@ -513,7 +590,7 @@ contract UniversalRewardsDistributorTest is Test {
         (bytes32[] memory data2, bytes32 root2) = _setupRewards(claimable * 2, 2);
 
         vm.prank(owner);
-        distributionWithoutTimeLock.submitRoot(root2, DEFAULT_IPFS_HASH);
+        distributionWithoutTimeLock.setRoot(root2, DEFAULT_IPFS_HASH);
 
         assertEq(distributionWithoutTimeLock.root(), root2);
         bytes32[] memory proof2 = merkle.getProof(data2, 0);
@@ -543,7 +620,7 @@ contract UniversalRewardsDistributorTest is Test {
 
         vm.assume(root != invalidRoot);
         vm.prank(owner);
-        distributionWithoutTimeLock.submitRoot(invalidRoot, DEFAULT_IPFS_HASH);
+        distributionWithoutTimeLock.setRoot(invalidRoot, DEFAULT_IPFS_HASH);
 
         bytes32[] memory proof1 = merkle.getProof(data, 0);
 

@@ -12,6 +12,9 @@ library ErrorsLib {
     /// @notice Thrown when the caller is not the owner.
     string internal constant NOT_OWNER = "caller is not the owner";
 
+    /// @notice Thrown when the caller trying to change the root under timelock is not the owner.
+    string internal constant UNAUTHORIZED_ROOT_CHANGE = "unauthorized to change the root";
+
     /// @notice Thrown when there is not pending root.
     string internal constant NO_PENDING_ROOT = "no pending root";
 
@@ -27,4 +30,10 @@ library ErrorsLib {
     /// @notice Thrown when the Merkle tree contains a node with fewer rewards than what it has previously claimed. Also
     /// thrown if user claims twice with the same root.
     string internal constant CLAIMABLE_TOO_LOW = "claimable too low";
+
+    /// @notice Thrown when the value is already set.
+    string internal constant ALREADY_SET = "already set";
+
+    /// @notice Thrown when the submitted value is already pending.
+    string internal constant ALREADY_PENDING = "already pending";
 }

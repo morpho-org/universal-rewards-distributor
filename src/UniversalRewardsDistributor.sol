@@ -78,13 +78,11 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
     /// @dev Warning: The `newIpfsHash` might not correspond to the `newRoot`.
     function submitRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdaterRole {
-        if (timelock == 0) {
-            _setRoot(newRoot, newIpfsHash);
-        } else {
-            pendingRoot = PendingRoot({root: newRoot, ipfsHash: newIpfsHash, validAt: block.timestamp + timelock});
+        require(newRoot != pendingRoot.root || newIpfsHash != pendingRoot.ipfsHash, ErrorsLib.ALREADY_PENDING);
 
-            emit EventsLib.PendingRootSet(msg.sender, newRoot, newIpfsHash);
-        }
+        pendingRoot = PendingRoot({root: newRoot, ipfsHash: newIpfsHash, validAt: block.timestamp + timelock});
+
+        emit EventsLib.PendingRootSet(msg.sender, newRoot, newIpfsHash);
     }
 
     /// @notice Accepts and sets the current pending merkle root.
@@ -140,9 +138,12 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @notice Forces update the root of a given distribution (bypassing the timelock).
     /// @param newRoot The new merkle root.
     /// @param newIpfsHash The optional ipfs hash containing metadata about the root (e.g. the merkle tree itself).
-    /// @dev This function can only be called by the owner of the distribution.
+    /// @dev This function can only be called by the owner of the distribution or by updaters if there is no timelock.
     /// @dev Set to bytes32(0) to remove the root.
-    function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyOwner {
+    function setRoot(bytes32 newRoot, bytes32 newIpfsHash) external onlyUpdaterRole {
+        require(newRoot != root || newIpfsHash != ipfsHash, ErrorsLib.ALREADY_SET);
+        require(timelock == 0 || msg.sender == owner, ErrorsLib.UNAUTHORIZED_ROOT_CHANGE);
+
         _setRoot(newRoot, newIpfsHash);
     }
 
@@ -151,6 +152,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @dev This function can only be called by the owner of the distribution.
     /// @dev The timelock modification are not applicable to the pending values.
     function setTimelock(uint256 newTimelock) external onlyOwner {
+        require(newTimelock != timelock, ErrorsLib.ALREADY_SET);
+
         _setTimelock(newTimelock);
     }
 
@@ -158,6 +161,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
     /// @param updater The address of the root updater.
     /// @param active Whether the root updater should be active or not.
     function setRootUpdater(address updater, bool active) external onlyOwner {
+        require(isUpdater[updater] != active, ErrorsLib.ALREADY_SET);
+
         isUpdater[updater] = active;
 
         emit EventsLib.RootUpdaterSet(updater, active);
@@ -165,6 +170,8 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
 
     /// @notice Sets the `owner` of the distribution to `newOwner`.
     function setOwner(address newOwner) external onlyOwner {
+        require(newOwner != owner, ErrorsLib.ALREADY_SET);
+
         _setOwner(newOwner);
     }
 
