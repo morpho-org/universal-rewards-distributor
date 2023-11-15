@@ -101,6 +101,10 @@ Running tests requires forge from [Foundry](https://book.getfoundry.sh/getting-s
 forge test
 ```
 
+## Audits
+
+All audits are stored in the [audits](./audits/)' folder.
+
 ## Licence
 
-The URD is licensed under the [AGPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html) or later.
+The URD is licensed under `GPL-2.0-or-later`, see [`LICENSE`](./LICENSE).
