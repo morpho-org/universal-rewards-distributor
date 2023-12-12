@@ -18,7 +18,7 @@
     "url": "https://github.com/morpho-org/universal-rewards-distributor/issues"
   },
   "scripts": {
-    "postinstall": "husky install && forge install",
+    "prepare": "husky install && forge install",
     "build": "FOUNDRY_PROFILE=build forge build",
     "test": "FOUNDRY_PROFILE=test forge test",
     "lint": "forge fmt --check",

@@ -5,7 +5,7 @@ import {PendingRoot, IUniversalRewardsDistributorStaticTyping} from "./interface
 
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 import {EventsLib} from "./libraries/EventsLib.sol";
-import {SafeTransferLib, ERC20} from "../lib/solmate/src/utils/SafeTransferLib.sol";
+import {SafeERC20, IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {MerkleProof} from "../lib/openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 
@@ -16,7 +16,7 @@ import {MerkleProof} from "../lib/openzeppelin-contracts/contracts/utils/cryptog
 /// permissionless Merkle trees. It is largely inspired by Morpho's current rewards distributor:
 /// https://github.com/morpho-dao/morpho-v1/blob/main/src/common/rewards-distribution/RewardsDistributor.sol
 contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping {
-    using SafeTransferLib for ERC20;
+    using SafeERC20 for IERC20;
 
     /* STORAGE */
 
@@ -130,7 +130,7 @@ contract UniversalRewardsDistributor is IUniversalRewardsDistributorStaticTyping
 
         claimed[account][reward] = claimable;
 
-        ERC20(reward).safeTransfer(account, amount);
+        IERC20(reward).safeTransfer(account, amount);
 
         emit EventsLib.Claimed(account, reward, amount);
     }

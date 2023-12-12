@@ -5,7 +5,7 @@ import {PendingRoot, IUniversalRewardsDistributor} from "../src/interfaces/IUniv
 
 import {ErrorsLib} from "../src/libraries/ErrorsLib.sol";
 
-import {MockERC20} from "../lib/solmate/src/test/utils/mocks/MockERC20.sol";
+import {ERC20Mock} from "../lib/openzeppelin-contracts/contracts/mocks/ERC20Mock.sol";
 import {UniversalRewardsDistributor} from "../src/UniversalRewardsDistributor.sol";
 import {EventsLib} from "../src/libraries/EventsLib.sol";
 
@@ -17,8 +17,8 @@ contract UniversalRewardsDistributorTest is Test {
     bytes32 internal constant SALT = bytes32(0);
 
     Merkle merkle = new Merkle();
-    MockERC20 internal token1;
-    MockERC20 internal token2;
+    ERC20Mock internal token1;
+    ERC20Mock internal token2;
     IUniversalRewardsDistributor internal distributionWithoutTimeLock;
     IUniversalRewardsDistributor internal distributionWithTimeLock;
     address owner = _addrFromHashedString("Owner");
@@ -29,26 +29,17 @@ contract UniversalRewardsDistributorTest is Test {
     uint256 DEFAULT_TIMELOCK = 1 days;
 
     function setUp() public {
-        distributionWithoutTimeLock = IUniversalRewardsDistributor(
-            address(
-                new UniversalRewardsDistributor(
-                owner, 0, bytes32(0), bytes32(0)
-                )
-            )
-        );
-        token1 = new MockERC20("Token1", "TKN1", 18);
-        token2 = new MockERC20("Token2", "TKN2", 18);
+        distributionWithoutTimeLock =
+            IUniversalRewardsDistributor(address(new UniversalRewardsDistributor(owner, 0, bytes32(0), bytes32(0))));
+        token1 = new ERC20Mock();
+        token2 = new ERC20Mock();
 
         vm.startPrank(owner);
         distributionWithoutTimeLock.setRootUpdater(updater, true);
 
         vm.warp(block.timestamp + 1);
         distributionWithTimeLock = IUniversalRewardsDistributor(
-            address(
-                new UniversalRewardsDistributor(
-                owner, DEFAULT_TIMELOCK, bytes32(0), bytes32(0)
-                )
-            )
+            address(new UniversalRewardsDistributor(owner, DEFAULT_TIMELOCK, bytes32(0), bytes32(0)))
         );
         distributionWithTimeLock.setRootUpdater(updater, true);
         vm.stopPrank();
@@ -65,11 +56,7 @@ contract UniversalRewardsDistributorTest is Test {
     function testDistributionConstructor(address randomCreator) public {
         vm.prank(randomCreator);
         IUniversalRewardsDistributor distributor = IUniversalRewardsDistributor(
-            address(
-                new UniversalRewardsDistributor(
-                randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH
-                )
-            )
+            address(new UniversalRewardsDistributor(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH))
         );
 
         PendingRoot memory pendingRoot = distributor.pendingRoot();
@@ -91,9 +78,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.prank(randomCreator);
         vm.expectEmit(address(urdAddress));
         emit EventsLib.OwnerSet(randomCreator);
-        new UniversalRewardsDistributor{salt: SALT}(
-            randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH
-        );
+        new UniversalRewardsDistributor{salt: SALT}(randomCreator, DEFAULT_TIMELOCK, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
     }
 
     function testDistributionConstructorEmitsRootSet(bytes32 randomRoot, bytes32 randomIpfsHash) public {
@@ -106,9 +91,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.prank(owner);
         vm.expectEmit(address(urdAddress));
         emit EventsLib.RootSet(randomRoot, randomIpfsHash);
-        new UniversalRewardsDistributor{salt: SALT}(
-            owner, DEFAULT_TIMELOCK, randomRoot, randomIpfsHash
-        );
+        new UniversalRewardsDistributor{salt: SALT}(owner, DEFAULT_TIMELOCK, randomRoot, randomIpfsHash);
     }
 
     function testDistributionConstructorEmitsTimelockSet(uint256 timelock) public {
@@ -120,9 +103,7 @@ contract UniversalRewardsDistributorTest is Test {
         vm.prank(owner);
         vm.expectEmit(address(urdAddress));
         emit EventsLib.TimelockSet(timelock);
-        new UniversalRewardsDistributor{salt: SALT}(
-            owner, timelock, DEFAULT_ROOT, DEFAULT_IPFS_HASH
-        );
+        new UniversalRewardsDistributor{salt: SALT}(owner, timelock, DEFAULT_ROOT, DEFAULT_IPFS_HASH);
     }
 
     function testSubmitRootWithoutTimelockAsRandomCallerShouldRevert(address randomCaller) public {
