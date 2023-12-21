@@ -30,12 +30,7 @@ contract UrdFactory {
         bytes32 initialIpfsHash,
         bytes32 salt
     ) public returns (UniversalRewardsDistributor urd) {
-        urd = new UniversalRewardsDistributor{salt: salt}(
-            initialOwner,
-            initialTimelock,
-            initialRoot,
-            initialIpfsHash
-        );
+        urd = new UniversalRewardsDistributor{salt: salt}(initialOwner, initialTimelock, initialRoot, initialIpfsHash);
 
         isUrd[address(urd)] = true;
 
