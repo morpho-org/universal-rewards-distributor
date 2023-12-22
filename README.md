@@ -137,6 +137,6 @@ yarn verify --watch --chain-id {chainid} --etherscan-api-key {key} {address} src
 
 All audits are stored in the [audits](./audits/)' folder.
 
-## Licence
+## License
 
 The URD is licensed under `GPL-2.0-or-later`, see [`LICENSE`](./LICENSE).
