@@ -11,6 +11,7 @@ fs_permissions = [
 wrap_comments = true
 
 [profile.default.rpc_endpoints]
+custom = "${RPC_URL}"
 ethereum = "https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}"
 goerli = "https://eth-goerli.g.alchemy.com/v2/${ALCHEMY_KEY}"
 sepolia = "https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}"
