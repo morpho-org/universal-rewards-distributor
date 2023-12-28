@@ -130,7 +130,7 @@ yarn deploy goerli --broadcast --ledger --sender 0x7Ef4174aFdF4514F556439fa28222
 ### Etherscan verification
 
 ```bash
-yarn verify --watch --chain-id {chainid} --etherscan-api-key {key} {address} src/UrdFactory.sol:UrdFactory`
+yarn verify --watch --chain-id {chainid} --etherscan-api-key {key} {address} src/UrdFactory.sol:UrdFactory
 ```
 
 ## Audits
