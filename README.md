@@ -42,7 +42,7 @@ The DAO must transfer the correct amount of tokens to the URD to allow all claim
 ## Owner Specifications
 
 - The URD is an owner-managed contract, meaning the owner has full control over its distribution. Specifically, the owner can bypass all timelocked functions, modify the timelock, add or remove updaters, and revoke the pending value at their discretion.
-- If the owner is set to the zero address, the contract becomes ownerless. In this scenario, only updaters can submit a root. Furthermore, the time-lock value becomes unchangeable, and pending values cannot be removed.
+- If the owner is set to the zero address, the contract becomes ownerless. In this scenario, only updaters can submit a root or revoke a pending root.
 - If there are neither owner nor updaters, the URD becomes trustless. This is useful for creating a one-time distribution that must remain unchanged. This can be accomplished at the contract's creation by providing only a Merkle root and an optional IPFS hash. After this, the contract's sole functionality is to claim rewards.
 - It is possible to create a URD with no root, owner, or updaters. While this might seem pointless, it is the URD creator's responsibility to configure the URD correctly.
 
