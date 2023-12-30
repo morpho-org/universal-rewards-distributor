@@ -12,7 +12,7 @@ During the setup, the DAO configures the timelock based on the risk of updater c
 
 Each month, the Gelato bot proposes a new root. For 3 days, the DAO has the opportunity to run checks on this root. After these 3 days, if the DAO did not revoke the root, anyone can accept this value.
 
-The DAO must transfer the correct amount of tokens to the URD to allow all claimants to claim their rewards. If the DAO does not provide enough funds, the claim function will fail with the message "not enough funds".
+The DAO must transfer the correct amount of tokens to the URD to allow all claimants to claim their rewards. If the DAO does not provide enough funds, the erc20 transfer will fail.
 
 ## Attaching an IPFS Hash
 
@@ -20,7 +20,7 @@ The DAO must transfer the correct amount of tokens to the URD to allow all claim
 
 ```json
 {
-  "id": "A string id of the Merkle tree, can be random",
+  "id": "A string id of the Merkle tree, can be random (you can use the root)",
   "metadata": {
     "info": "a key value mapping allowing you to add information"
   },
@@ -29,7 +29,7 @@ The DAO must transfer the correct amount of tokens to the URD to allow all claim
     {
       "account": "The address of the claimer",
       "reward": "The address of the reward token",
-      "claimable": "The claimable amount as a big number",
+      "claimable": "The claimable amount as a big number string",
       "proof": ["0x1...", "0x2...", "...", "0xN..."]
     }
   ]
@@ -37,12 +37,12 @@ The DAO must transfer the correct amount of tokens to the URD to allow all claim
 ```
 
 - We recommend not including spaces or new lines when uploading to IPFS, to ensure a consistent method of uploading your JSON file. 
-- We also recommend sorting the tree by the account address to ensure a consistent order.
+- We also recommend sorting the tree by the account address and the reward token address, to ensure a consistent order.
 
 ## Owner Specifications
 
 - The URD is an owner-managed contract, meaning the owner has full control over its distribution. Specifically, the owner can bypass all timelocked functions, modify the timelock, add or remove updaters, and revoke the pending value at their discretion.
-- If the owner is set to the zero address, the contract becomes ownerless. In this scenario, only updaters can submit a root. Furthermore, the time-lock value becomes unchangeable, and pending values cannot be removed.
+- If the owner is set to the zero address, the contract becomes ownerless. In this scenario, only updaters can submit a root. Furthermore, the `timelock` value becomes unchangeable, and pending values can still be overridden by updaters.
 - If there are neither owner nor updaters, the URD becomes trustless. This is useful for creating a one-time distribution that must remain unchanged. This can be accomplished at the contract's creation by providing only a Merkle root and an optional IPFS hash. After this, the contract's sole functionality is to claim rewards.
 - It is possible to create a URD with no root, owner, or updaters. While this might seem pointless, it is the URD creator's responsibility to configure the URD correctly.
 
@@ -50,13 +50,13 @@ The DAO must transfer the correct amount of tokens to the URD to allow all claim
 
 - Multiple updaters can be defined for a single URD. The owner can add or remove updaters at any time, instantly, without a timelock.
 - All updaters share a single pending value. This means they can override the pending value (if any) at any time.
-- If a pending value is not used as the main root, any submissions by updaters will override the pending value.
+- If a pending value is not yet used as the main root, any submissions by updaters will override the pending value.
 
 Having multiple updaters can lead to situations where the pending values are subject to multiple concurrent propositions. The owner must manage this scenario to maintain the URD's functionality. We recommend not having different reward distribution strategies in a single URD. All updaters should agree on a distribution mechanism and a root. The use case for having multiple updaters is to enhance resilience and security.
 
 ## Considerations for Merkle Tree
 
-- The claimable amount for a given user must always exceed the amount provided in the previous Merkle tree. If a claimer has claimed an amount higher than the `claimable` amount in the Merkle tree (if claimed from a previous root), the claim will revert with a "root misconfigured" error.
+- The claimable amount for a given user must always exceed the amount provided in the previous Merkle tree. If a claimer has claimed an amount higher than the `claimable` amount in the Merkle tree (if claimed from a previous root), the transaction will revert with an underflow error.
 - TODO: Define the list of invariants for a new root.
 - We recommend merging all the {reward, user} pairs into a single leaf. If you wish to have two different leaves for one {reward, user} pair, the user will be able to claim the larger amount from the two leaves, not the sum of the two.
 - Merkle trees can be generated with [Openzeppelin library](https://github.com/OpenZeppelin/merkle-tree).
