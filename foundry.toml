@@ -2,15 +2,30 @@
 src = "src"
 test = "test"
 libs = ["lib"]
+fs_permissions = [
+    { access = "read", path = "./script/config/"},
+    { access = "read", path = "./out/"}
+]
 
 [profile.default.fmt]
 wrap_comments = true
+
+[profile.default.rpc_endpoints]
+custom = "${RPC_URL}"
+ethereum = "https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}"
+goerli = "https://eth-goerli.g.alchemy.com/v2/${ALCHEMY_KEY}"
+sepolia = "https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}"
 
 
 [profile.build]
 via-ir = true
 test = "/dev/null"
 script = "/dev/null"
+
+
+[profile.script]
+src = "/dev/null"
+test = "/dev/null"
 
 
 [profile.test-slow]

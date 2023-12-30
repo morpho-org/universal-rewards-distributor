@@ -19,7 +19,10 @@
   },
   "scripts": {
     "prepare": "husky install && forge install",
+    "script": "FOUNDRY_PROFILE=script forge script",
     "build": "FOUNDRY_PROFILE=build forge build",
+    "deploy": "yarn build && yarn script script/DeployUrdFactory.sol --sig \"run(string memory)\"",
+    "verify": "FOUNDRY_PROFILE=build forge verify-contract",
     "test": "FOUNDRY_PROFILE=test forge test",
     "lint": "forge fmt --check",
     "lint:fix": "forge fmt",
