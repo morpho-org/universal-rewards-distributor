@@ -24,14 +24,8 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: yarn
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-        shell: bash
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install python
         uses: actions/setup-python@v4
@@ -41,9 +35,9 @@ jobs:
 
       - name: Install solc
         run: |
-          wget https://github.com/ethereum/solidity/releases/download/v0.8.13/solc-static-linux
+          wget https://github.com/ethereum/solidity/releases/download/v0.8.19/solc-static-linux
           chmod +x solc-static-linux
-          sudo mv solc-static-linux /usr/local/bin/solc8.13
+          sudo mv solc-static-linux /usr/local/bin/solc
 
       - name: Verify ${{ matrix.conf }}
         run: certoraRun certora/confs/${{ matrix.conf }}.conf
