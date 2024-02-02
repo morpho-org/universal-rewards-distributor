@@ -17,7 +17,7 @@ jobs:
       matrix:
         conf:
           - MerkleTrees
-          - RewardsDistributor
+          - UniversalRewardsDistributor
 
     steps:
       - uses: actions/checkout@v3
