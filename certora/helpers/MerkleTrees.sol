@@ -9,8 +9,8 @@ contract MerkleTrees {
 
     mapping(address => MerkleTreeLib.Tree) trees;
 
-    function newLeaf(address treeAddress, address addr, uint256 value) public {
-        trees[treeAddress].newLeaf(addr, value);
+    function newLeaf(address treeAddress, address addr, address reward, uint256 value) public {
+        trees[treeAddress].newLeaf(addr, reward, value);
     }
 
     function newInternalNode(address treeAddress, address parent, address left, address right) public {
