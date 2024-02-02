@@ -16,3 +16,7 @@ docs/
 # npm
 package-lock.json
 node_modules
+
+# certora
+.certora**
+emv-*-certora*
