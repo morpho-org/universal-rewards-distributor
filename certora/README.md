@@ -19,7 +19,7 @@ The certificate is assumed to contain the submitted root to verify, a total amou
 
 Those checks are done by only using "trusted" functions, namely `newLeaf` and `newInternalNode`, that have been formally verified to preserve those invariants:
 
-- it is checked in [MerkleTrees.spec](specs/MerkleTrees.spec) that those functions lead to creating well-formed trees.
+- it is checked in [MerkleTree.spec](specs/MerkleTree.spec) that those functions lead to creating well-formed trees.
   Well-formed trees also verify that the value of their internal node is the sum of the rewards it contains.
 - it is checked in [UniversalRewardsDistributor.spec](specs/UniversalRewardsDistributor.spec) that the rewards distributor is correct, meaning that claimed rewards correspond exactly to the rewards contained in the corresponding Merkle tree.
 
