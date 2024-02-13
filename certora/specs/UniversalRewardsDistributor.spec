@@ -1,4 +1,4 @@
-using MerkleTrees as MerkleTrees;
+using MerkleTree as MerkleTree;
 using Util as Util;
 
 methods {
@@ -6,9 +6,9 @@ methods {
     function claimed(address, address) external returns(uint256) envfree;
     function claim(address, address, uint256, bytes32[]) external returns(uint256) envfree;
 
-    function MerkleTrees.getValue(address, address) external returns(uint256) envfree;
-    function MerkleTrees.getHash(address, address) external returns(bytes32) envfree;
-    function MerkleTrees.wellFormedUpTo(address, address, uint256) external envfree;
+    function MerkleTree.getValue(address, address) external returns(uint256) envfree;
+    function MerkleTree.getHash(bytes32) external returns(bytes32) envfree;
+    function MerkleTree.wellFormedUpTo(bytes32, uint256) external envfree;
 
     function _.balanceOf(address) external => DISPATCHER(true);
     function _.transfer(address, uint256) external => DISPATCHER(true);
@@ -50,17 +50,17 @@ rule transferredTokens(address account, address reward, uint256 claimable, bytes
 }
 
 rule claimCorrectness(address account, address reward, uint256 claimable, bytes32[] proof) {
-    address tree; address node;
+    bytes32 node;
 
-    // Assume that root is the hash of node in tree.
-    require MerkleTrees.getHash(tree, node) == root();
+    // Assume that root is the hash of node in the tree.
+    require MerkleTree.getHash(node) == root();
 
     // No need to make sure that node is equal to currRoot : one can pass an internal node instead.
 
-    // Assume that tree is well-formed.
-    MerkleTrees.wellFormedUpTo(tree, node, 3);
+    // Assume that the tree is well-formed.
+    MerkleTree.wellFormedUpTo(node, 3);
 
     claim(account, reward, claimable, proof);
 
-    assert claimable == MerkleTrees.getValue(tree, account);
+    assert claimable == MerkleTree.getValue(account, reward);
 }

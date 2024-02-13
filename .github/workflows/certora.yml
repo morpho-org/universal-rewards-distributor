@@ -16,7 +16,7 @@ jobs:
 
       matrix:
         conf:
-          - MerkleTrees
+          - MerkleTree
           - UniversalRewardsDistributor
 
     steps:
