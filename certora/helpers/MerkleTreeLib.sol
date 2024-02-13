@@ -70,7 +70,9 @@ library MerkleTreeLib {
         if (node.isEmpty()) return true;
 
         if (node.left == 0 && node.right == 0) {
-            return node.hashNode == keccak256(bytes.concat(keccak256(abi.encode(node.addr, node.reward, node.value))));
+            bytes32 accountHash = keccak256(abi.encode(node.addr, node.reward));
+            return id == accountHash
+                && node.hashNode == keccak256(bytes.concat(keccak256(abi.encode(node.addr, node.reward, node.value))));
         } else {
             // Well-formed nodes have exactly 0 or 2 children.
             if (node.left == 0 || node.right == 0) return false;
