@@ -48,8 +48,6 @@ library MerkleTreeLib {
 
         parentNode.left = left;
         parentNode.right = right;
-        // The value of an internal node represents the sum of the values of the leaves underneath.
-        parentNode.value = leftNode.value + rightNode.value;
         parentNode.hashNode = keccak256(abi.encode(leftNode.hashNode, rightNode.hashNode));
     }
 
@@ -60,8 +58,7 @@ library MerkleTreeLib {
 
     // The specification of a well-formed tree is the following:
     //   - empty nodes are well-formed
-    //   - other nodes should have non-zero value, where the leaf node contains the value of the account and internal
-    // nodes contain the sum of the values of its leaf children.
+    //   - correct identifiers of leaves
     //   - correct hashing of leaves and of internal nodes
     //   - internal nodes have their children pair sorted and not empty
     function isWellFormed(Tree storage tree, bytes32 id) internal view returns (bool) {
@@ -70,8 +67,8 @@ library MerkleTreeLib {
         if (node.isEmpty()) return true;
 
         if (node.left == 0 && node.right == 0) {
-            bytes32 accountHash = keccak256(abi.encode(node.addr, node.reward));
-            return id == accountHash
+            bytes32 idLeaf = keccak256(abi.encode(node.addr, node.reward));
+            return id == idLeaf
                 && node.hashNode == keccak256(bytes.concat(keccak256(abi.encode(node.addr, node.reward, node.value))));
         } else {
             // Well-formed nodes have exactly 0 or 2 children.
