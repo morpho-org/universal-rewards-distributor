@@ -1,32 +1,44 @@
 import sys
 import json
+from eth_abi import encode
 from web3 import Web3, EthereumTesterProvider
 
 w3 = Web3(EthereumTesterProvider())
 
 
-def keccak_node(left_hash, right_hash):
+def hash_node(left_hash, right_hash):
     return w3.to_hex(
         w3.solidity_keccak(["bytes32", "bytes32"], [left_hash, right_hash])
     )
 
 
-def keccak_leaf(address, amount):
+def hash_leaf(address, reward, amount):
     address = w3.to_checksum_address(address)
-    return w3.to_hex(w3.solidity_keccak(["address", "uint256"], [address, amount]))
+    reward = w3.to_checksum_address(reward)
+    encoded_args = encode(["address", "address", "uint256"], [address, reward, amount])
+    first_hash = w3.solidity_keccak(
+        ["bytes"],
+        [encoded_args],
+    )
+    second_hash = w3.solidity_keccak(
+        ["bytes"],
+        [first_hash],
+    )
+    return w3.to_hex(second_hash)
 
 
 certificate = {}
 hash_to_address = {}
+hash_to_reward = {}
 hash_to_value = {}
 left = {}
 right = {}
 
 
-def populate(address, amount, proof):
-    amount = int(amount)
-    computedHash = keccak_leaf(address, amount)
-    hash_to_address[computedHash] = address
+def populate(addr, reward, amount, proof):
+    computedHash = hash_leaf(addr, reward, amount)
+    hash_to_address[computedHash] = addr.lower()
+    hash_to_reward[computedHash] = reward.lower()
     hash_to_value[computedHash] = amount
     for proofElement in proof:
         [leftHash, rightHash] = (
@@ -34,10 +46,9 @@ def populate(address, amount, proof):
             if computedHash <= proofElement
             else [proofElement, computedHash]
         )
-        computedHash = keccak_node(leftHash, rightHash)
+        computedHash = hash_node(leftHash, rightHash)
         left[computedHash] = leftHash
         right[computedHash] = rightHash
-        hash_to_address[computedHash] = keccak_node(computedHash, computedHash)[:42]
 
 
 def walk(h):
@@ -46,26 +57,34 @@ def walk(h):
         walk(right[h])
         certificate["node"].append(
             {
-                "addr": hash_to_address[h],
-                "left": hash_to_address[left[h]],
-                "right": hash_to_address[right[h]],
+                "id": h,
+                "left": left[h],
+                "right": right[h],
             }
         )
     else:
         certificate["leaf"].append(
-            {"addr": hash_to_address[h], "value": hash_to_value[h]}
+            {
+                "id": h,
+                "addr": hash_to_address[h],
+                "reward": hash_to_reward[h],
+                "value": hash_to_value[h],
+            }
         )
 
 
 with open(sys.argv[1]) as input_file:
     proofs = json.load(input_file)
+    rewards = proofs["rewards"]
+
     certificate["root"] = proofs["root"]
-    certificate["total"] = int(proofs["total"])
     certificate["leaf"] = []
     certificate["node"] = []
 
-    for address, data in proofs["proofs"].items():
-        populate(address, data["amount"], data["proof"])
+    for addr, rest in rewards.items():
+        for reward, data in rest.items():
+            amount = int(data["amount"])
+            populate(addr, reward, amount, data["proof"])
 
     walk(proofs["root"])
 

@@ -13,14 +13,16 @@ contract Checker is Test {
     MerkleTreeLib.Tree public tree;
 
     struct Leaf {
-        address addr;
+        bytes32 id;
+        bytes32 addr;
+        bytes32 reward;
         uint256 value;
     }
 
     struct InternalNode {
-        address addr;
-        address left;
-        address right;
+        bytes32 id;
+        bytes32 left;
+        bytes32 right;
     }
 
     function testVerifyCertificate() public {
@@ -32,22 +34,19 @@ contract Checker is Test {
         Leaf memory leaf;
         for (uint256 i; i < leafLength; i++) {
             leaf = abi.decode(json.parseRaw(string.concat(".leaf[", Strings.toString(i), "]")), (Leaf));
-            tree.newLeaf(leaf.addr, leaf.value);
+            tree.newLeaf(address(bytes20(leaf.addr)), address(bytes20(leaf.reward)), leaf.value);
         }
 
         uint256 nodeLength = abi.decode(json.parseRaw(".nodeLength"), (uint256));
         InternalNode memory node;
         for (uint256 i; i < nodeLength; i++) {
             node = abi.decode(json.parseRaw(string.concat(".node[", Strings.toString(i), "]")), (InternalNode));
-            tree.newInternalNode(node.addr, node.left, node.right);
+            tree.newInternalNode(node.id, node.left, node.right);
         }
 
-        assertTrue(!tree.isEmpty(node.addr), "empty root");
-
-        uint256 total = abi.decode(json.parseRaw(".total"), (uint256));
-        assertEq(tree.getValue(node.addr), total, "incorrect total rewards");
+        assertTrue(!tree.isEmpty(node.id), "empty root");
 
         bytes32 root = abi.decode(json.parseRaw(".root"), (bytes32));
-        assertEq(tree.getHash(node.addr), root, "mismatched roots");
+        assertEq(tree.getHash(node.id), root, "mismatched roots");
     }
 }
