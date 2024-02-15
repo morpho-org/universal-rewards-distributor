@@ -13,9 +13,8 @@ contract Checker is Test {
     MerkleTreeLib.Tree public tree;
 
     struct Leaf {
-        bytes32 id;
-        bytes32 addr;
-        bytes32 reward;
+        address addr;
+        address reward;
         uint256 value;
     }
 
@@ -34,7 +33,7 @@ contract Checker is Test {
         Leaf memory leaf;
         for (uint256 i; i < leafLength; i++) {
             leaf = abi.decode(json.parseRaw(string.concat(".leaf[", Strings.toString(i), "]")), (Leaf));
-            tree.newLeaf(address(bytes20(leaf.addr)), address(bytes20(leaf.reward)), leaf.value);
+            tree.newLeaf(leaf.addr, leaf.reward, leaf.value);
         }
 
         uint256 nodeLength = abi.decode(json.parseRaw(".nodeLength"), (uint256));

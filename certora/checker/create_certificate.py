@@ -65,7 +65,6 @@ def walk(h):
     else:
         certificate["leaf"].append(
             {
-                "id": h,
                 "addr": hash_to_address[h],
                 "reward": hash_to_reward[h],
                 "value": hash_to_value[h],
