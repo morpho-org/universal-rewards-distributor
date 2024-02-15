@@ -36,19 +36,19 @@ library MerkleTreeLib {
         node.hashNode = keccak256(bytes.concat(keccak256(abi.encode(addr, reward, value))));
     }
 
-    function newInternalNode(Tree storage tree, bytes32 parent, bytes32 left, bytes32 right) internal {
-        Node storage parentNode = tree.nodes[parent];
+    function newInternalNode(Tree storage tree, bytes32 id, bytes32 left, bytes32 right) internal {
+        Node storage node = tree.nodes[id];
         Node storage leftNode = tree.nodes[left];
         Node storage rightNode = tree.nodes[right];
-        require(parent != 0, "parent is zero bytes");
-        require(parentNode.isEmpty(), "parent is not empty");
+        require(id != 0, "id is zero bytes");
+        require(node.isEmpty(), "node is not empty");
         require(!leftNode.isEmpty(), "left is empty");
         require(!rightNode.isEmpty(), "right is empty");
         require(leftNode.hashNode <= rightNode.hashNode, "children are not pair sorted");
 
-        parentNode.left = left;
-        parentNode.right = right;
-        parentNode.hashNode = keccak256(abi.encode(leftNode.hashNode, rightNode.hashNode));
+        node.left = left;
+        node.right = right;
+        node.hashNode = keccak256(abi.encode(leftNode.hashNode, rightNode.hashNode));
     }
 
     function setRoot(Tree storage tree, bytes32 id) internal {

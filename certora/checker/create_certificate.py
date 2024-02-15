@@ -13,8 +13,6 @@ def hash_node(left_hash, right_hash):
 
 
 def hash_leaf(address, reward, amount):
-    address = w3.to_checksum_address(address)
-    reward = w3.to_checksum_address(reward)
     encoded_args = encode(["address", "address", "uint256"], [address, reward, amount])
     first_hash = w3.solidity_keccak(
         ["bytes"],
@@ -27,7 +25,13 @@ def hash_leaf(address, reward, amount):
     return w3.to_hex(second_hash)
 
 
+def hash_id(addr, reward):
+    encoded_args = encode(["address", "address"], [addr, reward])
+    return w3.to_hex(w3.solidity_keccak(["bytes"], [encoded_args]))
+
+
 certificate = {}
+hash_to_id = {}
 hash_to_address = {}
 hash_to_reward = {}
 hash_to_value = {}
@@ -37,8 +41,9 @@ right = {}
 
 def populate(addr, reward, amount, proof):
     computedHash = hash_leaf(addr, reward, amount)
-    hash_to_address[computedHash] = addr.lower()
-    hash_to_reward[computedHash] = reward.lower()
+    hash_to_id[computedHash] = hash_id(addr, reward)
+    hash_to_address[computedHash] = addr
+    hash_to_reward[computedHash] = reward
     hash_to_value[computedHash] = amount
     for proofElement in proof:
         [leftHash, rightHash] = (
@@ -47,6 +52,7 @@ def populate(addr, reward, amount, proof):
             else [proofElement, computedHash]
         )
         computedHash = hash_node(leftHash, rightHash)
+        hash_to_id[computedHash] = computedHash
         left[computedHash] = leftHash
         right[computedHash] = rightHash
 
@@ -58,8 +64,8 @@ def walk(h):
         certificate["node"].append(
             {
                 "id": h,
-                "left": left[h],
-                "right": right[h],
+                "left": hash_to_id[left[h]],
+                "right": hash_to_id[right[h]],
             }
         )
     else:
@@ -80,8 +86,10 @@ with open(sys.argv[1]) as input_file:
     certificate["leaf"] = []
     certificate["node"] = []
 
-    for addr, rest in rewards.items():
-        for reward, data in rest.items():
+    for addr, data in rewards.items():
+        address = w3.to_checksum_address(addr)
+        for reward, data in data.items():
+            reward = w3.to_checksum_address(reward)
             amount = int(data["amount"])
             populate(addr, reward, amount, data["proof"])
 
