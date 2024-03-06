@@ -49,17 +49,19 @@ contract MerkleTree {
         return tree.isWellFormed(id);
     }
 
-    // Only go up to a given depth, to avoid CVL recursion protection.
-    function wellFormedUpTo(bytes32 id, uint256 depth) public view {
-        if (depth == 0) return;
+    // Check that the nodes are well formed on the path from the root.
+    function wellFormedPath(bytes32 id, bytes32[] memory proof) public view {
+        for (uint256 i = proof.length;;) {
+            require(tree.isWellFormed(id));
 
-        require(tree.isWellFormed(id));
+            if (i == 0) break;
 
-        bytes32 left = tree.getLeft(id);
-        bytes32 right = tree.getRight(id);
-        if (left != 0) {
-            wellFormedUpTo(left, depth - 1);
-            wellFormedUpTo(right, depth - 1);
+            bytes32 otherHash = proof[--i];
+
+            bytes32 left = tree.getLeft(id);
+            bytes32 right = tree.getRight(id);
+
+            id = tree.getHash(left) == otherHash ? right : left;
         }
     }
 }

@@ -8,7 +8,7 @@ methods {
 
     function MerkleTree.getValue(address, address) external returns(uint256) envfree;
     function MerkleTree.getHash(bytes32) external returns(bytes32) envfree;
-    function MerkleTree.wellFormedUpTo(bytes32, uint256) external envfree;
+    function MerkleTree.wellFormedPath(bytes32, bytes32[]) external envfree;
 
     function _.balanceOf(address) external => DISPATCHER(true);
     function _.transfer(address, uint256) external => DISPATCHER(true);
@@ -17,18 +17,36 @@ methods {
     function Util.balanceOf(address, address) external returns(uint256) envfree;
 }
 
-// Check an account can only claim greater rewards each time.
-rule noClaimAgain(address account, address reward, uint256 claimable, bytes32[] proof) {
+// Check an account claimed amount is correctly updated.
+rule updatedClaimedAmount(address account, address reward, uint256 claimable, bytes32[] proof) {
     claim(account, reward, claimable, proof);
 
     assert claimable == claimed(account, reward);
+}
 
-    uint256 _claimable2;
-    // Assume that the second claim is smaller or equal to the previous claimed amount.
-    require (_claimable2 <= claimable);
-    claim@withrevert(account, reward, _claimable2, proof);
+// Check an account can only claim greater amounts each time.
+rule increasingClaimedAmounts(address account, address reward, uint256 claimable, bytes32[] proof) {
+    uint256 claimed = claimed(account, reward);
 
-    assert lastReverted;
+    claim(account, reward, claimable, proof);
+
+    assert claimable > claimed;
+}
+
+// Check that claiming twice is equivalent to claiming once with the last amount.
+rule claimTwice(address account, address reward, uint256 claim1, uint256 claim2) {
+    storage initStorage = lastStorage;
+
+    bytes32[] proof1; bytes32[] proof2;
+    claim(account, reward, claim1, proof1);
+    claim(account, reward, claim2, proof2);
+
+    storage afterBothStorage = lastStorage;
+
+    bytes32[] proof;
+    claim(account, reward, claim2, proof) at initStorage;
+
+    assert lastStorage == afterBothStorage;
 }
 
 // Check that the transferred amount is equal to the claimed amount minus the previous claimed amount.
@@ -58,7 +76,7 @@ rule claimCorrectness(address account, address reward, uint256 claimable, bytes3
     // No need to make sure that node is equal to currRoot : one can pass an internal node instead.
 
     // Assume that the tree is well-formed.
-    MerkleTree.wellFormedUpTo(node, 3);
+    MerkleTree.wellFormedPath(node, proof);
 
     claim(account, reward, claimable, proof);
 
