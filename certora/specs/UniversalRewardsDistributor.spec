@@ -76,7 +76,7 @@ rule claimCorrectness(address account, address reward, uint256 claimable, bytes3
     // Assume that root is the hash of node in the tree.
     require MerkleTree.getHash(node) == root();
 
-    // No need to make sure that node is equal to currRoot : one can pass an internal node instead.
+    // No need to make sure that node is equal to currRoot: one can pass an internal node instead.
 
     // Assume that the tree is well-formed.
     MerkleTree.wellFormedPath(node, proof);

@@ -17,14 +17,6 @@ contract MerkleTree {
         tree.newInternalNode(internalNode);
     }
 
-    function setRoot(bytes32 id) public {
-        tree.setRoot(id);
-    }
-
-    function getRoot() public view returns (bytes32) {
-        return tree.getRoot();
-    }
-
     function getLeft(bytes32 id) public view returns (bytes32) {
         return tree.getLeft(id);
     }
