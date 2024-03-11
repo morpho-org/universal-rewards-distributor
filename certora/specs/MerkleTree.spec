@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 methods {
     function getRoot() external returns(bytes32) envfree;
     function getValue(address, address) external returns(uint256) envfree;

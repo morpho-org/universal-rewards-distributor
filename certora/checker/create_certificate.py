@@ -6,12 +6,14 @@ from web3 import Web3, EthereumTesterProvider
 w3 = Web3(EthereumTesterProvider())
 
 
+# Returns the hash of a node given the hashes of its children.
 def hash_node(left_hash, right_hash):
     return w3.to_hex(
         w3.solidity_keccak(["bytes32", "bytes32"], [left_hash, right_hash])
     )
 
 
+# Returns the hash of a leaf given the rewards details.
 def hash_leaf(address, reward, amount):
     encoded_args = encode(["address", "address", "uint256"], [address, reward, amount])
     first_hash = w3.solidity_keccak(
@@ -25,6 +27,7 @@ def hash_leaf(address, reward, amount):
     return w3.to_hex(second_hash)
 
 
+# Returns the identifier of a leaf.
 def hash_id(addr, reward):
     encoded_args = encode(["address", "address"], [addr, reward])
     return w3.to_hex(w3.solidity_keccak(["bytes"], [encoded_args]))
@@ -39,6 +42,7 @@ left = {}
 right = {}
 
 
+# Populates the fields of the tree along the path given by the proof.
 def populate(addr, reward, amount, proof):
     computedHash = hash_leaf(addr, reward, amount)
     hash_to_id[computedHash] = hash_id(addr, reward)
@@ -57,6 +61,7 @@ def populate(addr, reward, amount, proof):
         right[computedHash] = rightHash
 
 
+# Traverse the tree and generate corresponding instruction for each internal node and each leaf.
 def walk(h):
     if h in left:
         walk(left[h])

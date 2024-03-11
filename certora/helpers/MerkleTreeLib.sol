@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GNU AGPLv3
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.0;
 
 library MerkleTreeLib {
@@ -24,6 +24,8 @@ library MerkleTreeLib {
     }
 
     function newLeaf(Tree storage tree, address addr, address reward, uint256 value) internal {
+        // The following identifier is used as the key to create a new leaf.
+        // This ensures that the same pair of address and reward does not appear twice in the tree.
         bytes32 id = keccak256(abi.encode(addr, reward));
         Node storage node = tree.nodes[id];
         require(id != 0, "id is the zero bytes");
