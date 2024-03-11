@@ -15,6 +15,5 @@ invariant wellFormed(bytes32 id)
     isWellFormed(id)
 { preserved {
     requireInvariant zeroIsEmpty();
-    requireInvariant wellFormed(id);
   }
 }
