@@ -4,12 +4,25 @@ pragma solidity ^0.8.0;
 library MerkleTreeLib {
     using MerkleTreeLib for Node;
 
+    struct Leaf {
+        address addr;
+        address reward;
+        uint256 value;
+    }
+
+    struct InternalNode {
+        bytes32 id;
+        bytes32 left;
+        bytes32 right;
+    }
+
     struct Node {
         bytes32 left;
         bytes32 right;
         address addr;
         address reward;
         uint256 value;
+        // hash of [addr, reward, value] for leaves, and [left.hash, right.hash] for internal nodes.
         bytes32 hashNode;
     }
 
@@ -23,33 +36,33 @@ library MerkleTreeLib {
         bytes32 root;
     }
 
-    function newLeaf(Tree storage tree, address addr, address reward, uint256 value) internal {
+    function newLeaf(Tree storage tree, Leaf memory leaf) internal {
         // The following identifier is used as the key to create a new leaf.
         // This ensures that the same pair of address and reward does not appear twice in the tree.
-        bytes32 id = keccak256(abi.encode(addr, reward));
+        bytes32 id = keccak256(abi.encode(leaf.addr, leaf.reward));
         Node storage node = tree.nodes[id];
         require(id != 0, "id is the zero bytes");
         require(node.isEmpty(), "leaf is not empty");
-        require(value != 0, "value is zero");
+        require(leaf.value != 0, "value is zero");
 
-        node.addr = addr;
-        node.reward = reward;
-        node.value = value;
-        node.hashNode = keccak256(bytes.concat(keccak256(abi.encode(addr, reward, value))));
+        node.addr = leaf.addr;
+        node.reward = leaf.reward;
+        node.value = leaf.value;
+        node.hashNode = keccak256(bytes.concat(keccak256(abi.encode(leaf.addr, leaf.reward, leaf.value))));
     }
 
-    function newInternalNode(Tree storage tree, bytes32 id, bytes32 left, bytes32 right) internal {
-        Node storage node = tree.nodes[id];
-        Node storage leftNode = tree.nodes[left];
-        Node storage rightNode = tree.nodes[right];
-        require(id != 0, "id is zero bytes");
+    function newInternalNode(Tree storage tree, InternalNode memory internalNode) internal {
+        Node storage node = tree.nodes[internalNode.id];
+        Node storage leftNode = tree.nodes[internalNode.left];
+        Node storage rightNode = tree.nodes[internalNode.right];
+        require(internalNode.id != 0, "id is zero bytes");
         require(node.isEmpty(), "node is not empty");
         require(!leftNode.isEmpty(), "left is empty");
         require(!rightNode.isEmpty(), "right is empty");
         require(leftNode.hashNode <= rightNode.hashNode, "children are not pair sorted");
 
-        node.left = left;
-        node.right = right;
+        node.left = internalNode.left;
+        node.right = internalNode.right;
         node.hashNode = keccak256(abi.encode(leftNode.hashNode, rightNode.hashNode));
     }
 

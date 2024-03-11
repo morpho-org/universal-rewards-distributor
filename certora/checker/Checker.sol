@@ -12,35 +12,25 @@ contract Checker is Test {
 
     MerkleTreeLib.Tree public tree;
 
-    struct Leaf {
-        address addr;
-        address reward;
-        uint256 value;
-    }
-
-    struct InternalNode {
-        bytes32 id;
-        bytes32 left;
-        bytes32 right;
-    }
-
     function testVerifyCertificate() public {
         string memory projectRoot = vm.projectRoot();
         string memory path = string.concat(projectRoot, "/certificate.json");
         string memory json = vm.readFile(path);
 
         uint256 leafLength = abi.decode(json.parseRaw(".leafLength"), (uint256));
-        Leaf memory leaf;
+        MerkleTreeLib.Leaf memory leaf;
         for (uint256 i; i < leafLength; i++) {
-            leaf = abi.decode(json.parseRaw(string.concat(".leaf[", Strings.toString(i), "]")), (Leaf));
-            tree.newLeaf(leaf.addr, leaf.reward, leaf.value);
+            leaf = abi.decode(json.parseRaw(string.concat(".leaf[", Strings.toString(i), "]")), (MerkleTreeLib.Leaf));
+            tree.newLeaf(leaf);
         }
 
         uint256 nodeLength = abi.decode(json.parseRaw(".nodeLength"), (uint256));
-        InternalNode memory node;
+        MerkleTreeLib.InternalNode memory node;
         for (uint256 i; i < nodeLength; i++) {
-            node = abi.decode(json.parseRaw(string.concat(".node[", Strings.toString(i), "]")), (InternalNode));
-            tree.newInternalNode(node.id, node.left, node.right);
+            node = abi.decode(
+                json.parseRaw(string.concat(".node[", Strings.toString(i), "]")), (MerkleTreeLib.InternalNode)
+            );
+            tree.newInternalNode(node);
         }
 
         assertTrue(!tree.isEmpty(node.id), "empty root");
