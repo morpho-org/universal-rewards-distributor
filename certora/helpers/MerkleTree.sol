@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.0;
 
 import "./MerkleTreeLib.sol";
@@ -9,12 +9,12 @@ contract MerkleTree {
 
     MerkleTreeLib.Tree tree;
 
-    function newLeaf(address addr, address reward, uint256 value) public {
-        tree.newLeaf(addr, reward, value);
+    function newLeaf(MerkleTreeLib.Leaf memory leaf) public {
+        tree.newLeaf(leaf);
     }
 
-    function newInternalNode(bytes32 parent, bytes32 left, bytes32 right) public {
-        tree.newInternalNode(parent, left, right);
+    function newInternalNode(MerkleTreeLib.InternalNode memory internalNode) public {
+        tree.newInternalNode(internalNode);
     }
 
     function setRoot(bytes32 id) public {
