@@ -42,11 +42,12 @@ rule claimTwice(address account, address reward, uint256 claim1, uint256 claim2)
     bytes32[] proof1; bytes32[] proof2;
     claim(account, reward, claim1, proof1);
     claim(account, reward, claim2, proof2);
+    assert claim2 >= claim1;
 
     storage afterBothStorage = lastStorage;
 
-    bytes32[] proof;
-    claim(account, reward, claim2, proof) at initStorage;
+    bytes32[] proof3;
+    claim(account, reward, claim2, proof3) at initStorage;
 
     assert lastStorage == afterBothStorage;
 }
