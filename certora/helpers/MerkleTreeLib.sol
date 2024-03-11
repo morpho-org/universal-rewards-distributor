@@ -54,7 +54,7 @@ library MerkleTreeLib {
     }
 
     function setRoot(Tree storage tree, bytes32 id) internal {
-        require(!tree.nodes[id].isEmpty(), "root is empty");
+        require(!tree.nodes[id].isEmpty(), "node is empty");
         tree.root = id;
     }
 
@@ -77,9 +77,7 @@ library MerkleTreeLib {
             if (node.left == 0 || node.right == 0) return false;
             Node storage left = tree.nodes[node.left];
             Node storage right = tree.nodes[node.right];
-            // Well-formed nodes should have its children pair-sorted.
-            bool sorted = left.hashNode <= right.hashNode;
-            return !left.isEmpty() && !right.isEmpty() && sorted
+            return !left.isEmpty() && !right.isEmpty() && left.hashNode <= right.hashNode
                 && node.hashNode == keccak256(abi.encode(left.hashNode, right.hashNode));
         }
     }
