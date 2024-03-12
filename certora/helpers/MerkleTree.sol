@@ -113,7 +113,8 @@ contract MerkleTree {
         }
     }
 
-    // Check that the nodes are well formed on the path from the root.
+    // Check that the nodes are well formed starting from `node` and going down the `tree.
+    // The `proof` is used to choose the path downward.
     function wellFormedPath(bytes32 id, bytes32[] memory proof) public view {
         for (uint256 i = proof.length;;) {
             require(isWellFormed(id));
