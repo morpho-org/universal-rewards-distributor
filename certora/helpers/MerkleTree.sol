@@ -61,7 +61,7 @@ contract MerkleTree {
         node.hashNode = keccak256(abi.encode(leftNode.hashNode, rightNode.hashNode));
     }
 
-    /* GETTERS */
+    /* PURE AND VIEW FUNCTIONS */
 
     function isEmpty(Node memory node) public pure returns (bool) {
         return node.left == 0 && node.right == 0 && node.addr == address(0) && node.reward == address(0)
