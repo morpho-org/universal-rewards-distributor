@@ -5,8 +5,10 @@ using Util as Util;
 
 methods {
     function root() external returns bytes32 envfree;
+    function ipfsHash() external returns bytes32 envfree;
     function claimed(address, address) external returns(uint256) envfree;
     function claim(address, address, uint256, bytes32[]) external returns(uint256) envfree;
+    function pendingRoot() external returns(bytes32, bytes32, uint256) envfree;
 
     function MerkleTree.getValue(address, address) external returns(uint256) envfree;
     function MerkleTree.getHash(bytes32) external returns(bytes32) envfree;
@@ -17,6 +19,17 @@ methods {
     function _.transferFrom(address, address, uint256) external => DISPATCHER(true);
 
     function Util.balanceOf(address, address) external returns(uint256) envfree;
+}
+
+// Check how accept root changes the storage.
+rule acceptRootStorageChange(env e) {
+    bytes32 pendingRoot; bytes32 pendingIpfsHash;
+    pendingRoot, pendingIpfsHash, _ = pendingRoot();
+
+    acceptRoot(e);
+
+    assert root() == pendingRoot;
+    assert ipfsHash() == pendingIpfsHash;
 }
 
 // Check an account claimed amount is correctly updated.
