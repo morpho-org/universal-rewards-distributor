@@ -83,6 +83,8 @@ rule transferredTokens(address account, address reward, uint256 claimable, bytes
     assert balanceAfter - balanceBefore == claimable - claimedBefore;
 }
 
+// The main correctness result of the verification.
+// It ensures that if the root is setup according to a well-formed Merkle tree, then claiming will result in receiving the rewards stored in the tree for that particular pair of account and reward.
 rule claimCorrectness(address account, address reward, uint256 claimable, bytes32[] proof) {
     bytes32 node;
 
