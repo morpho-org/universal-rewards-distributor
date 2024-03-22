@@ -27,13 +27,14 @@ contract MerkleTree {
     /* STORAGE */
 
     // The tree has no root because every node (and the nodes underneath) form a Merkle tree.
+    // We use bytes32 as keys of the mapping so that leaves can have an identifier that is the hash of the address and the reward token.
+    // This ensures that the same pair of address and reward token does not appear twice as a leaf in the tree.
+    // For internal nodes the key is left arbitrary, so that the certificate generation can choose freely any bytes32 value (that is not already used).
     mapping(bytes32 => Node) internal tree;
 
     /* MAIN FUNCTIONS */
 
     function newLeaf(Leaf memory leaf) public {
-        // The following identifier is used as the key to create a new leaf.
-        // This ensures that the same pair of address and reward does not appear twice in the tree.
         bytes32 id = keccak256(abi.encode(leaf.addr, leaf.reward));
         Node storage node = tree[id];
         require(id != 0, "id is the zero bytes");

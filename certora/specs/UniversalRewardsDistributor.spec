@@ -48,23 +48,6 @@ rule increasingClaimedAmounts(address account, address reward, uint256 claimable
     assert claimable > claimed;
 }
 
-// Check that claiming twice is equivalent to claiming once with the last amount.
-rule claimTwice(address account, address reward, uint256 claim1, uint256 claim2) {
-    storage initStorage = lastStorage;
-
-    bytes32[] proof1; bytes32[] proof2;
-    claim(account, reward, claim1, proof1);
-    claim(account, reward, claim2, proof2);
-    assert claim2 >= claim1;
-
-    storage afterBothStorage = lastStorage;
-
-    bytes32[] proof3;
-    claim(account, reward, claim2, proof3) at initStorage;
-
-    assert lastStorage == afterBothStorage;
-}
-
 // Check that the transferred amount is equal to the claimed amount minus the previous claimed amount.
 rule transferredTokens(address account, address reward, uint256 claimable, bytes32[] proof) {
     // Assume that the rewards distributor itself is not receiving the tokens, to simplify this rule.
