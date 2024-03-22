@@ -72,14 +72,6 @@ contract MerkleTree {
         return isEmpty(tree[id]);
     }
 
-    function getLeft(bytes32 id) public view returns (bytes32) {
-        return tree[id].left;
-    }
-
-    function getRight(bytes32 id) public view returns (bytes32) {
-        return tree[id].right;
-    }
-
     function getValue(address addr, address reward) public view returns (uint256) {
         bytes32 id = keccak256(abi.encode(addr, reward));
         return tree[id].value;
@@ -123,8 +115,8 @@ contract MerkleTree {
 
             bytes32 otherHash = proof[--i];
 
-            bytes32 left = getLeft(id);
-            bytes32 right = getRight(id);
+            bytes32 left = tree[id].left;
+            bytes32 right = tree[id].right;
 
             id = getHash(left) == otherHash ? right : left;
         }
