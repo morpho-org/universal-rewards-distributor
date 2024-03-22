@@ -12,15 +12,11 @@ The [`certora/helpers`](helpers) folder contains files that enable the verific
 
 This work aims at providing a formally verified rewards checker.
 The rewards checker is composed of the [Checker.sol](checker/Checker.sol) file, which takes a certificate as an input.
-The certificate is assumed to contain the submitted root to verify, a total amount of rewards distributed, and a Merkle tree, and it is checked that:
-
-1. the Merkle tree is a well-formed Merkle tree
-2. the total amount of rewards distributed matches the total rewards contained in the Merkle tree
+The certificate is assumed to contain the submitted root to verify and a Merkle tree, and it is checked that the Merkle tree is well-formed.
 
 Those checks are done by only using "trusted" functions, namely `newLeaf` and `newInternalNode`, that have been formally verified to preserve those invariants:
 
 - it is checked in [MerkleTree.spec](specs/MerkleTree.spec) that those functions lead to creating well-formed trees.
-  Well-formed trees also verify that the value of their internal node is the sum of the rewards it contains.
 - it is checked in [UniversalRewardsDistributor.spec](specs/UniversalRewardsDistributor.spec) that the rewards distributor is correct, meaning that claimed rewards correspond exactly to the rewards contained in the corresponding Merkle tree.
 
 # Getting started
