@@ -113,7 +113,7 @@ forge test
 ### Deployment
 
 ```bash
-forge create src/UrdFactory.sol:UrdFactory
+forge create src/UrdFactory.sol:UrdFactory --broadcast
 ```
 
 ## Audits
