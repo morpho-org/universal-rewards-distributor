@@ -107,30 +107,7 @@ cp .env.example .env
 Running tests requires forge from [Foundry](https://book.getfoundry.sh/getting-started/installation).
 
 ```bash
-yarn test
-```
-
-### Deployment
-
-- Add the desired network key and its corresponding RPC url to `foundry.toml`
-- `yarn deploy {network} --broadcast --sender {sender}` followed with appropriate private key management parameters
-
-> [!NOTE]
-> If the provided network's RPC url uses a variable environment (such as `ALCHEMY_KEY`), it should be defined in your `.env`
-
-For example:
-
-```bash
-yarn deploy goerli --broadcast --ledger --sender 0x7Ef4174aFdF4514F556439fa2822212278151Db6
-```
-
-> [!NOTE]
-> Broadcast run logs are to be committed to this repository for future reference.
-
-### Etherscan verification
-
-```bash
-yarn verify --watch --chain-id {chainid} --etherscan-api-key {key} {address} src/UrdFactory.sol:UrdFactory
+forge t
 ```
 
 ## Audits
