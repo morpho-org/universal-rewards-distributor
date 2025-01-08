@@ -93,7 +93,7 @@ This behavior is acknowledged and should be considered when designing a strategy
 An alternative solution is to build a queue mechanism on top of the URD with a 0 timelock distribution. Here, the root updater could be a queue designed as the [Delay Modifier of Zodiac](https://github.com/gnosis/zodiac-modifier-delay/blob/36f56fd2e7a4aeb128971c5567fb8dffb6c6a21b/contracts/Delay.sol).
 
 
-## Getting Started
+## Developers
 
 ### Installation
 
@@ -102,12 +102,18 @@ yarn
 cp .env.example .env
 ```
 
-### Development
+### Testing
 
 Running tests requires forge from [Foundry](https://book.getfoundry.sh/getting-started/installation).
 
 ```bash
 forge t
+```
+
+### Deployment
+
+```bash
+forge create src/UrdFactory.sol:UrdFactory
 ```
 
 ## Audits
