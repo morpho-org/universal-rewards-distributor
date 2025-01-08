@@ -107,7 +107,7 @@ cp .env.example .env
 Running tests requires forge from [Foundry](https://book.getfoundry.sh/getting-started/installation).
 
 ```bash
-forge t
+forge test
 ```
 
 ### Deployment
