@@ -3,9 +3,6 @@ src = "src"
 test = "test"
 libs = ["lib"]
 fs_permissions = [
-    { access = "read", path = "./script/config/"},
-    { access = "read", path = "./out/"}
-]
 optimizer_runs = 200
 via-ir = true
 
