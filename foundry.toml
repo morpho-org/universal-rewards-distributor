@@ -6,6 +6,8 @@ fs_permissions = [
     { access = "read", path = "./script/config/"},
     { access = "read", path = "./out/"}
 ]
+optimizer = true
+optimizer_runs = 200
 bytecode_hash = "none"
 
 [profile.default.fmt]
