@@ -6,6 +6,7 @@ fs_permissions = [
     { access = "read", path = "./script/config/"},
     { access = "read", path = "./out/"}
 ]
+bytecode_hash = "none"
 
 [profile.default.fmt]
 wrap_comments = true
