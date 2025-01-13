@@ -6,6 +6,7 @@ fs_permissions = [
     { access = "read", path = "./script/config/"},
     { access = "read", path = "./out/"}
 ]
+via_ir = true
 optimizer = true
 optimizer_runs = 200
 bytecode_hash = "none"
