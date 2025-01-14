@@ -95,6 +95,9 @@ An alternative solution is to build a queue mechanism on top of the URD with a 0
 
 ## Developers
 
+> [!NOTE]
+> `UrdFactory` has been deployed on Ethereum and Base with the [metadata hash](https://docs.soliditylang.org/en/latest/metadata.html) included, which appear at two places in the bytecode as it is a factory.
+
 ### Installation
 
 ```bash
