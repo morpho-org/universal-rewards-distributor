@@ -2,7 +2,7 @@
 
 The Universal Rewards Distributor (URD), is a smart contract allowing the distribution of multiple ERC20 tokens from a single offchain computed Merkle tree.
 
-Each URD contract has an owner and a group of updaters (chosen by the owner). Values submitted by updaters are timelocked and can be revoked by the owner or overriden by another updater. However, this timelock can be set to 0 if the URD owner does not need it.
+Each URD contract has an owner and a group of updaters (chosen by the owner). Values submitted by updaters are timelocked and can be revoked by the owner or overridden by another updater. However, this timelock can be set to 0 if the URD owner does not need it.
 
 ## Use Case Example
 
